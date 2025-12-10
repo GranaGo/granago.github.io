@@ -1,11 +1,12 @@
 {
   "name": "GranáGo App",
   "short_name": "GranáGo",
+  "description": "Tu asistente integral de movilidad para Granada.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
-  "scope": "./",
+  "scope": "/",
   "icons": [
     {
       "src": "./imagenes/Logo192x192.png",
