@@ -1,0 +1,6 @@
+title: GranáGo
+description: Tu asistente integral de movilidad para Granada. Consulta tiempos de bus y metro en tiempo real, mapas de la Zona de Bajas Emisiones (ZBE), tarifas y zonas ORA, cortes de tráfico y descubre puntos de interés turístico. Incluye localizador de aparcamiento y rutas a pie.
+url: "https://xivitoo.github.io" # Tu dominio base
+baseurl: "/GranaGoApp" # El nombre de tu repositorio
+plugins:
+  - jekyll-sitemap
