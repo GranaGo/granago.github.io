@@ -159,7 +159,7 @@ En cumplimiento de la Ley 34/2002 (LSSI-CE), se informa que este sitio web acept
 
 - **Titular:** Javier Martín Herrera
 - **NIF/DNI:** 77964557P
-- **Domicilio/Contacto:** xivitoo14@gmail.com
+- **Domicilio/Contacto:** contacto.granago@gmail.com
 
 ### 2. Privacidad y Protección de Datos
 
