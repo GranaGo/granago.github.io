@@ -3768,7 +3768,7 @@ function cerrarBanner() {
  * Abre el modal, carga el contenido y añade un estado al historial
  * para que el botón "Atrás" del móvil funcione.
  */
-async function openReadmeModal() {
+window.openReadmeModal = async function () {
   const modal = document.getElementById("readme-modal");
   const contentDiv = document.getElementById("readme-content");
 
@@ -3848,7 +3848,7 @@ async function openReadmeModal() {
  * Si estamos en el estado '#info', simulamos un "Atrás" para limpiar la URL.
  * Si no, simplemente ocultamos el modal.
  */
-function closeReadmeModal() {
+window.closeReadmeModal = function () {
   // Si la URL actual tiene el hash #info, usamos la historia para volver atrás.
   // Esto disparará el evento 'popstate' que cerrará visualmente el modal.
   if (window.location.hash === "#info") {

@@ -1,0 +1,45 @@
+name: Actualizar Versión y Desplegar PWA
+
+on:
+  push:
+    branches:
+      - main # O la rama que uses para desplegar (master)
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    # --- BLOQUE DE PERMISOS NECESARIO ---
+    permissions:
+      contents: write # Permite al bot leer y escribir en el repositorio
+      pages: write # Permite al bot gestionar GitHub Pages
+      id-token: write # Necesario para usar la configuración OIDC (OpenID Connect)
+    # -------------------------------------
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # --- PASO CLAVE: Ejecutar el script de actualización ---
+      - name: Actualizar CACHE_VERSION en sw.js
+        run: node update-cache-version.js
+
+      # El siguiente paso usa un action para commitear y hacer push
+      # del sw.js modificado.
+      - name: Commit de la nueva versión de caché
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "CI: Incrementando CACHE_VERSION para el despliegue"
+          # Los archivos a incluir en el commit
+          files: "sw.js"
+
+      # El siguiente paso usa el action de despliegue de GitHub Pages.
+      # (Dependiendo de tu configuración actual, este paso podría variar)
+      - name: Despliegue en GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./ # O tu directorio de build si es diferente
