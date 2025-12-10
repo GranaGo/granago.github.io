@@ -1,0 +1,1140 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap");
+
+/* ==========================================================================
+   ÍNDICE DE CONTENIDOS
+   ==========================================================================
+   1.  Variables CSS (:root) - Paleta de colores y fuentes.
+   2.  Reset y Estilos Base - Body, Scrollbar, Utilidades generales.
+   3.  Animaciones Globales - Fade In, Bounce, Transiciones.
+   4.  CORE: Modo Oscuro (Overrides) - Sobrescritura de Tailwind con !important.
+   5.  Mapas (Leaflet) - Configuración base e inversión de color.
+   6.  Mapas: Marcadores (Pines) - Estilos para Metro, Bus y POIs.
+   7.  Mapas: Popups (Tarjetas) - Estilos internos de las ventanas de info.
+   8.  Vistas Específicas - Estilos para secciones únicas (Coche, ZBE).
+   9.  Componentes UI - Filtros (Píldoras), Botones, Tablas.
+   10. Modales - ZBE Fullscreen, Confirmaciones, Readme.
+   11. Integraciones Externas - Google Translate y ajustes finales.
+   ========================================================================== */
+
+/* ==========================================================================
+   1. VARIABLES CSS (:ROOT)
+   ========================================================================== */
+:root {
+  /* --- Tipografía y Fondo Base --- */
+  --font-main: "Inter", sans-serif;
+  --bg-body: #f7f9fb;
+  --text-main: #1f2937; /* gray-800 */
+
+  /* --- Scrollbar Personalizado --- */
+  --scroll-track: transparent;
+  --scroll-thumb: #cbd5e1;
+
+  /* --- PALETA MODO OSCURO (Variables semánticas) --- */
+  /* Fondos */
+  --dark-bg-body: #121212;
+  --dark-bg-card: #1e1e1e;
+  --dark-bg-input: #2d2d2d;
+  --dark-bg-soft: #262626;
+  --dark-border: #374151;
+
+  /* Textos */
+  --dark-text-main: #e5e7eb;
+  --dark-text-muted: #d1d5db;
+
+  /* Colores de UI (Aclarados para mejor contraste en negro) */
+  --dark-blue: #60a5fa;
+  --dark-red: #f87171;
+  --dark-green: #4ade80;
+  --dark-orange: #fbbf24;
+  --dark-purple: #c084fc;
+  --dark-brown: #d8b4fe;
+
+  /* Colores Específicos para Mapa en Modo Oscuro */
+  --dark-green-map: #4ade80; /* Parques */
+  --dark-blue-map: #60a5fa; /* Aparcamientos/Culto */
+}
+
+/* ==========================================================================
+   2. RESET Y ESTILOS BASE
+   ========================================================================== */
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--bg-body);
+  color: var(--text-main);
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Scrollbar (Webkit) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--scroll-track);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--scroll-thumb);
+  border-radius: 3px;
+}
+/* Ajuste del scrollbar en modo oscuro */
+body.dark-mode .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #4b5563;
+}
+
+/* Utilidad tipográfica para textos legales */
+.normativa-title {
+  font-weight: 700;
+  display: block;
+  margin-bottom: 0.1rem;
+}
+
+/* ==========================================================================
+   3. ANIMACIONES GLOBALES
+   ========================================================================== */
+
+/* --- Transiciones de Tarjetas (Hover) --- */
+.service-card {
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+.service-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* --- Gestión de Vistas (SPA) --- */
+.view-section {
+  display: none;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+.view-section.active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Animación Dropdown (Filtros) --- */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-down {
+  animation: fadeInDown 0.2s ease-out forwards;
+}
+
+/* --- Animación "Has Llegado" (Bounce) --- */
+#arrival-notification.active .bg-green-600 {
+  transform: scale(1);
+}
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ==========================================================================
+   4. CORE: MODO OSCURO (OVERRIDES)
+   ========================================================================== 
+   NOTA IMPORTANTE: Se usa !important deliberadamente.
+   El HTML utiliza clases de utilidad de Tailwind (ej: bg-white).
+   Para sobrescribirlas desde CSS puro sin cambiar el HTML dinámico, 
+   necesitamos elevar la especificidad.
+*/
+
+body.dark-mode {
+  background-color: var(--dark-bg-body) !important;
+  color: var(--dark-text-main) !important;
+}
+
+/* Filtro para imagen de fondo (hacerla sutil) */
+body.dark-mode .fixed.inset-0.-z-10 {
+  opacity: 0.15 !important;
+  filter: invert(1) grayscale(100%) brightness(0.7);
+}
+
+/* --- Fondos y Contenedores --- */
+body.dark-mode .bg-white {
+  background-color: var(--dark-bg-card) !important;
+  border-color: var(--dark-border) !important;
+  color: var(--dark-text-main) !important;
+}
+
+body.dark-mode .bg-gray-50,
+body.dark-mode .bg-gray-100 {
+  background-color: var(--dark-bg-soft) !important;
+  border-color: #404040 !important;
+  color: var(--dark-text-muted) !important;
+}
+
+/* Tarjetas específicas del Home */
+body.dark-mode .service-card {
+  background-color: #2d2d2d !important;
+  border-color: var(--dark-border) !important;
+}
+
+/* --- Tipografía en Modo Oscuro --- */
+/* Aclarar textos grises oscuros */
+body.dark-mode .text-gray-400,
+body.dark-mode .text-gray-500,
+body.dark-mode .text-gray-600,
+body.dark-mode .text-gray-700,
+body.dark-mode .text-gray-800,
+body.dark-mode .text-gray-900 {
+  color: var(--dark-text-muted) !important;
+}
+
+/* Encabezados a blanco */
+body.dark-mode .font-bold,
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4 {
+  color: #ffffff !important;
+}
+
+/* Excepción: Textos que DEBEN ser negros (ej: etiquetas amarillas de bus) */
+body.dark-mode .text-black {
+  color: #000000 !important;
+}
+
+/* --- Colores Semánticos (Adaptación) --- */
+body.dark-mode .text-blue-600,
+body.dark-mode .text-blue-700,
+body.dark-mode .text-blue-800 {
+  color: var(--dark-blue) !important;
+}
+body.dark-mode .text-red-600,
+body.dark-mode .text-red-700,
+body.dark-mode .text-red-800 {
+  color: var(--dark-red) !important;
+}
+body.dark-mode .text-green-600,
+body.dark-mode .text-green-800 {
+  color: var(--dark-green) !important;
+}
+body.dark-mode .text-orange-800,
+body.dark-mode .text-orange-900 {
+  color: var(--dark-orange) !important;
+}
+body.dark-mode .text-purple-600 {
+  color: var(--dark-purple) !important;
+}
+
+/* --- Cajas de Alerta (Tintes Transparentes) --- */
+body.dark-mode [class*="bg-blue-50"],
+body.dark-mode [class*="bg-blue-100"] {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+body.dark-mode [class*="bg-red-50"],
+body.dark-mode [class*="bg-red-100"] {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+body.dark-mode [class*="bg-green-50"],
+body.dark-mode [class*="bg-green-100"] {
+  background-color: rgba(34, 197, 94, 0.15) !important;
+  border-color: rgba(34, 197, 94, 0.3) !important;
+}
+body.dark-mode [class*="bg-orange-50"],
+body.dark-mode [class*="bg-orange-100"] {
+  background-color: rgba(249, 115, 22, 0.15) !important;
+  border-color: rgba(249, 115, 22, 0.3) !important;
+}
+body.dark-mode [class*="bg-purple-50"] {
+  background-color: rgba(168, 85, 247, 0.15) !important;
+  border-color: rgba(168, 85, 247, 0.3) !important;
+}
+
+/* --- Formularios (Inputs y Search) --- */
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode #map-search-input,
+body.dark-mode #cortes-search-input {
+  background-color: var(--dark-bg-input) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--dark-border) !important;
+}
+body.dark-mode input::placeholder,
+body.dark-mode #map-search-input::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Iconos SVG generales */
+body.dark-mode svg {
+  color: currentColor;
+}
+
+/* ==========================================================================
+   5. MAPAS (LEAFLET)
+   ========================================================================== */
+
+/* Inversión de colores del mapa base (Efecto Modo Noche) */
+body.dark-mode .leaflet-layer,
+body.dark-mode .leaflet-control-zoom-in,
+body.dark-mode .leaflet-control-zoom-out,
+body.dark-mode .leaflet-control-attribution {
+  filter: invert(100%) hue-rotate(180deg) brightness(0.95) contrast(0.9);
+}
+
+/* Proteger elementos superpuestos para que NO se inviertan */
+body.dark-mode .leaflet-marker-icon,
+body.dark-mode .leaflet-popup-content-wrapper,
+body.dark-mode .leaflet-popup-tip {
+  filter: none !important;
+}
+
+/* Ocultar panel de instrucciones de ruta (para que no tape el mapa) */
+.leaflet-routing-container {
+  display: none !important;
+}
+
+/* ==========================================================================
+   6. MAPAS: MARCADORES (PINES)
+   ========================================================================== */
+
+/* --- Estilo Base del Pin (Círculo SVG) --- */
+.pin-icon-custom {
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  padding: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 3px solid white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+.pin-icon-custom svg {
+  height: 100%;
+  width: 100%;
+  color: white !important;
+}
+
+/* Colores de Transporte */
+.pin-metro {
+  background-color: #27ae60;
+} /* Verde */
+.pin-urbano {
+  background-color: #e74c3c;
+} /* Rojo */
+.pin-inter {
+  background-color: #3498db;
+} /* Azul */
+
+/* Adaptación Dark Mode para pines */
+body.dark-mode .pin-icon-custom {
+  border-color: #1e1e1e;
+}
+body.dark-mode .controls-transporte .icon-transport {
+  fill: currentColor !important;
+}
+
+/* --- Controles Flotantes de Capas --- */
+.controls-transporte {
+  z-index: 9999 !important;
+  position: absolute;
+  transform: translateZ(0);
+  will-change: transform;
+}
+.controls-transporte .icon-transport {
+  fill: currentColor;
+}
+
+/* Estados de botones de capa */
+.btn-urbano.active-layer {
+  background: #e74c3c;
+  color: white;
+}
+.btn-inter.active-layer {
+  background: #3498db;
+  color: white;
+}
+.btn-metro.active-layer {
+  background: #27ae60;
+  color: white;
+}
+
+.inactive-layer {
+  opacity: 0.6;
+  background: #e5e7eb;
+  color: #6b7280;
+  box-shadow: none !important;
+}
+.inactive-layer:hover {
+  opacity: 0.8;
+}
+.inactive-layer:active {
+  opacity: 1;
+}
+
+body.dark-mode .inactive-layer {
+  background: #374151 !important;
+  color: #d1d5db !important;
+}
+
+/* --- Colores Puntos de Interés (POIs) --- */
+.pin-hotel {
+  background-color: #ef4444;
+}
+.pin-hostal {
+  background-color: #f97316;
+}
+.pin-apartamento {
+  background-color: #10b981;
+}
+.pin-parque {
+  background-color: #14b8a6;
+}
+.pin-aparcamiento-poi {
+  background-color: #3b82f6;
+}
+.pin-monumento {
+  background-color: #8b5cf6;
+}
+.pin-museo {
+  background-color: #ec4899;
+}
+.pin-atraccion {
+  background-color: #f59e0b;
+}
+.pin-estadio {
+  background-color: #06b6d4;
+}
+.pin-castillo {
+  background-color: #78350f;
+}
+.pin-culto {
+  background-color: #0369a1;
+}
+.pin-estacion-bus,
+.pin-estacion-tren {
+  background-color: #262626;
+}
+.pin-mirador {
+  background-color: #1d40af;
+}
+.pin-sitio-arq {
+  background-color: #b91c1c;
+}
+.pin-memorial {
+  background-color: #4f46e5;
+}
+.pin-capilla {
+  background-color: #6366f1;
+}
+.pin-monasterio {
+  background-color: #a855f7;
+}
+.pin-huespedes {
+  background-color: #f43f5e;
+}
+.pin-fuente {
+  background-color: #0891b2;
+}
+.pin-discoteca {
+  background-color: #3f3f46;
+}
+
+/* Sobrescrituras POI para Modo Oscuro */
+body.dark-mode .pin-aparcamiento-poi {
+  background-color: var(--dark-blue-map) !important;
+}
+body.dark-mode .pin-parque {
+  background-color: var(--dark-green-map) !important;
+}
+
+/* ==========================================================================
+   7. MAPAS: POPUPS (TARJETAS)
+   ========================================================================== */
+
+/* --- Contenedor del Popup --- */
+.clean-leaflet-popup .leaflet-popup-content-wrapper {
+  padding: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+.clean-leaflet-popup .leaflet-popup-content {
+  margin: 0 !important;
+  width: auto !important;
+  line-height: 1.5;
+  max-width: 85vw !important;
+}
+
+/* Ocultar elementos técnicos internos */
+.leaflet-popup-content .stop-code,
+.leaflet-popup-content .stop-id {
+  display: none !important;
+}
+
+/* Adaptación Modo Oscuro para el contenedor */
+body.dark-mode .leaflet-popup-content-wrapper,
+body.dark-mode .leaflet-popup-tip {
+  background-color: var(--dark-bg-input) !important;
+  color: var(--dark-text-main) !important;
+}
+body.dark-mode .clean-leaflet-popup .leaflet-popup-content-wrapper {
+  background-color: #1e1e1e !important;
+  border: 1px solid #374151;
+}
+
+/* --- Estructura Interna: Header --- */
+.popup-header {
+  background-color: #f8fafc;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.popup-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: #1e293b;
+  flex: 1;
+  min-width: 0;
+}
+.popup-code {
+  background-color: #e2e8f0;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* Dark Mode Header */
+body.dark-mode .popup-header {
+  background-color: #262626;
+  border-bottom-color: #374151;
+}
+body.dark-mode .popup-header h3 {
+  color: #f3f4f6;
+}
+body.dark-mode .popup-code {
+  background-color: #374151;
+  color: #9ca3af;
+}
+
+/* --- Estructura Interna: Body --- */
+.popup-body {
+  padding: 12px 16px;
+  background-color: #ffffff;
+}
+.popup-body .label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  font-weight: 700;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+body.dark-mode .popup-body {
+  background-color: #1e1e1e;
+}
+body.dark-mode .leaflet-popup-content b {
+  color: var(--dark-blue) !important;
+}
+
+/* Pastillas de Línea */
+.popup-lines-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.line-badge-popup {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+/* Estilo para las líneas de color en el popup */
+.leaflet-popup-content span[style*="background-color"] {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+body.dark-mode .leaflet-popup-content span[style*="background-color"] {
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+/* --- Estructura Interna: Footer y Botones --- */
+.popup-footer {
+  padding: 12px 16px;
+  background-color: #ffffff;
+  padding-top: 4px;
+}
+body.dark-mode .popup-footer {
+  background-color: #1e1e1e;
+}
+
+.popup-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 13px;
+  transition: transform 0.1s, opacity 0.2s;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+.popup-btn:active {
+  transform: scale(0.97);
+}
+
+.popup-btn.btn-urbano {
+  background: linear-gradient(to bottom right, #dc2626, #b91c1c);
+  box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.3);
+}
+.popup-btn.btn-metro {
+  background: linear-gradient(to bottom right, #10b981, #059669);
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+}
+
+/* Botón "Ir Ruta" */
+.btn-ir-ruta {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  font-weight: 800;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 0;
+  width: 100%;
+  margin-top: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+  transition: transform 0.1s, box-shadow 0.2s;
+}
+.btn-ir-ruta:active {
+  transform: scale(0.96);
+}
+.btn-ir-ruta:hover {
+  box-shadow: 0 6px 8px -2px rgba(37, 99, 235, 0.4);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+/* Botones Deprecados (Mantenidos por seguridad) */
+.leaflet-popup-content .btn-ver-tiempos {
+  font-weight: bold;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  margin-top: 8px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+.leaflet-popup-content .btn-bus {
+  background-color: #ef4444;
+  color: white;
+}
+.leaflet-popup-content .btn-metro {
+  background-color: #10b981;
+  color: white;
+}
+.leaflet-popup-content .btn-bus:hover {
+  background-color: #dc2626;
+}
+.leaflet-popup-content .btn-metro:hover {
+  background-color: #059669;
+}
+
+/* ==========================================================================
+   8. VISTAS ESPECÍFICAS
+   ========================================================================== */
+
+/* --- Vista: Mi Coche --- */
+/* Forzar visibilidad de textos en la tarjeta de coche aparcado en Dark Mode */
+body.dark-mode #panel-acciones-coche p {
+  color: #000000 !important;
+}
+body.dark-mode #fecha-coche {
+  color: #000000 !important;
+}
+
+/* Botón de borrado en Dark Mode (Rojo sobre rojo oscuro) */
+body.dark-mode #panel-acciones-coche .bg-red-100 {
+  background-color: #520000 !important;
+  color: var(--dark-red) !important;
+  border-color: #600000 !important;
+}
+body.dark-mode #panel-acciones-coche .bg-red-100:hover {
+  background-color: #6a0000 !important;
+}
+
+/* ==========================================================================
+   9. COMPONENTES UI (FILTROS, LISTAS, TABLAS)
+   ========================================================================== */
+
+/* --- Filtros (Píldoras) --- */
+.filter-pill {
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+.filter-pill.active {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: scale(1);
+  color: white; /* Fondo inline desde JS */
+}
+.filter-pill.inactive {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  border-color: #e5e7eb;
+  opacity: 0.7;
+}
+.filter-pill.inactive:hover {
+  background-color: #e5e7eb;
+  opacity: 1;
+}
+
+/* Filtros en Dark Mode */
+body.dark-mode .filter-pill.inactive {
+  background-color: #374151;
+  color: #9ca3af;
+  border-color: #4b5563;
+}
+body.dark-mode .filter-pill.inactive:hover {
+  background-color: #4b5563;
+}
+
+/* --- Información Transporte: Listados y Tarjetas --- */
+.btn-mode-select {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  cursor: pointer;
+  min-height: 160px;
+  background-color: white !important;
+  color: #1f2937 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+.btn-mode-select:active {
+  transform: scale(0.98);
+}
+
+/* Variantes de color Modo Día */
+.btn-mode-select.metro {
+  border-color: #10b981;
+}
+.btn-mode-select.metro span {
+  color: #047857 !important;
+}
+.btn-mode-select.urbano {
+  border-color: #ef4444;
+}
+.btn-mode-select.urbano span {
+  color: #b91c1c !important;
+}
+.btn-mode-select.inter {
+  border-color: #3b82f6;
+}
+.btn-mode-select.inter span {
+  color: #1d4ed8 !important;
+}
+
+/* Tarjetas de Línea (Lista) */
+.line-item-card {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  background-color: white !important;
+  color: #1f2937 !important;
+}
+.line-item-card:active {
+  transform: scale(0.99);
+  background-color: #f3f4f6 !important;
+}
+
+.line-number-box {
+  font-weight: 900;
+  color: white !important;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  margin-right: 1rem;
+  min-width: 3.5rem;
+  text-align: center;
+  font-size: 1.1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Tarjetas Informativas Generales */
+.info-card-white {
+  border-radius: 1rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  background-color: white !important;
+  color: #1f2937 !important;
+}
+
+/* Colores de texto en tarjetas informativas (Modo Día) */
+.info-card-white h3,
+.info-card-white h4 {
+  color: #111827;
+}
+.info-card-white p,
+.info-card-white li,
+.info-card-white span {
+  color: #374151;
+}
+.info-card-white .text-blue-600 {
+  color: #2563eb !important;
+}
+.info-card-white .text-red-600 {
+  color: #dc2626 !important;
+}
+.info-card-white .text-green-600 {
+  color: #16a34a !important;
+}
+.info-card-white .text-purple-400 {
+  color: #a855f7 !important;
+}
+
+/* --- Tablas --- */
+.info-table-container {
+  overflow-x: auto;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+}
+.info-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  background-color: white !important;
+  color: #374151 !important;
+}
+.info-table th {
+  background-color: #f3f4f6 !important;
+  color: #111827 !important;
+  font-weight: 700;
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 2px solid #e5e7eb;
+}
+.info-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #4b5563 !important;
+}
+
+/* --- Overrides Modo Oscuro para Componentes de Info --- */
+body.dark-mode .btn-mode-select,
+body.dark-mode .line-item-card,
+body.dark-mode .info-card-white {
+  background-color: var(--dark-bg-card) !important;
+  border-color: var(--dark-border) !important;
+  color: var(--dark-text-main) !important;
+  box-shadow: none;
+}
+body.dark-mode .btn-mode-select:hover,
+body.dark-mode .line-item-card:hover {
+  background-color: var(--dark-bg-soft) !important;
+}
+body.dark-mode .info-card-white h3,
+body.dark-mode .info-card-white h4,
+body.dark-mode .info-card-white p,
+body.dark-mode .info-card-white li,
+body.dark-mode .info-card-white span {
+  color: var(--dark-text-main);
+}
+/* Tablas en Dark Mode */
+body.dark-mode .info-table {
+  background-color: var(--dark-bg-card) !important;
+  color: var(--dark-text-main) !important;
+}
+body.dark-mode .info-table th {
+  background-color: var(--dark-bg-soft) !important;
+  color: white !important;
+  border-bottom-color: var(--dark-border) !important;
+}
+body.dark-mode .info-table td {
+  border-bottom-color: var(--dark-border) !important;
+  color: var(--dark-text-muted) !important;
+}
+/* Colores semánticos en componentes Dark Mode */
+body.dark-mode .text-blue-600 {
+  color: #60a5fa !important;
+}
+body.dark-mode .text-red-600 {
+  color: #f87171 !important;
+}
+body.dark-mode .text-green-600 {
+  color: #4ade80 !important;
+}
+body.dark-mode .text-purple-400 {
+  color: #c084fc !important;
+}
+body.dark-mode .nav-header-text {
+  color: white !important;
+}
+body.dark-mode .nav-back-btn {
+  color: #9ca3af !important;
+}
+
+/* ==========================================================================
+   10. MODALES (FULLSCREEN Y POPUPS)
+   ========================================================================== */
+
+/* --- Modal ZBE (Mapa Completo) --- */
+#zbe-modal {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  perspective: 1000px;
+  overflow: hidden;
+  backdrop-filter: blur(5px);
+  background-color: rgba(0, 0, 0, 0.9);
+  transition: opacity 0.3s ease;
+}
+/* Ajuste Dark Mode (Sin filtros) */
+body.dark-mode #zbe-modal {
+  background-color: rgba(0, 0, 0, 0.95) !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+#zbe-modal.hidden {
+  display: none !important;
+}
+
+#zbe-modal-img {
+  transform-origin: center center !important;
+  max-width: none;
+  max-height: none;
+  cursor: grab;
+  transform: translateZ(0); /* Optimización GPU */
+  backface-visibility: hidden;
+  transition: none;
+}
+#zbe-modal-img:active {
+  cursor: grabbing;
+}
+/* La imagen del mapa ZBE no debe invertirse nunca */
+body.dark-mode #zbe-modal img {
+  filter: none !important;
+}
+
+/* --- Modal de Confirmación --- */
+#custom-confirm-modal {
+  display: none;
+}
+/* Se activa vía JS quitando la clase 'hidden' */
+#custom-confirm-modal:not(.hidden) {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- Modal Readme (Markdown Styling) --- */
+#readme-content h1,
+#readme-content h2,
+#readme-content h3 {
+  font-weight: 800;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.2;
+}
+#readme-content h1 {
+  font-size: 1.8em;
+  color: #1f2937;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.3em;
+}
+#readme-content h2 {
+  font-size: 1.5em;
+  color: #374151;
+}
+#readme-content h3 {
+  font-size: 1.25em;
+  color: #4b5563;
+}
+#readme-content p {
+  margin-bottom: 1em;
+  line-height: 1.6;
+  color: #4b5563;
+}
+#readme-content ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+  margin-bottom: 1em;
+}
+#readme-content ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+  margin-bottom: 1em;
+}
+#readme-content li {
+  margin-bottom: 0.25em;
+  color: #4b5563;
+}
+#readme-content strong {
+  color: #111827;
+  font-weight: 700;
+}
+#readme-content code {
+  background-color: #f3f4f6;
+  padding: 0.2em 0.4em;
+  outline: 4px;
+  font-family: monospace;
+  font-size: 0.9em;
+  color: #ec4899;
+}
+#readme-content pre {
+  background-color: #1f2937;
+  color: #f9fafb;
+  padding: 1em;
+  border-radius: 0.5em;
+  overflow-x: auto;
+  margin-bottom: 1em;
+}
+#readme-content pre code {
+  background-color: transparent;
+  color: inherit;
+  padding: 0;
+}
+#readme-content img {
+  max-width: 100%;
+  border-radius: 0.5em;
+  margin: 1em auto;
+  display: block;
+}
+#readme-content blockquote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 1em;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Adaptación Dark Mode para Readme */
+body.dark-mode #readme-content h1 {
+  color: #f3f4f6;
+  border-color: #374151;
+}
+body.dark-mode #readme-content h2 {
+  color: #e5e7eb;
+}
+body.dark-mode #readme-content h3 {
+  color: #d1d5db;
+}
+body.dark-mode #readme-content p,
+body.dark-mode #readme-content li {
+  color: #d1d5db;
+}
+body.dark-mode #readme-content strong {
+  color: #fff;
+}
+body.dark-mode #readme-content code {
+  background-color: #374151;
+  color: #f472b6;
+}
+body.dark-mode #readme-content blockquote {
+  border-color: #4b5563;
+  color: #9ca3af;
+}
+
+/* ==========================================================================
+   11. INTEGRACIONES EXTERNAS Y FOOTER
+   ========================================================================== */
+
+/* --- Google Translate (Limpieza de UI) --- */
+/* Ocultar barra superior y tooltips */
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.goog-te-banner-frame {
+  display: none !important;
+  visibility: hidden !important;
+}
+/* Eliminar resaltado azul/amarillo al traducir */
+.goog-text-highlight {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: inherit !important;
+  cursor: inherit !important;
+}
+font {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+body {
+  top: 0px !important;
+  position: relative !important;
+}
+.skiptranslate {
+  display: none;
+}
+
+/* --- Footer --- */
+/* Adaptación Modo Oscuro */
+body.dark-mode footer {
+  background-color: var(--dark-bg-card) !important;
+  border-color: var(--dark-border) !important;
+}
+body.dark-mode footer span {
+  color: var(--dark-text-muted) !important;
+}
+/* Botones del footer */
+body.dark-mode .boton-donacion-paypal button,
+body.dark-mode .btn-info-style {
+  background-color: var(--dark-bg-soft) !important;
+  color: var(--dark-text-muted) !important;
+  border-color: var(--dark-border) !important;
+}
+body.dark-mode .boton-donacion-paypal button:hover,
+body.dark-mode .btn-info-style:hover {
+  background-color: #374151 !important;
+}

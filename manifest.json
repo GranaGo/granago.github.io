@@ -1,0 +1,21 @@
+{
+  "name": "GranáGo App",
+  "short_name": "GranáGo",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "./imagenes/Logo192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./imagenes/Logo512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
