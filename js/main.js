@@ -2365,12 +2365,15 @@ window.initPuntosMap = function () {
         })
           .addTo(mapPuntos)
           .bindPopup("📍 Estás aquí");
+
+        // 💡 NUEVA LÍNEA: Centrar solo la PRIMERA vez que se encuentra la ubicación
+        mapPuntos.flyTo(e.latlng, 16);
       }
     });
 
     // Activar el "watch: true" para seguimiento continuo
     mapPuntos.locate({
-      setView: true,
+      setView: false, // <-- CAMBIO CLAVE: Ya no centra el mapa automáticamente
       maxZoom: 19,
       enableHighAccuracy: true,
       watch: true,
@@ -2623,6 +2626,9 @@ window.iniciarRutaAPie = function (destLat, destLon) {
 
       // 1. Dibujar la ruta
       dibujarRuta(userLat, userLon, destLat, destLon);
+
+      // 1.5. Centrar el mapa en la posición actual al iniciar la ruta
+      mapPuntos.flyTo([userLat, userLon], 16);
 
       // 2. Empezar a vigilar la posición para detectar llegada
       iniciarVigilanciaLlegada(destLat, destLon);
@@ -3841,7 +3847,7 @@ window.openReadmeModal = async function () {
                 <p class="text-xs text-gray-400 mt-4">Verifica que el archivo README.md existe en la carpeta raíz.</p>
             </div>`;
   }
-}
+};
 
 /**
  * Cierra el modal.
@@ -3857,7 +3863,7 @@ window.closeReadmeModal = function () {
     // Fallback: Si por alguna razón no hay hash, cerramos visualmente directo
     hideReadmeModalVisuals();
   }
-}
+};
 
 /**
  * Función auxiliar que solo se encarga de la animación de cierre (CSS)
