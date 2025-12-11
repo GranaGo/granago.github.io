@@ -4,7 +4,7 @@
   "id": "/",
   "description": "Tu asistente integral de movilidad para Granada.",
   "orientation": "portrait-primary",
-  "start_url": "/index.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
