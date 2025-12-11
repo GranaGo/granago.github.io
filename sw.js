@@ -1,42 +1,51 @@
 /* ==========================================================================
-   SERVICE WORKER - GRANÁGO (WORKBOX + AUTO-VERSION)
+   SERVICE WORKER - GRANÁGO (WORKBOX + ADS FIX)
    ========================================================================== */
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
 
-// ESTA LÍNEA ES CLAVE: Tu script 'update-cache-version.js' busca esto.
-// No la borres ni cambies el formato.
-const CACHE_VERSION = 'v2.3';
+// MANTENER ESTO EXACTO para tu script update-cache-version.js
+const CACHE_VERSION = 'v2.5';
 
 if (workbox) {
-  console.log(`[SW] Workbox cargado - Versión: ${CACHE_VERSION}`);
+  console.log(`[SW] Workbox activo - ${CACHE_VERSION}`);
 
-  // Configuración global de nombres de caché usando tu versión
+  // Configuración de nombres de caché
   workbox.core.setCacheNameDetails({
-    prefix: 'granago',
-    suffix: CACHE_VERSION, // Aquí usamos la versión automática
-    precache: 'precache',
-    runtime: 'runtime'
+    prefix: 'granago-app',
+    suffix: CACHE_VERSION
   });
 
-  // Forzar actualización inmediata
+  // Activar inmediatamente
   workbox.core.skipWaiting();
   workbox.core.clientsClaim();
 
-  // 1. Caché para HTML, CSS, JS, JSON (StaleWhileRevalidate)
+  // 1. REGLA PRINCIPAL: HTML, JS, CSS, JSON
+  // SOLUCIÓN AL ERROR: Solo cacheamos archivos de NUESTRO dominio.
+  // Ignoramos Google Ads (googlesyndication) y scripts externos.
   workbox.routing.registerRoute(
-    ({request}) => 
-      request.destination === 'document' ||
-      request.destination === 'script' ||
-      request.destination === 'style' ||
-      request.destination === 'manifest',
-    new workbox.strategies.StaleWhileRevalidate()
+    ({request, url}) => {
+      // Si el archivo no viene de mi propio servidor, LO IGNORO.
+      if (url.origin !== self.location.origin) return false;
+
+      return request.destination === 'document' ||
+             request.destination === 'script' ||
+             request.destination === 'style' ||
+             request.destination === 'manifest';
+    },
+    new workbox.strategies.StaleWhileRevalidate({
+      cacheName: 'core-assets',
+    })
   );
 
-  // 2. Caché para Imágenes (CacheFirst con caducidad)
-  // Si una falla (404), NO rompe la instalación.
+  // 2. REGLA IMÁGENES
   workbox.routing.registerRoute(
-    ({request}) => request.destination === 'image',
+    ({request, url}) => {
+      // Solo imágenes propias (evita cachear píxeles de rastreo externos)
+      if (url.origin !== self.location.origin) return false;
+      return request.destination === 'image';
+    },
     new workbox.strategies.CacheFirst({
+      cacheName: 'images',
       plugins: [
         new workbox.expiration.ExpirationPlugin({
           maxEntries: 60,
@@ -46,13 +55,16 @@ if (workbox) {
     })
   );
 
-  // 3. Caché para Fuentes de Google
+  // 3. EXCEPCIÓN: Fuentes de Google (Estas SÍ queremos cachearlas)
+  // Son seguras y no dan el error de los anuncios.
   workbox.routing.registerRoute(
     ({url}) => url.origin === 'https://fonts.googleapis.com' ||
                url.origin === 'https://fonts.gstatic.com',
-    new workbox.strategies.StaleWhileRevalidate()
+    new workbox.strategies.StaleWhileRevalidate({
+      cacheName: 'google-fonts',
+    })
   );
 
 } else {
-  console.log(`[SW] Fallo al cargar Workbox`);
+  console.log(`[SW] Error cargando Workbox`);
 }
