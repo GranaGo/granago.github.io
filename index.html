@@ -30,7 +30,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <link rel="stylesheet" href="css/styles.css?v=v3.7" />
+    <link rel="stylesheet" href="css/styles.css?v=v3.8" />
     <link rel="preload" as="image" href="imagenes/Fondo.webp" />
 
     <link rel="icon" type="image/x-icon" href="imagenes/Logo.ico" />
@@ -1518,7 +1518,7 @@
       </div>
     </footer>
 
-    <script src="js/main.js?v=v3.7" type="module"></script>
+    <script src="js/main.js?v=v3.8" type="module"></script>
 
     <script>
       const toggleButton = document.getElementById("theme-toggle");
@@ -1562,70 +1562,70 @@
     </script>
 
     <script>
-      // Variable para controlar que no salga el popup dos veces
-      let notificationShown = false;
+      let newWorker;
+      let refreshing = false;
 
+      // Evento para recargar la página cuando el nuevo SW tome el control
       if ("serviceWorker" in navigator) {
-        // Esperar a que la página cargue completamente antes de registrar
-        window.addEventListener("load", () => {
-          // USA RUTA RELATIVA AQUÍ (./sw.js)
-          navigator.serviceWorker
-            .register("./sw.js", { scope: "/" })
-            .then((reg) => {
-              console.log("SW registrado correctamente:", reg.scope);
-
-              // Lógica de actualización
-              if (reg.waiting) {
-                showUpdateNotification(reg.waiting);
-                return;
-              }
-
-              reg.addEventListener("updatefound", () => {
-                const newWorker = reg.installing;
-                newWorker.addEventListener("statechange", () => {
-                  if (
-                    newWorker.state === "installed" &&
-                    navigator.serviceWorker.controller
-                  ) {
-                    showUpdateNotification(newWorker);
-                  }
-                });
-              });
-            })
-            .catch((err) => console.error("Fallo al registrar SW:", err));
-        });
-
-        // Recargar página al cambiar controlador
-        let refreshing = false;
         navigator.serviceWorker.addEventListener("controllerchange", () => {
           if (!refreshing) {
             refreshing = true;
             window.location.reload();
           }
         });
+
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("./sw.js", { scope: "/" })
+            .then((reg) => {
+              console.log("SW registrado:", reg.scope);
+
+              // 1. COMPROBACIÓN INICIAL: ¿Hay una actualización esperando?
+              // Si el usuario acaba de abrir la app y ya había una versión nueva descargada de antes,
+              // la aplicamos directamente sin preguntarle.
+              if (reg.waiting) {
+                console.log(
+                  "Actualización pendiente encontrada al inicio. Aplicando..."
+                );
+                reg.waiting.postMessage({ action: "skipWaiting" });
+                return;
+              }
+
+              // 2. DETECCIÓN DE NUEVAS VERSIONES (Mientras se usa la app)
+              reg.addEventListener("updatefound", () => {
+                newWorker = reg.installing;
+
+                newWorker.addEventListener("statechange", () => {
+                  // Si el nuevo worker se ha instalado correctamente
+                  if (
+                    newWorker.state === "installed" &&
+                    navigator.serviceWorker.controller
+                  ) {
+                    // Aquí lanzamos el aviso visual porque el usuario ya está usando la app
+                    showUpdateNotification(newWorker);
+                  }
+                });
+              });
+
+              // Opcional: Forzar chequeo de actualización al cargar
+              reg.update();
+            })
+            .catch((err) => console.error("Error SW:", err));
+        });
       }
 
-      /* ===============================================================
-   Listener para skipWaiting desde el cliente (update popup)
-   =============================================================== */
-      self.addEventListener("message", (event) => {
-        if (event.data && event.data.action === "skipWaiting") {
-          self.skipWaiting();
-        }
-      });
-
+      /* Función que muestra el banner (Llama a tu función de main.js) */
       function showUpdateNotification(worker) {
-        if (notificationShown) return;
-        notificationShown = true;
-        console.log("Nueva versión disponible.");
-
-        // Llamamos a la función visual que pusimos en main.js
         if (typeof window.lanzarAvisoActualizacion === "function") {
           window.lanzarAvisoActualizacion(worker);
         } else {
-          // Fallback por si main.js no ha cargado aún (raro, pero posible)
-          // Aquí sí forzamos si no hay UI disponible
-          if (worker) worker.postMessage({ action: "skipWaiting" });
+          // Fallback por seguridad
+          let confirmar = confirm(
+            "Nueva versión disponible. ¿Actualizar ahora?"
+          );
+          if (confirmar && worker) {
+            worker.postMessage({ action: "skipWaiting" });
+          }
         }
       }
     </script>
