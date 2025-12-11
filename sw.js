@@ -2,7 +2,7 @@
    GRANÁGO - SERVICE WORKER (SIN WORKBOX) - API + CACHE BUSTING
    =============================================================== */
 
-const CACHE_VERSION = 'v3.3'; // Tu script update-cache-version lo actualizará
+const CACHE_VERSION = 'v3.4'; // Tu script update-cache-version lo actualizará
 const STATIC_CACHE = `granago-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `granago-dynamic-${CACHE_VERSION}`;
 const API_CACHE = `granago-api-${CACHE_VERSION}`;
@@ -103,7 +103,7 @@ async function cacheFirst(request, cacheName) {
     cache.put(request, fresh.clone());
     return fresh;
   } catch (err) {
-    return caches.match("/offline.html");
+    return caches.match("/index.html");
   }
 }
 
