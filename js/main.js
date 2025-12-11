@@ -4105,3 +4105,48 @@ document.addEventListener("click", function (event) {
     closeReadmeModal();
   }
 });
+// ======================================================================
+// 19. SISTEMA DE ACTUALIZACIÓN (PWA / SW)
+// ======================================================================
+
+window.lanzarAvisoActualizacion = function (worker) {
+  // Evitar duplicados si ya existe el banner
+  if (document.getElementById("update-banner")) return;
+
+  const banner = document.createElement("div");
+  banner.id = "update-banner";
+  banner.className = "fixed bottom-4 left-4 right-4 z-[5000] bg-gray-900 text-white p-4 rounded-xl shadow-2xl border border-gray-700 flex items-center justify-between transform translate-y-20 transition-transform duration-500";
+  
+  banner.innerHTML = `
+    <div class="flex items-center gap-3">
+        <span class="text-2xl">🚀</span>
+        <div>
+            <p class="font-bold text-sm">Actualización disponible</p>
+            <p class="text-xs text-gray-400">Mejoras y nuevos datos listos.</p>
+        </div>
+    </div>
+    <button id="btn-update-now" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg text-xs shadow-lg transition-transform active:scale-95">
+        ACTUALIZAR
+    </button>
+  `;
+
+  document.body.appendChild(banner);
+
+  // Animación de entrada
+  requestAnimationFrame(() => {
+    banner.classList.remove("translate-y-20");
+  });
+
+  // Listener para el botón
+  document.getElementById("btn-update-now").addEventListener("click", () => {
+    // Feedback visual
+    const btn = document.getElementById("btn-update-now");
+    btn.innerHTML = "Instalando...";
+    btn.classList.add("opacity-50", "cursor-wait");
+    
+    // Le decimos al Service Worker que tome el control (esto disparará el reload en index.html)
+    if (worker) {
+        worker.postMessage({ action: "skipWaiting" });
+    }
+  });
+};

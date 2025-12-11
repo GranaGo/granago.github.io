@@ -30,7 +30,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <link rel="stylesheet" href="css/styles.css?v=v3.5" />
+    <link rel="stylesheet" href="css/styles.css?v=v3.6" />
     <link rel="preload" as="image" href="imagenes/Fondo.webp" />
 
     <link rel="icon" type="image/x-icon" href="imagenes/Logo.ico" />
@@ -1394,7 +1394,7 @@
       </div>
     </footer>
 
-    <script src="js/main.js?v=v3.5" type="module"></script>
+    <script src="js/main.js?v=v3.6" type="module"></script>
 
     <script>
       const toggleButton = document.getElementById("theme-toggle");
@@ -1494,7 +1494,15 @@
         if (notificationShown) return;
         notificationShown = true;
         console.log("Nueva versión disponible.");
-        if (worker) worker.postMessage({ action: "skipWaiting" });
+        
+        // Llamamos a la función visual que pusimos en main.js
+        if (typeof window.lanzarAvisoActualizacion === 'function') {
+            window.lanzarAvisoActualizacion(worker);
+        } else {
+            // Fallback por si main.js no ha cargado aún (raro, pero posible)
+            // Aquí sí forzamos si no hay UI disponible
+            if (worker) worker.postMessage({ action: "skipWaiting" }); 
+        }
       }
     </script>
 
