@@ -2343,7 +2343,6 @@ window.initPuntosMap = function () {
         setView: true,
         maxZoom: 19,
         enableHighAccuracy: true,
-        watch: true,
       });
     });
 
@@ -2419,7 +2418,7 @@ window.initPuntosMap = function () {
     // Si ya existía el mapa, solo reajustamos tamaño y reactivamos GPS
     mapPuntos.invalidateSize();
     mapPuntos.locate({
-      setView: true,
+      setView: false,
       maxZoom: 19,
       enableHighAccuracy: true,
       watch: true,
