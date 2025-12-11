@@ -30,7 +30,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <link rel="stylesheet" href="css/styles.css?v=v2.5" />
+    <link rel="stylesheet" href="css/styles.css?v=v2.6" />
     <link rel="preload" as="image" href="imagenes/Fondo.webp" />
 
     <link rel="icon" type="image/x-icon" href="imagenes/Logo.ico" />
@@ -1394,7 +1394,7 @@
       </div>
     </footer>
 
-    <script src="js/main.js?v=v2.5" type="module"></script>
+    <script src="js/main.js?v=v2.6" type="module"></script>
 
     <script>
       const toggleButton = document.getElementById("theme-toggle");
@@ -1442,35 +1442,31 @@
       let notificationShown = false;
 
       if ("serviceWorker" in navigator) {
-        navigator.serviceWorker
-          .register("./sw.js")
-          .then((reg) => {
-            console.log("SW registrado:", reg.scope);
+        // ESPERAMOS A QUE LA PÁGINA CARGUE COMPLETAMENTE (Mejor para PWABuilder)
+        window.addEventListener('load', () => {
+            navigator.serviceWorker
+              .register("./sw.js")
+              .then((reg) => {
+                console.log("SW registrado correctamente:", reg.scope);
 
-            // 1. CASO A: La actualización ya estaba descargada y esperando cuando abriste la app
-            if (reg.waiting) {
-              showUpdateNotification(reg.waiting);
-              return;
-            }
-
-            // 2. CASO B: La actualización llega mientras usas la app
-            reg.addEventListener("updatefound", () => {
-              const newWorker = reg.installing;
-
-              newWorker.addEventListener("statechange", () => {
-                // Cuando ha terminado de instalarse y está lista
-                if (newWorker.state === "installed") {
-                  if (navigator.serviceWorker.controller) {
-                    // Hay una versión vieja controlando, avisamos de la nueva
-                    showUpdateNotification(newWorker);
-                  }
+                // Lógica de actualización...
+                if (reg.waiting) {
+                  showUpdateNotification(reg.waiting);
+                  return;
                 }
-              });
-            });
-          })
-          .catch((err) => console.error("Fallo SW:", err));
+                reg.addEventListener("updatefound", () => {
+                  const newWorker = reg.installing;
+                  newWorker.addEventListener("statechange", () => {
+                    if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+                        showUpdateNotification(newWorker);
+                    }
+                  });
+                });
+              })
+              .catch((err) => console.error("Fallo al registrar SW:", err));
+        });
 
-        // 3. Recargar la página automáticamente cuando el nuevo SW tome el control
+        // Recargar página al cambiar controlador
         let refreshing = false;
         navigator.serviceWorker.addEventListener("controllerchange", () => {
           if (!refreshing) {
@@ -1483,13 +1479,8 @@
       function showUpdateNotification(worker) {
         if (notificationShown) return;
         notificationShown = true;
-
-        console.log("Nueva versión detectada. Actualizando silenciosamente...");
-
-        // Ejecutamos la actualización directamente
-        if (worker) {
-          worker.postMessage({ action: "skipWaiting" });
-        }
+        console.log("Nueva versión disponible.");
+        if (worker) worker.postMessage({ action: "skipWaiting" });
       }
     </script>
 
