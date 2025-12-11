@@ -3,7 +3,7 @@
    ========================================================================== */
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
 
-const CACHE_VERSION = 'v2.5'; // Subimos versión
+const CACHE_VERSION = 'v2.6'; // Subimos versión
 
 if (workbox) {
   console.log(`[SW] Workbox activo - Versión ${CACHE_VERSION}`);
