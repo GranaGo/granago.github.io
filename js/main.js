@@ -1110,8 +1110,17 @@ function handleLocationSuccess(pos) {
     fillOpacity: 0.2,
   }).addTo(mapTransporte);
 
-  // Centrar y hacer zoom en la ubicación del usuario
-  mapTransporte.flyTo(userLocationLatLng, 16);
+  // CLAVE: Animación suave. Al terminar ('moveend'), cargamos los marcadores.
+  mapTransporte.flyTo(userLocationLatLng, 16, {
+    duration: 1.5, // Animación un poco más lenta para dar fluidez
+    easeLinearity: 0.25
+  });
+  
+  // Suscribirse una sola vez al fin del movimiento para cargar los buses
+  mapTransporte.once('moveend', () => {
+      // Pequeño delay extra para asegurar que el navegador recuperó aliento
+      setTimeout(renderizarCapasDiferidas, 100); 
+  });
 }
 
 function handleLocationError(err) {
@@ -1136,6 +1145,31 @@ function centerMapOnUser() {
   }
 }
 
+// ======================================================================
+// OPTIMIZACIÓN: Variables para controlar si ya se cargaron los marcadores
+// ======================================================================
+let markersLoaded = false;
+
+// Función auxiliar para pintar las capas SOLO cuando sea necesario
+function renderizarCapasDiferidas() {
+  if (markersLoaded || !mapTransporte) return;
+  
+  // Añadimos las capas ahora que el mapa está quieto
+  if (layers.urbano) layers.urbano.addTo(mapTransporte);
+  if (layers.metro) layers.metro.addTo(mapTransporte);
+  
+  // Restauramos estado visual de botones
+  document.getElementById("btnUrbano").classList.add("active-layer");
+  document.getElementById("btnUrbano").classList.remove("inactive-layer");
+  document.getElementById("btnMetro").classList.add("active-layer");
+  document.getElementById("btnMetro").classList.remove("inactive-layer");
+  document.getElementById("btnInter").classList.add("inactive-layer");
+  document.getElementById("btnInter").classList.remove("active-layer");
+
+  markersLoaded = true;
+  console.log("✅ Marcadores renderizados tras la animación.");
+}
+
 // 8.3. INICIALIZACIÓN DEL MAPA DE TRANSPORTE
 // ------------------------------------------
 window.initTransporteMap = function () {
@@ -1143,27 +1177,16 @@ window.initTransporteMap = function () {
   if (!mapElement) return;
 
   if (!mapTransporte) {
-    // --- USA LA FACTORÍA AQUÍ ---
+    // 1. Crear Mapa base (ligero)
     mapTransporte = createBaseMap("map-transporte", [37.177, -3.598], 13);
-    // ----------------------------
 
-    // Cargar datos y crear capas (Tu lógica original se mantiene)
+    // 2. Preparar datos en memoria (bindData es rápido, addTo es lento)
+    // NO los añadimos al mapa todavía (.addTo)
     layers.urbano = bindData(dUrb, "urbano");
     layers.inter = bindData(dInt, "inter");
     layers.metro = bindData(dMet, "metro");
 
-    layers.urbano.addTo(mapTransporte);
-    layers.metro.addTo(mapTransporte);
-
-    // Ajustar estado visual botones (Tu lógica original)
-    document.getElementById("btnUrbano").classList.add("active-layer");
-    document.getElementById("btnUrbano").classList.remove("inactive-layer");
-    document.getElementById("btnMetro").classList.add("active-layer");
-    document.getElementById("btnMetro").classList.remove("inactive-layer");
-    document.getElementById("btnInter").classList.add("inactive-layer");
-    document.getElementById("btnInter").classList.remove("active-layer");
-
-    // --- USA LA UTILIDAD DE BOTÓN AQUÍ ---
+    // 3. Añadir control de ubicación
     addLocationControl(mapTransporte, () => {
       if (userLocationLatLng) {
         centerMapOnUser();
@@ -1175,25 +1198,39 @@ window.initTransporteMap = function () {
         );
       }
     });
-    // -------------------------------------
 
-    // Ajustar vista (Tu lógica original)
-    const activeStops = [...dUrb, ...dMet];
-    if (activeStops.length > 0) {
-      const bounds = new L.featureGroup(
-        activeStops.map((s) => L.marker([s.stop_lat, s.stop_lon]))
-      ).getBounds();
-      mapTransporte.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
-    }
-
-    // Geolocalización inicial
+    // 4. Iniciar Geolocalización
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
-        handleLocationSuccess,
-        handleLocationError,
-        { enableHighAccuracy: true, timeout: 20000 }
+        (pos) => {
+            handleLocationSuccess(pos);
+            // Si el GPS responde rápido, handleLocationSuccess se encarga de pintar capas al terminar el zoom.
+        },
+        (err) => {
+            handleLocationError(err);
+            // Si falla el GPS, cargamos las capas inmediatamente para no dejar el mapa vacío
+            renderizarCapasDiferidas(); 
+            // Y centramos en vista general
+            const activeStops = [...dUrb, ...dMet];
+            if (activeStops.length > 0) {
+              const bounds = new L.featureGroup(
+                activeStops.map((s) => L.marker([s.stop_lat, s.stop_lon]))
+              ).getBounds();
+              mapTransporte.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+            }
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
       );
+    } else {
+        // Fallback si no hay soporte GPS
+        renderizarCapasDiferidas();
     }
+    
+    // 5. Fallback de seguridad: Si por alguna razón el evento 'moveend' no salta
+    // (ej: el usuario ya estaba en la posición exacta y no hubo animación),
+    // forzamos la carga a los 2 segundos.
+    setTimeout(renderizarCapasDiferidas, 2000);
+
   } else {
     setTimeout(() => {
       mapTransporte.invalidateSize();

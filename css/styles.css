@@ -1138,3 +1138,11 @@ body.dark-mode .boton-donacion-paypal button:hover,
 body.dark-mode .btn-info-style:hover {
   background-color: #374151 !important;
 }
+/* OPTIMIZACIÓN DE RENDIMIENTO */
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-pane,
+.leaflet-tile-container {
+  will-change: transform; /* Prepara al navegador para animaciones */
+  transform: translate3d(0, 0, 0); /* Fuerza aceleración por hardware */
+}
