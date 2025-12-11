@@ -432,6 +432,12 @@ window.navigateTo = function (viewId, addToHistory = true) {
     console.log("GPS Puntos detenido");
   }
 
+  if (viewId !== "parkings" && parkingUpdateInterval !== null) {
+    clearInterval(parkingUpdateInterval);
+    parkingUpdateInterval = null;
+    console.log("Actualización de Parkings detenida.");
+  }
+
   // Ocultar todas las vistas
   document.querySelectorAll(".view-section").forEach((el) => {
     el.classList.remove("active");
@@ -4767,6 +4773,7 @@ window.filterGasStations = function () {
 
 let mapParkings = null;
 let parkingLayerGroup = null;
+let parkingUpdateInterval = null;
 
 // UBICACIONES EXACTAS DE LOS PARKINGS DE LA TABLA OFICIAL
 const PARKING_LOCATIONS = [
@@ -4808,8 +4815,21 @@ window.initParkingsMap = function () {
     });
 
     fetchParkingData(); // Cargar datos al iniciar
+
+    // 💡 NUEVO: INICIAR ACTUALIZACIÓN AUTOMÁTICA CADA 60 SEGUNDOS
+    if (parkingUpdateInterval === null) {
+      parkingUpdateInterval = setInterval(fetchParkingData, 60000); // 60000ms = 1 minuto
+      console.log("Actualización de Parkings iniciada (60s).");
+    }
   } else {
+    // Si ya existía el mapa (vuelves a la pestaña), solo reajustamos el tamaño
     setTimeout(() => mapParkings.invalidateSize(), 200);
+
+    // 💡 NUEVO: Si volvemos a la vista, aseguramos que el intervalo esté activo
+    if (parkingUpdateInterval === null) {
+      parkingUpdateInterval = setInterval(fetchParkingData, 60000);
+      console.log("Actualización de Parkings reactivada (60s).");
+    }
   }
 };
 
