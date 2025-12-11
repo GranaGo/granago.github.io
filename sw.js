@@ -2,7 +2,7 @@
    GRANÁGO - SERVICE WORKER (SIN WORKBOX) - API + CACHE BUSTING
    =============================================================== */
 
-const CACHE_VERSION = 'v4.1'; // Tu script update-cache-version lo actualizará
+const CACHE_VERSION = "v4.1"; // Tu script update-cache-version lo actualizará
 const STATIC_CACHE = `granago-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `granago-dynamic-${CACHE_VERSION}`;
 const API_CACHE = `granago-api-${CACHE_VERSION}`;
@@ -32,6 +32,7 @@ const STATIC_ASSETS = [
   "/imagenes/zbeMapa.webp",
   "/imagenes/gasolina.webp",
   "/imagenes/parking.webp",
+  "/README.md",
 ];
 
 /* ===============================================================
@@ -60,6 +61,12 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.action === "skipWaiting") {
+    self.skipWaiting();
+  }
+});
+
 /* ===============================================================
    FETCH
    Estrategias según tipo de recurso
@@ -71,9 +78,17 @@ self.addEventListener("fetch", (event) => {
   // Solo GET
   if (req.method !== "GET") return;
 
-  // 1. APIs de tu backend o externas confiables
-  if (url.pathname.includes("/api/") || url.pathname.includes("/ProxyAPI")) {
-    return event.respondWith(apiNetworkStaleWhileRevalidate(req));
+  // 1. URLs de datos en tiempo real (Movilidad Granada, Metro, Gasolineras, CorsProxy, OSRM)
+  // Aplicamos Network First para la frescura de los datos.
+  if (
+    url.hostname.includes("corsproxy.io") || // Tu proxy principal
+    url.hostname.includes("minetur.gob.es") || // Gasolineras (si no usas proxy)
+    url.hostname.includes("movilidadgranada.com") || // Cortes, Parkings (si no usas proxy)
+    url.hostname.includes("project-osrm.org") || // Rutas (importante Network First)
+    url.hostname.includes("mianfg.me") // Tu API Backend
+  ) {
+    // Usamos Network With Cache Fallback (o Network Only si prefieres no cachear APIs)
+    return event.respondWith(networkWithCacheFallback(req));
   }
 
   // 2. Archivos estáticos del frontend
@@ -81,14 +96,13 @@ self.addEventListener("fetch", (event) => {
     return event.respondWith(cacheFirst(req, STATIC_CACHE));
   }
 
-  // 3. Otros recursos: documentos, vistas, scripts…
-  return event.respondWith(networkWithCacheFallback(req));
-});
-
-self.addEventListener("message", (event) => {
-  if (event.data && event.data.action === "skipWaiting") {
-    self.skipWaiting();
+  // 3. Google Translate. Debemos dejar que la red lo gestione.
+  if (url.hostname.includes("translate.google.com")) {
+    return; // Dejamos que vaya a la red (Network Only)
   }
+
+  // 4. Otros recursos: documentos, vistas, scripts… (El fallback general)
+  return event.respondWith(networkWithCacheFallback(req));
 });
 
 /* ===============================================================
@@ -111,14 +125,18 @@ async function cacheFirst(request, cacheName) {
 /* ===============================================================
    Estrategia: Network First + fallback cache (para páginas)
    =============================================================== */
-async function networkWithCacheFallback(request) {
+async function networkWithCacheFallback(request, cacheName = DYNAMIC_CACHE) {
   try {
     const fresh = await fetch(request);
-    const cache = await caches.open(DYNAMIC_CACHE);
-    cache.put(request, fresh.clone());
+    const cache = await caches.open(cacheName);
+    // Solo cacheamos si la respuesta es exitosa (ej. 200 OK)
+    if (fresh.ok) {
+      cache.put(request, fresh.clone());
+    }
     return fresh;
   } catch (err) {
     const cached = await caches.match(request);
+    // Si falla, devuelve la caché O la página principal como último recurso
     return cached || caches.match("/index.html");
   }
 }
