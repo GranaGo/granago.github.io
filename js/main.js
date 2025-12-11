@@ -3205,25 +3205,47 @@ window.showInfoMap = function () {
       }).addTo(mapInfoTransporte);
     }
   } else {
+    // Restauramos L.Routing.control para que el trazado siga la carretera.
+    // Esto es inherentemente ineficiente para 50+ waypoints, pero es la única
+    // manera de seguir el perfil de la carretera sin datos GPX/GeoJSON de la ruta.
+
+    // Mejoramos la configuración OSRM
     const routerConfig = {
       serviceUrl: "https://router.project-osrm.org/route/v1",
+      // Es posible que el perfil 'car' o 'driving' falle menos que 'foot' o 'bus'.
       profile: "driving",
     };
+
+    // Ruta IDA
     if (waypointsIda.length > 1) {
+      // 1. Limpiar control previo si existe
+      if (routingControlIda) mapInfoTransporte.removeControl(routingControlIda);
+
       routingControlIda = L.Routing.control({
         waypoints: waypointsIda,
         router: L.Routing.osrmv1(routerConfig),
         lineOptions: { styles: [{ color: colorIda, opacity: 0.7, weight: 5 }] },
         createMarker: function () {
-          return null;
+          return null; // No crear marcadores extra
         },
         addWaypoints: false,
         draggableWaypoints: false,
         fitSelectedRoutes: false,
         show: false,
+        // **NUEVO:** Optimización para muchos waypoints
+        waypointMode: "snap",
       }).addTo(mapInfoTransporte);
+
+      // Forzar recálculo de ruta al añadir
+      routingControlIda.route();
     }
+
+    // Ruta VUELTA
     if (waypointsVuelta.length > 1) {
+      // 2. Limpiar control previo si existe
+      if (routingControlVuelta)
+        mapInfoTransporte.removeControl(routingControlVuelta);
+
       routingControlVuelta = L.Routing.control({
         waypoints: waypointsVuelta,
         router: L.Routing.osrmv1(routerConfig),
@@ -3233,16 +3255,20 @@ window.showInfoMap = function () {
           ],
         },
         createMarker: function () {
-          return null;
+          return null; // No crear marcadores extra
         },
         addWaypoints: false,
         draggableWaypoints: false,
         fitSelectedRoutes: false,
         show: false,
+        // **NUEVO:** Optimización para muchos waypoints
+        waypointMode: "snap",
       }).addTo(mapInfoTransporte);
+
+      // Forzar recálculo de ruta al añadir
+      routingControlVuelta.route();
     }
   }
-
   if (markersGroup.getLayers().length > 0) {
     setTimeout(
       () =>
