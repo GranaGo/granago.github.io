@@ -30,7 +30,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <link rel="stylesheet" href="css/styles.css?v=v4.1" />
+    <link rel="stylesheet" href="css/styles.css?v=v4.2" />
     <link rel="preload" as="image" href="imagenes/Fondo.webp" />
 
     <link rel="icon" type="image/x-icon" href="imagenes/Logo.ico" />
@@ -1592,7 +1592,7 @@
       </div>
     </footer>
 
-    <script src="js/main.js?v=v4.1" type="module"></script>
+    <script src="js/main.js?v=v4.2" type="module"></script>
 
     <script>
       const toggleButton = document.getElementById("theme-toggle");
@@ -1656,13 +1656,12 @@
 
               // 1. COMPROBACIÓN INICIAL: ¿Hay una actualización esperando?
               // Si el usuario acaba de abrir la app y ya había una versión nueva descargada de antes,
-              // la aplicamos directamente sin preguntarle.
+              // mostramos el aviso (o aplicamos directamente).
               if (reg.waiting) {
                 console.log(
-                  "Actualización pendiente encontrada al inicio. Aplicando..."
+                  "Actualización pendiente encontrada al inicio. Mostrando aviso."
                 );
-                reg.waiting.postMessage({ action: "skipWaiting" });
-                return;
+                showUpdateNotification(reg.waiting); // Mostrar aviso si hay uno en espera
               }
 
               // 2. DETECCIÓN DE NUEVAS VERSIONES (Mientras se usa la app)
@@ -1670,19 +1669,26 @@
                 newWorker = reg.installing;
 
                 newWorker.addEventListener("statechange", () => {
-                  // Si el nuevo worker se ha instalado correctamente
-                  if (
-                    newWorker.state === "installed" &&
-                    navigator.serviceWorker.controller
-                  ) {
-                    // Aquí lanzamos el aviso visual porque el usuario ya está usando la app
-                    showUpdateNotification(newWorker);
+                  // Si el nuevo worker se ha instalado (descargado los archivos)
+                  if (newWorker.state === "installed") {
+                    // Si ya hay un worker activo, significa que el usuario está usando una versión antigua
+                    // y debe ser preguntado si quiere actualizar.
+                    if (reg.active) {
+                      // Aquí lanzamos el aviso visual
+                      showUpdateNotification(newWorker);
+                    } else {
+                      // Si no hay trabajador activo (primera carga), lo activa directamente.
+                      console.log(
+                        "Primer Service Worker instalado. Activando..."
+                      );
+                      newWorker.postMessage({ action: "skipWaiting" });
+                    }
                   }
                 });
               });
 
               // Opcional: Forzar chequeo de actualización al cargar
-              reg.update();
+              // reg.update();
             })
             .catch((err) => console.error("Error SW:", err));
         });
