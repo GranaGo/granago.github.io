@@ -1,117 +1,58 @@
 /* ==========================================================================
-   SERVICE WORKER - GRANÁGO
-   ==========================================================================
-   Gestiona el almacenamiento en caché (Cache API), la instalación de la PWA
-   y el funcionamiento offline.
+   SERVICE WORKER - GRANÁGO (WORKBOX + AUTO-VERSION)
    ========================================================================== */
+importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
 
-// --- CONFIGURACIÓN Y CONSTANTES ---
-
+// ESTA LÍNEA ES CLAVE: Tu script 'update-cache-version.js' busca esto.
+// No la borres ni cambies el formato.
 const CACHE_VERSION = 'v2.2';
-const CACHE_NAME = "GranáGo-" + CACHE_VERSION;
-// Lista de recursos críticos para el funcionamiento offline
-const urlsToCache = [
-  "./",
-  "./index.html",
-  "./manifest.json",
-  "./css/styles.css",
-  "./js/main.js",
-  "./js/transporte.js",
-  // Imágenes e Iconos
-  "./imagenes/Logo.ico",
-  "./imagenes/Logo192x192.png",
-  "./imagenes/Logo512x512.png",
-  "./imagenes/Fondo.webp",
-  "./imagenes/Transporte.webp",
-  "./imagenes/ZBE.webp",
-  "./imagenes/ORA.webp",
-  "./imagenes/Eventos.webp",
-  "./imagenes/zbeMapa.webp",
-  "./imagenes/cocheAparcado.webp",
-  "./imagenes/paypal.svg",
-  "./imagenes/lugarInteres.webp",
-  "./imagenes/infoTransporte.webp",
-  "./imagenes/Logo.png",
-  "./imagenes/Logo.webp"
-];
 
-/* ==========================================================================
-   1. EVENTO INSTALL (INSTALACIÓN)
-   ==========================================================================
-   Se dispara cuando el navegador detecta un SW nuevo o actualizado.
-   Aquí precargamos los recursos estáticos.
-   ========================================================================== */
-self.addEventListener("install", (event) => {
-  
-  // ESTRATEGIA DE ACTUALIZACIÓN INMEDIATA:
-  // skipWaiting() fuerza al SW "en espera" a activarse inmediatamente,
-  // sin esperar a que el usuario cierre todas las pestañas de la app.
-  self.skipWaiting();
+if (workbox) {
+  console.log(`[SW] Workbox cargado - Versión: ${CACHE_VERSION}`);
 
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log("[SW] Abriendo caché e instalando recursos...");
-      return cache.addAll(urlsToCache);
+  // Configuración global de nombres de caché usando tu versión
+  workbox.core.setCacheNameDetails({
+    prefix: 'granago',
+    suffix: CACHE_VERSION, // Aquí usamos la versión automática
+    precache: 'precache',
+    runtime: 'runtime'
+  });
+
+  // Forzar actualización inmediata
+  workbox.core.skipWaiting();
+  workbox.core.clientsClaim();
+
+  // 1. Caché para HTML, CSS, JS, JSON (StaleWhileRevalidate)
+  workbox.routing.registerRoute(
+    ({request}) => 
+      request.destination === 'document' ||
+      request.destination === 'script' ||
+      request.destination === 'style' ||
+      request.destination === 'manifest',
+    new workbox.strategies.StaleWhileRevalidate()
+  );
+
+  // 2. Caché para Imágenes (CacheFirst con caducidad)
+  // Si una falla (404), NO rompe la instalación.
+  workbox.routing.registerRoute(
+    ({request}) => request.destination === 'image',
+    new workbox.strategies.CacheFirst({
+      plugins: [
+        new workbox.expiration.ExpirationPlugin({
+          maxEntries: 60,
+          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Días
+        }),
+      ],
     })
   );
-});
 
-/* ==========================================================================
-   2. EVENTO ACTIVATE (ACTIVACIÓN)
-   ==========================================================================
-   Se dispara una vez que el SW se ha instalado y toma el control.
-   Ideal para limpiar cachés antiguas.
-   ========================================================================== */
-self.addEventListener("activate", (event) => {
-  
-  // CONTROL DE CLIENTES:
-  // clients.claim() permite que el SW tome control de las páginas abiertas
-  // inmediatamente, sin necesidad de recargarlas.
-  event.waitUntil(self.clients.claim());
-});
-
-/* ==========================================================================
-   3. EVENTO FETCH (INTERCEPTACIÓN PROTEGIDA)
-   ========================================================================== */
-self.addEventListener("fetch", (event) => {
-  // Ignoramos peticiones que no sean GET (como envíos de formularios)
-  if (event.request.method !== "GET") return;
-
-  // Ignoramos peticiones a chrome-extension o esquemas no soportados
-  if (!event.request.url.startsWith("http")) return;
-
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      // 1. Si está en caché, lo devolvemos (Rápido y Offline)
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      // 2. Si no, intentamos ir a la red
-      return fetch(event.request)
-        .then((networkResponse) => {
-          // Si la respuesta es válida, la devolvemos
-          return networkResponse;
-        })
-        .catch((error) => {
-          // 3. CAPTURA DEL ERROR (Aquí silenciamos el error rojo)
-          console.log("[SW] Fallo de red (offline o bloqueado):", event.request.url);
-          
-          // Opcional: Aquí podrías devolver una imagen de "Offline" si fuera una imagen
-          // Por ahora, simplemente no devolvemos nada para que no rompa la ejecución.
-        });
-    })
+  // 3. Caché para Fuentes de Google
+  workbox.routing.registerRoute(
+    ({url}) => url.origin === 'https://fonts.googleapis.com' ||
+               url.origin === 'https://fonts.gstatic.com',
+    new workbox.strategies.StaleWhileRevalidate()
   );
-});
 
-/* ==========================================================================
-   4. EVENTOS DE MENSAJERÍA
-   ==========================================================================
-   Escucha mensajes enviados desde el script principal (main.js/index.html).
-   ========================================================================== */
-self.addEventListener("message", (event) => {
-  // Permite forzar el skipWaiting desde la interfaz de usuario si fuera necesario
-  if (event.data && event.data.action === "skipWaiting") {
-    self.skipWaiting();
-  }
-});
+} else {
+  console.log(`[SW] Fallo al cargar Workbox`);
+}
