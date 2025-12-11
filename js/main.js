@@ -175,6 +175,14 @@ const HOME_SERVICES = [
     alt: "Icono de Surtidor de Gasolina",
     fallback: "Gasolineras+Precios",
   },
+  {
+    id: "parkings",
+    title: "ESTADO PARKINGS",
+    desc: "Plazas libres en tiempo real.",
+    img: "imagenes/parking.webp", // Necesitarás subir una imagen o usar un placeholder
+    alt: "Parking Granada",
+    fallback: "Parking+Granada",
+  },
 ];
 
 // ======================================================================
@@ -494,6 +502,12 @@ window.navigateTo = function (viewId, addToHistory = true) {
     initGasolinerasMap();
     setTimeout(() => {
       if (mapGasolineras) mapGasolineras.invalidateSize();
+    }, 200);
+  }
+  if (viewId === "parkings") {
+    initParkingsMap();
+    setTimeout(() => {
+      if (mapParkings) mapParkings.invalidateSize();
     }, 200);
   }
 };
@@ -4744,5 +4758,254 @@ window.filterGasStations = function () {
       // 3. Volver a ejecutar para mostrar el mapa base
       filterGasStations();
     }
+  }
+};
+
+// ======================================================================
+// 20. MÓDULO: PARKINGS EN TIEMPO REAL (FINAL)
+// ======================================================================
+
+let mapParkings = null;
+let parkingLayerGroup = null;
+
+// UBICACIONES EXACTAS DE LOS PARKINGS DE LA TABLA OFICIAL
+const PARKING_LOCATIONS = [
+  { name: "Alhambra", lat: 37.1744, lon: -3.5852 }, // Parking Generalife
+  { name: "Boutique Luna Centro", lat: 37.1713, lon: -3.5989 }, // Acera del Darro
+  { name: "Escolapios", lat: 37.1667, lon: -3.595 }, // Paseo de los Basilios
+  { name: "Estadio Nuevo Los Cármenes", lat: 37.1528, lon: -3.5955 }, // Zaidín
+  { name: "Ganivet", lat: 37.1724, lon: -3.5985 }, // Calle Ángel Ganivet
+  { name: "Garaje Rex", lat: 37.1716, lon: -3.6035 }, // Calle Recogidas
+  { name: "Granada Centro Alsina", lat: 37.1758, lon: -3.6055 }, // Calle Arabial (Junto Hipercor)
+  { name: "HH Maristas", lat: 37.1775, lon: -3.6025 }, // Calle Sócrates
+  { name: "La Caleta", lat: 37.1869, lon: -3.6093 }, // Av. Constitución
+  { name: "La Hípica", lat: 37.1625, lon: -3.5955 }, // Calle Fontiveros
+  { name: "Luna de Granada", lat: 37.1738, lon: -3.6115 }, // Plaza Manuel Cano
+  { name: "Mondragones", lat: 37.186, lon: -3.6085 }, // Ribera del Beiro
+  { name: "Méndez Núñez", lat: 37.1785, lon: -3.613 }, // Calle María Moliner
+  { name: "Palacio de Congresos", lat: 37.1655, lon: -3.5983 }, // Paseo del Violón
+  { name: "Pedro Antonio de Alarcón", lat: 37.1745, lon: -3.6055 }, // Calle Pedro Antonio 40
+  { name: "Puerta Real", lat: 37.171, lon: -3.5995 }, // Acera del Darro
+  { name: "San Agustín", lat: 37.1778, lon: -3.599 }, // Mercado San Agustín
+  { name: "San Juan de Dios", lat: 37.1795, lon: -3.6025 }, // Rector López Argüeta
+  { name: "San Lázaro", lat: 37.1865, lon: -3.606 }, // Plaza San Lázaro
+  { name: "Sócrates", lat: 37.1775, lon: -3.6025 }, // Calle Sócrates
+  { name: "Traumatología", lat: 37.1885, lon: -3.608 }, // Ribera del Beiro
+  { name: "Triunfo-Ave", lat: 37.1855, lon: -3.609 }, // Junto Estación Tren
+  { name: "Victoria", lat: 37.1731, lon: -3.5999 }, // Calle San Antón
+  { name: "Violón", lat: 37.1691, lon: -3.5978 }, // Paseo del Violón
+];
+
+// Inicialización del Mapa
+window.initParkingsMap = function () {
+  if (!mapParkings) {
+    mapParkings = createBaseMap("map-parkings", [37.175, -3.6], 14);
+    parkingLayerGroup = L.layerGroup().addTo(mapParkings);
+
+    // Botón mi ubicación
+    addLocationControl(mapParkings, () => {
+      mapParkings.locate({ setView: true, maxZoom: 15 });
+    });
+
+    fetchParkingData(); // Cargar datos al iniciar
+  } else {
+    setTimeout(() => mapParkings.invalidateSize(), 200);
+  }
+};
+
+// ======================================================================
+// NUEVA FUNCIÓN: ENFOCAR PARKING EN EL MAPA
+// ======================================================================
+window.focusOnParking = function (lat, lon) {
+  // 1. Scroll suave hacia el mapa
+  const mapElement = document.getElementById("map-parkings");
+  if (mapElement) {
+    mapElement.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  // 2. Mover el mapa a la ubicación (Animación FlyTo)
+  if (mapParkings) {
+    // Pequeño delay para esperar a que termine el scroll
+    setTimeout(() => {
+      mapParkings.invalidateSize(); // Asegura que el mapa se renderice bien
+      mapParkings.flyTo([lat, lon], 17, {
+        duration: 1.5,
+        easeLinearity: 0.25,
+      });
+
+      // Opcional: Abrir el popup del marcador correspondiente
+      // (Requiere buscar en las capas, pero solo con el zoom ya es útil)
+    }, 300);
+  }
+};
+
+// ======================================================================
+// VERSIÓN ACTUALIZADA: FETCH PARKING DATA (CON BOTÓN CHINCHETA)
+// ======================================================================
+window.fetchParkingData = async function () {
+  const tbody = document.getElementById("parking-table-body");
+
+  // Feedback de carga
+  if (tbody)
+    tbody.innerHTML =
+      '<tr><td colspan="3" class="text-center py-4"><div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div><span class="text-xs text-gray-400">Leyendo tabla oficial...</span></td></tr>';
+
+  const targetUrl =
+    "http://www.movilidadgranada.com/aparcamientos/par_tabla.php";
+  const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
+
+  try {
+    // Seguridad para el mapa
+    if (!parkingLayerGroup) {
+      initParkingsMap();
+      if (!parkingLayerGroup) return;
+    }
+
+    const response = await fetch(proxyUrl);
+    if (!response.ok) throw new Error("Error conectando con Movilidad");
+
+    const htmlText = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlText, "text/html");
+    const rows = Array.from(doc.querySelectorAll("tr"));
+
+    // Limpieza
+    if (parkingLayerGroup) parkingLayerGroup.clearLayers();
+    if (tbody) tbody.innerHTML = "";
+
+    let parkingsFound = 0;
+
+    rows.forEach((row, index) => {
+      // Saltar cabecera
+      if (index === 0 && row.innerText.toLowerCase().includes("parking"))
+        return;
+
+      const cells = row.querySelectorAll("td");
+      if (cells.length < 3) return;
+
+      // --- LECTURA DE COLUMNAS ---
+      let rawName = cells[0].textContent.trim(); // Col 1: Nombre
+      let rawPlazas = cells[1].textContent.trim(); // Col 2: Número real
+      let rawEstado = cells[2].textContent.trim(); // Col 3: Letra V/A/R
+
+      if (!rawName) return;
+
+      // Buscar coordenadas
+      const matchedLocation = PARKING_LOCATIONS.find((loc) => {
+        const n1 = normalizeKey(rawName);
+        const n2 = normalizeKey(loc.name);
+        return n1.includes(n2) || n2.includes(n1);
+      });
+
+      // --- PROCESAMIENTO DE ESTADO ---
+      let plazasNumero = rawPlazas;
+      let numInt = parseInt(rawPlazas);
+      let esNumero = !isNaN(numInt);
+
+      let estadoTexto = "";
+      let estadoColor = "";
+      let colorPin = "";
+      let markerText = "";
+
+      const codigo = rawEstado.toUpperCase();
+
+      if (
+        codigo.includes("R") ||
+        rawPlazas.toUpperCase().includes("CERRADO") ||
+        rawPlazas.toUpperCase().includes("COMPLETO") ||
+        (esNumero && numInt === 0)
+      ) {
+        // ROJO
+        estadoTexto = "Completo";
+        estadoColor = "text-red-600 bg-red-50 border-red-100";
+        colorPin = "parking-lleno";
+        markerText = "🚫";
+        if (!esNumero) plazasNumero = "0";
+      } else if (codigo.includes("A")) {
+        // NARANJA
+        estadoTexto = "Últimas Plazas";
+        estadoColor = "text-orange-600 bg-orange-50 border-orange-100";
+        colorPin = "parking-medio";
+        markerText = "!";
+      } else {
+        // VERDE
+        estadoTexto = "Disponible";
+        estadoColor = "text-green-600 bg-green-50 border-green-100";
+        colorPin = "parking-libre";
+        markerText = ""; // Sin texto en el pin verde
+
+        if (esNumero && numInt < 20) estadoTexto = "Últimas";
+      }
+
+      // --- BOTÓN DE LOCALIZAR (CHINCHETA) ---
+      let locateBtnHtml = "";
+      if (matchedLocation) {
+        locateBtnHtml = `
+            <button onclick="focusOnParking(${matchedLocation.lat}, ${matchedLocation.lon})" 
+                    class="ml-2 p-1.5 text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors flex-shrink-0"
+                    title="Localizar en mapa">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                </svg>
+            </button>
+          `;
+      }
+
+      // 1. PINTAR TABLA (SIN HOVER DE COLOR)
+      const tr = document.createElement("tr");
+      // CAMBIO: Eliminado "hover:bg-gray-50"
+      tr.className = "border-b border-gray-100 transition";
+
+      tr.innerHTML = `
+        <td class="px-4 py-3 font-medium text-gray-900 notranslate">
+            <div class="flex items-center justify-between">
+                <span>${rawName}</span>
+                ${locateBtnHtml}
+            </div>
+        </td>
+        <td class="px-4 py-3 text-center">
+            <span class="${estadoColor} px-2 py-1 rounded text-xs font-bold border whitespace-nowrap">${estadoTexto}</span>
+        </td>
+        <td class="px-4 py-3 text-right font-mono font-black text-lg text-gray-800">${plazasNumero}</td>
+      `;
+      if (tbody) tbody.appendChild(tr);
+
+      // 2. PINTAR MAPA
+      if (matchedLocation && parkingLayerGroup) {
+        const icon = L.divIcon({
+          className: `pin-parking-realtime ${colorPin}`,
+          html: `<span>${markerText}</span>`,
+          iconSize: [36, 36],
+          iconAnchor: [18, 18],
+          popupAnchor: [0, -10],
+        });
+
+        const popupContent = `
+            <div class="text-center min-w-[150px]">
+                <h3 class="font-bold text-gray-800 notranslate">${rawName}</h3>
+                <div class="my-2">
+                    <span class="${estadoColor} px-2 py-1 rounded text-xs font-bold">${estadoTexto}</span>
+                </div>
+                <p class="font-black text-2xl text-gray-800">${plazasNumero}</p>
+                <p class="text-xs text-gray-500 mb-2">Plazas disponibles</p>
+            </div>
+        `;
+
+        L.marker([matchedLocation.lat, matchedLocation.lon], { icon: icon })
+          .bindPopup(popupContent)
+          .addTo(parkingLayerGroup);
+
+        parkingsFound++;
+      }
+    });
+
+    if (parkingsFound === 0 && tbody) {
+      tbody.innerHTML =
+        '<tr><td colspan="3" class="text-center py-4 text-orange-500">Datos leídos, pero no coincide ningún nombre con el mapa.</td></tr>';
+    }
+  } catch (err) {
+    console.error("Error parkings:", err);
+    if (tbody)
+      tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-red-500">Error obteniendo datos.<br><small>${err.message}</small></td></tr>`;
   }
 };
