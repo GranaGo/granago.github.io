@@ -84,6 +84,12 @@ self.addEventListener("fetch", (event) => {
   return event.respondWith(networkWithCacheFallback(req));
 });
 
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.action === "skipWaiting") {
+    self.skipWaiting();
+  }
+});
+
 /* ===============================================================
    Estrategia: Cache First (recursos estáticos)
    =============================================================== */
