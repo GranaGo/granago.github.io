@@ -7,7 +7,7 @@
 
 // --- CONFIGURACIÓN Y CONSTANTES ---
 
-const CACHE_VERSION = 'v2.1';
+const CACHE_VERSION = 'v2.2';
 const CACHE_NAME = "GranáGo-" + CACHE_VERSION;
 // Lista de recursos críticos para el funcionamiento offline
 const urlsToCache = [
@@ -71,21 +71,35 @@ self.addEventListener("activate", (event) => {
 });
 
 /* ==========================================================================
-   3. EVENTO FETCH (INTERCEPTACIÓN DE RED)
-   ==========================================================================
-   Intercepta las peticiones HTTP para servir archivos desde la caché
-   o ir a la red si no están disponibles.
+   3. EVENTO FETCH (INTERCEPTACIÓN PROTEGIDA)
    ========================================================================== */
 self.addEventListener("fetch", (event) => {
+  // Ignoramos peticiones que no sean GET (como envíos de formularios)
+  if (event.request.method !== "GET") return;
+
+  // Ignoramos peticiones a chrome-extension o esquemas no soportados
+  if (!event.request.url.startsWith("http")) return;
+
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      // ESTRATEGIA: Cache First (Primero Caché, luego Red)
-      // 1. Si el recurso está en caché, lo devolvemos (velocidad/offline).
-      if (response) {
-        return response;
+    caches.match(event.request).then((cachedResponse) => {
+      // 1. Si está en caché, lo devolvemos (Rápido y Offline)
+      if (cachedResponse) {
+        return cachedResponse;
       }
-      // 2. Si no está en caché, hacemos la petición a internet.
-      return fetch(event.request);
+
+      // 2. Si no, intentamos ir a la red
+      return fetch(event.request)
+        .then((networkResponse) => {
+          // Si la respuesta es válida, la devolvemos
+          return networkResponse;
+        })
+        .catch((error) => {
+          // 3. CAPTURA DEL ERROR (Aquí silenciamos el error rojo)
+          console.log("[SW] Fallo de red (offline o bloqueado):", event.request.url);
+          
+          // Opcional: Aquí podrías devolver una imagen de "Offline" si fuera una imagen
+          // Por ahora, simplemente no devolvemos nada para que no rompa la ejecución.
+        });
     })
   );
 });
