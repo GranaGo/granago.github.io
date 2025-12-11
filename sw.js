@@ -31,6 +31,8 @@ const urlsToCache = [
   "./imagenes/paypal.svg",
   "./imagenes/lugarInteres.webp",
   "./imagenes/infoTransporte.webp",
+  "./imagenes/Logo.png",
+  "./imagenes/Logo.webp"
 ];
 
 /* ==========================================================================
