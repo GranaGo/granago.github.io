@@ -56,7 +56,7 @@ self.addEventListener("activate", (event) => {
       );
     })
   );
-  self.clientsClaim();
+  self.clients.claim();
 });
 
 /* ===============================================================
