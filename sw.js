@@ -7,7 +7,7 @@
 
 // --- CONFIGURACIÓN Y CONSTANTES ---
 
-const CACHE_VERSION = 'v1.9';
+const CACHE_VERSION = 'v2.0';
 const CACHE_NAME = "GranáGo-" + CACHE_VERSION;
 // Lista de recursos críticos para el funcionamiento offline
 const urlsToCache = [
