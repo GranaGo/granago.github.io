@@ -19,6 +19,7 @@
 - [🗺️ Turismo y Puntos de Interés](#turismo)
 - [ℹ️ Información de Transporte](#info-transporte)
 - [⛽ Precios de Gasolineras](#precios-de-gasolineras)
+- [🅿️ Estado de Parkings](#parkings)
 - [⚙️ Configuración y Privacidad](#configuracion)
 
 3. [📱 Experiencia de Usuario](#ux)
@@ -70,6 +71,15 @@
 - **Asistente de Ahorro:** Botones de acceso rápido para localizar las **"Top 3 Baratas"** y las **"Top 5 Cercanas"** (radio < 3km).
 - **Semáforo de Precios:** Código de colores (🟢 Verde, 🟠 Naranja, 🔴 Rojo) para identificar visualmente las estaciones más económicas respecto a la media.
 - **Navegación GPS "Turn-by-turn":** Cálculo de ruta en coche desde tu ubicación actual hasta el surtidor, con aviso visual de "¡Has llegado!".
+
+### 🅿️ Estado de Parkings en Tiempo Real
+
+- **Disponibilidad al Minuto:** Conexión directa con los datos oficiales de Movilidad para mostrar las plazas libres exactas en los aparcamientos públicos.
+- **Visualización Inteligente:** Tabla de datos sincronizada con el mapa. Incluye un botón de localización rápida para volar directamente a la entrada del parking.
+- **Semáforo de Ocupación:** Pines y etiquetas con código de colores dinámico:
+  - 🟢 **Verde:** Disponible.
+  - 🟠 **Naranja:** Últimas plazas.
+  - 🔴 **Rojo:** Completo o Cerrado.
 
 ## <a id="ux"></a>📱 Experiencia de Usuario (UX)
 
@@ -176,6 +186,26 @@ El sistema calcula la media de precios en pantalla y colorea las etiquetas:
 1. Se trazará una ruta azul en el mapa desde tu posición.
 1. Conduce siguiendo la línea; la app actualizará tu posición en tiempo real y te avisará cuando llegues al destino.
 1. Puedes cancelar la navegación pulsando el botón rojo flotante **"Cancelar Ruta"**.
+
+### <a id="parkings"></a>🅿️ Estado de Parkings
+
+Evita dar vueltas innecesarias consultando la ocupación de los parkings públicos (Violón, San Agustín, Triunfo, etc.) antes de llegar.
+
+1. **Tabla en Tiempo Real:**
+   Consulta el listado para ver el número exacto de plazas libres.
+
+   - 🟢 **Disponible:** Plazas suficientes.
+   - 🟠 **Últimas:** Menos de 20 plazas libres.
+   - 🔴 **Completo:** No hay disponibilidad o el recinto está cerrado.
+
+2. **Mapa Interactivo:**
+   Los marcadores en el mapa cambian de color según su estado actual para que identifiques las mejores opciones de un vistazo.
+
+3. **Herramienta de Localización:**
+   ¿Ves un parking con sitio en la tabla pero no sabes dónde está? Pulsa el botón azul con la flecha/chincheta (📍) situado junto al nombre del parking. El mapa hará zoom automáticamente y se centrará en esa ubicación.
+
+4. **Refresco de Datos:**
+   Pulsa el botón **"Actualizar Datos"** arriba a la derecha para volver a descargar la información más reciente desde el servidor.
 
 ### <a id="configuracion"></a>⚙️ Configuración y Privacidad
 
