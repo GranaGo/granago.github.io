@@ -2,7 +2,7 @@
    GRANÁGO - SERVICE WORKER (SIN WORKBOX) - API + CACHE BUSTING
    =============================================================== */
 
-const CACHE_VERSION = 'v2.8'; // Tu script update-cache-version lo actualizará
+const CACHE_VERSION = 'v2.9'; // Tu script update-cache-version lo actualizará
 const STATIC_CACHE = `granago-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `granago-dynamic-${CACHE_VERSION}`;
 const API_CACHE = `granago-api-${CACHE_VERSION}`;
@@ -82,6 +82,12 @@ self.addEventListener("fetch", (event) => {
 
   // 3. Otros recursos: documentos, vistas, scripts…
   return event.respondWith(networkWithCacheFallback(req));
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.action === "skipWaiting") {
+    self.skipWaiting();
+  }
 });
 
 /* ===============================================================
