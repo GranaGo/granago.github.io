@@ -4,7 +4,7 @@
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
 
 // MANTENER ESTO EXACTO para tu script update-cache-version.js
-const CACHE_VERSION = 'v2.4';
+const CACHE_VERSION = 'v2.5';
 
 if (workbox) {
   console.log(`[SW] Workbox activo - ${CACHE_VERSION}`);
