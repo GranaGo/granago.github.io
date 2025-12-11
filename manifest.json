@@ -1,7 +1,9 @@
 {
-  "name": "GranáGo App",
+  "name": "GranáGo",
   "short_name": "GranáGo",
+  "id": "/",
   "description": "Tu asistente integral de movilidad para Granada.",
+  "orientation": "portrait-primary",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
