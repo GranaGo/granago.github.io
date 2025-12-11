@@ -2,7 +2,7 @@
    GRANÁGO - SERVICE WORKER (SIN WORKBOX) - API + CACHE BUSTING
    =============================================================== */
 
-const CACHE_VERSION = 'v3.8'; // Tu script update-cache-version lo actualizará
+const CACHE_VERSION = "v3.8"; // Tu script update-cache-version lo actualizará
 const STATIC_CACHE = `granago-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `granago-dynamic-${CACHE_VERSION}`;
 const API_CACHE = `granago-api-${CACHE_VERSION}`;
@@ -30,7 +30,8 @@ const STATIC_ASSETS = [
   "/imagenes/Transporte.webp",
   "/imagenes/ZBE.webp",
   "/imagenes/zbeMapa.webp",
-  "imagenes/gasolina.webp",
+  "/imagenes/gasolina.webp",
+  "/imagenes/parking.webp",
 ];
 
 /* ===============================================================

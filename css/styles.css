@@ -1180,3 +1180,46 @@ body.dark-mode .gas-price-pin div {
 .gas-logo-icon svg text {
   fill: white !important;
 }
+
+/* AÑADIR AL FINAL DE styles.css */
+
+/* --- Parkings en Tiempo Real --- */
+.pin-parking-realtime {
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 3px solid white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  font-weight: 900;
+  color: white;
+  font-size: 16px;
+  transition: transform 0.2s;
+}
+
+/* Colores de estado */
+.parking-libre {
+  background-color: #10b981;
+} /* Verde */
+.parking-medio {
+  background-color: #f59e0b;
+} /* Naranja/Amarillo */
+.parking-lleno {
+  background-color: #ef4444;
+} /* Rojo */
+.parking-cerrado {
+  background-color: #6b7280;
+} /* Gris */
+
+/* Efecto hover en pines */
+.pin-parking-realtime:hover {
+  transform: scale(1.15);
+  z-index: 1000 !important;
+}
+
+/* Modo oscuro para pines */
+body.dark-mode .pin-parking-realtime {
+  border-color: #1f2937;
+}
