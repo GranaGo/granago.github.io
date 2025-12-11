@@ -4225,23 +4225,40 @@ window.initGasolinerasMap = function () {
     mapGasolineras = createBaseMap("map-gasolineras", [37.1773, -3.5986], 13);
     gasolinerasLayerGroup = L.layerGroup().addTo(mapGasolineras);
 
+    // Control manual de ubicación
     addLocationControl(mapGasolineras, () => {
       actualizarUbicacionGasolineras();
     });
 
+    // Cargar datos
     fetchGasolineras();
 
+    // --- CAMBIO AQUÍ: AUTO-ZOOM AL INICIAR ---
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           userGasLat = pos.coords.latitude;
           userGasLon = pos.coords.longitude;
+
+          // 1. Pintar el punto azul
           updateUserGasMarker();
+
+          // 2. Hacer zoom suave hacia el usuario (Nivel 15)
+          if (mapGasolineras) {
+            mapGasolineras.flyTo([userGasLat, userGasLon], 15, {
+              duration: 1.5, // Animación suave de 1.5 segundos
+            });
+          }
         },
-        () => console.log("Ubicación gasolineras pendiente")
+        () => {
+          console.log(
+            "Ubicación no disponible o denegada, manteniendo vista por defecto."
+          );
+        }
       );
     }
   } else {
+    // Si ya existía el mapa (vuelves a la pestaña), solo reajustamos el tamaño
     setTimeout(() => mapGasolineras.invalidateSize(), 200);
   }
 };
@@ -4340,16 +4357,30 @@ function monitorizarLlegadaGasolinera(destLat, destLon) {
       userGasLat = pos.coords.latitude;
       userGasLon = pos.coords.longitude;
 
-      updateUserGasMarker(); // Mueve el icono azul
+      // 1. Actualizar el icono del usuario
+      updateUserGasMarker();
 
+      // 2. NUEVO: Mover la cámara del mapa siguiendo al usuario
+      mapGasolineras.panTo([userGasLat, userGasLon]);
+
+      // 3. NUEVO: Actualizar la línea de ruta desde la nueva posición
+      // (Esto hace que la línea azul se redibuje desde donde estás ahora)
+      if (gasRouteControl) {
+        gasRouteControl.setWaypoints([
+          L.latLng(userGasLat, userGasLon), // Inicio: Tu posición actual
+          L.latLng(destLat, destLon), // Fin: Gasolinera
+        ]);
+      }
+
+      // 4. Comprobar si has llegado
       const dist = mapGasolineras.distance(
         [userGasLat, userGasLon],
         [destLat, destLon]
       );
 
-      // Si estamos a menos de 40 metros
       if (dist < 40) {
-        ejecutarLlegada(); // Reusamos la función global de arrival-notification
+        // Si estás a menos de 40 metros
+        ejecutarLlegada();
         detenerRutaGasolinera();
       }
     },
