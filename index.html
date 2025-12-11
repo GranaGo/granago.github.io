@@ -1494,7 +1494,15 @@
         if (notificationShown) return;
         notificationShown = true;
         console.log("Nueva versión disponible.");
-        if (worker) worker.postMessage({ action: "skipWaiting" });
+        
+        // Llamamos a la función visual que pusimos en main.js
+        if (typeof window.lanzarAvisoActualizacion === 'function') {
+            window.lanzarAvisoActualizacion(worker);
+        } else {
+            // Fallback por si main.js no ha cargado aún (raro, pero posible)
+            // Aquí sí forzamos si no hay UI disponible
+            if (worker) worker.postMessage({ action: "skipWaiting" }); 
+        }
       }
     </script>
 
