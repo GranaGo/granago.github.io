@@ -34,7 +34,7 @@
     <link rel="preload" as="image" href="imagenes/Fondo.webp" />
 
     <link rel="icon" type="image/x-icon" href="imagenes/Logo.ico" />
-    <link rel="manifest" href="./manifest.json" />
+    <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="imagenes/Logo192x192.png" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1443,27 +1443,30 @@
 
       if ("serviceWorker" in navigator) {
         // ESPERAMOS A QUE LA PÁGINA CARGUE COMPLETAMENTE (Mejor para PWABuilder)
-        window.addEventListener('load', () => {
-            navigator.serviceWorker
-              .register("./sw.js")
-              .then((reg) => {
-                console.log("SW registrado correctamente:", reg.scope);
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/sw.js")
+            .then((reg) => {
+              console.log("SW registrado correctamente:", reg.scope);
 
-                // Lógica de actualización...
-                if (reg.waiting) {
-                  showUpdateNotification(reg.waiting);
-                  return;
-                }
-                reg.addEventListener("updatefound", () => {
-                  const newWorker = reg.installing;
-                  newWorker.addEventListener("statechange", () => {
-                    if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-                        showUpdateNotification(newWorker);
-                    }
-                  });
+              // Lógica de actualización...
+              if (reg.waiting) {
+                showUpdateNotification(reg.waiting);
+                return;
+              }
+              reg.addEventListener("updatefound", () => {
+                const newWorker = reg.installing;
+                newWorker.addEventListener("statechange", () => {
+                  if (
+                    newWorker.state === "installed" &&
+                    navigator.serviceWorker.controller
+                  ) {
+                    showUpdateNotification(newWorker);
+                  }
                 });
-              })
-              .catch((err) => console.error("Fallo al registrar SW:", err));
+              });
+            })
+            .catch((err) => console.error("Fallo al registrar SW:", err));
         });
 
         // Recargar página al cambiar controlador
@@ -1475,6 +1478,15 @@
           }
         });
       }
+
+      /* ===============================================================
+   Listener para skipWaiting desde el cliente (update popup)
+   =============================================================== */
+      self.addEventListener("message", (event) => {
+        if (event.data && event.data.action === "skipWaiting") {
+          self.skipWaiting();
+        }
+      });
 
       function showUpdateNotification(worker) {
         if (notificationShown) return;
