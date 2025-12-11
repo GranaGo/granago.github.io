@@ -103,7 +103,7 @@ async function cacheFirst(request, cacheName) {
     cache.put(request, fresh.clone());
     return fresh;
   } catch (err) {
-    return caches.match("/offline.html");
+    return caches.match("/index.html");
   }
 }
 

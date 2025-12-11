@@ -1442,31 +1442,34 @@
       let notificationShown = false;
 
       if ("serviceWorker" in navigator) {
-        // Registramos inmediatamente
-        navigator.serviceWorker
-          .register('/sw.js')
-          .then((reg) => {
-            console.log("SW registrado correctamente:", reg.scope);
+        // Esperar a que la página cargue completamente antes de registrar
+        window.addEventListener("load", () => {
+          // USA RUTA RELATIVA AQUÍ (./sw.js)
+          navigator.serviceWorker
+            .register('./sw.js')
+            .then((reg) => {
+              console.log("SW registrado correctamente:", reg.scope);
 
-            // Lógica de actualización
-            if (reg.waiting) {
-              showUpdateNotification(reg.waiting);
-              return;
-            }
+              // Lógica de actualización
+              if (reg.waiting) {
+                showUpdateNotification(reg.waiting);
+                return;
+              }
 
-            reg.addEventListener("updatefound", () => {
-              const newWorker = reg.installing;
-              newWorker.addEventListener("statechange", () => {
-                if (
-                  newWorker.state === "installed" &&
-                  navigator.serviceWorker.controller
-                ) {
-                  showUpdateNotification(newWorker);
-                }
+              reg.addEventListener("updatefound", () => {
+                const newWorker = reg.installing;
+                newWorker.addEventListener("statechange", () => {
+                  if (
+                    newWorker.state === "installed" &&
+                    navigator.serviceWorker.controller
+                  ) {
+                    showUpdateNotification(newWorker);
+                  }
+                });
               });
-            });
-          })
-          .catch((err) => console.error("Fallo al registrar SW:", err));
+            })
+            .catch((err) => console.error("Fallo al registrar SW:", err));
+        });
 
         // Recargar página al cambiar controlador
         let refreshing = false;
