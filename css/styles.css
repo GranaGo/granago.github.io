@@ -1146,3 +1146,37 @@ body.dark-mode .btn-info-style:hover {
   will-change: transform; /* Prepara al navegador para animaciones */
   transform: translate3d(0, 0, 0); /* Fuerza aceleración por hardware */
 }
+/* --- Pines de Gasolineras --- */
+.gas-price-pin {
+  /* Asegura que el contenido del pin no se vea afectado por la inversión de color del mapa en modo oscuro */
+  filter: none !important;
+  transform: translateZ(0); /* Aceleración GPU */
+}
+
+/* Protege el fondo del pin en modo oscuro */
+body.dark-mode .gas-price-pin div {
+  /* Evita que los colores (verde, rojo, amarillo) se inviertan */
+  filter: none !important;
+  border: 2px solid white;
+}
+
+/* Estilo específico para el Pin de Logo (Marca) */
+.gas-logo-pin {
+  /* Desactivar el filtro de inversión en el pin de logo si se usa un SVG */
+  filter: none !important;
+}
+.gas-logo-pin .gas-logo-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s;
+}
+
+/* Forzar que el texto del pin (Rótulo/Marca) no se vea afectado */
+.gas-logo-icon svg text {
+  fill: white !important;
+}

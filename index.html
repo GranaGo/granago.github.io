@@ -30,7 +30,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <link rel="stylesheet" href="css/styles.css?v=v3.6" />
+    <link rel="stylesheet" href="css/styles.css?v=v3.7" />
     <link rel="preload" as="image" href="imagenes/Fondo.webp" />
 
     <link rel="icon" type="image/x-icon" href="imagenes/Logo.ico" />
@@ -1136,6 +1136,130 @@
           </button>
         </div>
       </div>
+
+      <div id="gasolineras-view" class="view-section">
+        <div class="flex items-center mb-6">
+          <button
+            onclick="navigateTo('home')"
+            class="mr-4 p-2 bg-white text-blue-600 rounded-full hover:bg-blue-50 transition shadow-sm border border-gray-200"
+          >
+            <svg
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+          </button>
+          <h2 class="text-2xl font-bold">Precios de Gasolineras</h2>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow-lg mb-4 flex flex-col gap-3">
+          <div class="flex flex-col md:flex-row gap-3">
+            <select
+              id="gas-fuel-select"
+              class="p-3 border border-gray-200 rounded-xl flex-1 bg-gray-50 focus:bg-white transition"
+              onchange="resetSpecialFilters(); filterGasStations()"
+            >
+              <option value="NINGUNO">Seleccione tipo de combustible</option>
+              <option value="G95">Gasolina sin plomo 95</option>
+              <option value="G97">Gasolina sin plomo 97</option>
+              <option value="G98">Gasolina sin plomo 98</option>
+              <option value="A_HABITUAL">Gasóleo A habitual</option>
+              <option value="A_MEJORADO">Gasóleo A mejorado</option>
+              <option value="B">Gasóleo B</option>
+              <option value="C">Gasóleo C</option>
+              <option value="BIODIESEL">Biodiésel</option>
+              <option value="GLP">Autogas GLP</option>
+              <option value="GNC">Gas N. Compr</option>
+              <option value="GNL">Gas N. Licuado</option>
+              <option value="ADBLUE">Adblue</option>
+              <option value="DIESEL_REN">Diesel Renovable</option>
+              <option value="GASOLINA_REN">Gasolina Renovable</option>
+            </select>
+
+            <select
+              id="gas-brand-select"
+              class="p-3 border border-gray-200 rounded-xl flex-1 bg-gray-50 focus:bg-white transition notranslate"
+              onchange="filterGasStations()"
+            >
+              <option value="ALL">Todas las Marcas</option>
+            </select>
+
+            <button
+              onclick="fetchGasolineras()"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-bold transition shadow-sm flex items-center justify-center gap-2"
+              title="Actualizar datos"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                ></path>
+              </svg>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <button
+              id="btn-gas-cheap"
+              onclick="activarFiltroEspecial('cheap')"
+              class="p-2 border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-xs font-bold transition flex flex-col items-center justify-center gap-1"
+            >
+              <span class="text-lg">💶</span>
+              TOP 3 BARATAS
+            </button>
+
+            <button
+              id="btn-gas-near"
+              onclick="activarFiltroEspecial('near')"
+              class="p-2 border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-bold transition flex flex-col items-center justify-center gap-1"
+            >
+              <span class="text-lg">📍</span>
+              TOP 5 CERCANAS <span class="text-[9px] opacity-70">(< 5km)</span>
+            </button>
+          </div>
+        </div>
+        <div
+          class="bg-white p-2 rounded-3xl shadow-lg mb-6 border border-gray-100 overflow-hidden relative h-[500px]"
+        >
+          <div id="map-gasolineras" class="w-full h-full rounded-2xl z-0"></div>
+
+          <button
+            id="btn-cancel-gas-route"
+            onclick="detenerRutaGasolinera()"
+            class="hidden absolute bottom-8 left-1/2 transform -translate-x-1/2 z-[400] bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-full font-bold shadow-lg flex items-center gap-2 transition-all active:scale-95"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+            Cancelar Ruta
+          </button>
+        </div>
+      </div>
     </div>
     <div
       id="zbe-modal"
@@ -1394,7 +1518,7 @@
       </div>
     </footer>
 
-    <script src="js/main.js?v=v3.6" type="module"></script>
+    <script src="js/main.js?v=v3.7" type="module"></script>
 
     <script>
       const toggleButton = document.getElementById("theme-toggle");
@@ -1446,7 +1570,7 @@
         window.addEventListener("load", () => {
           // USA RUTA RELATIVA AQUÍ (./sw.js)
           navigator.serviceWorker
-            .register('./sw.js', { scope: "/" })
+            .register("./sw.js", { scope: "/" })
             .then((reg) => {
               console.log("SW registrado correctamente:", reg.scope);
 
@@ -1494,14 +1618,14 @@
         if (notificationShown) return;
         notificationShown = true;
         console.log("Nueva versión disponible.");
-        
+
         // Llamamos a la función visual que pusimos en main.js
-        if (typeof window.lanzarAvisoActualizacion === 'function') {
-            window.lanzarAvisoActualizacion(worker);
+        if (typeof window.lanzarAvisoActualizacion === "function") {
+          window.lanzarAvisoActualizacion(worker);
         } else {
-            // Fallback por si main.js no ha cargado aún (raro, pero posible)
-            // Aquí sí forzamos si no hay UI disponible
-            if (worker) worker.postMessage({ action: "skipWaiting" }); 
+          // Fallback por si main.js no ha cargado aún (raro, pero posible)
+          // Aquí sí forzamos si no hay UI disponible
+          if (worker) worker.postMessage({ action: "skipWaiting" });
         }
       }
     </script>
