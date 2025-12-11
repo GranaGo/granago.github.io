@@ -30,6 +30,7 @@ const STATIC_ASSETS = [
   "/imagenes/Transporte.webp",
   "/imagenes/ZBE.webp",
   "/imagenes/zbeMapa.webp",
+  "imagenes/gasolina.webp",
 ];
 
 /* ===============================================================

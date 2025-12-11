@@ -18,6 +18,7 @@
 - [🚗 Mi Coche](#coche)
 - [🗺️ Turismo y Puntos de Interés](#turismo)
 - [ℹ️ Información de Transporte](#info-transporte)
+- [⛽ Precios de Gasolineras](#precios-de-gasolineras)
 - [⚙️ Configuración y Privacidad](#configuracion)
 
 3. [📱 Experiencia de Usuario](#ux)
@@ -59,6 +60,16 @@
 - **Feed en Tiempo Real:** Conexión directa con Movilidad Granada.
 - **Código de Colores:** Los marcadores del mapa cambian de color según la gravedad: 🔴 Cortes Totales, 🟠 Parciales, 🟣 Manifestaciones, 🔵 Obras.
 - **Buscador Sincronizado:** Al buscar un evento en la lista, el mapa se filtra automáticamente para mostrar solo esa incidencia.
+
+### ⛽ Consultor de Gasolineras Avanzado
+
+- **Precios en Tiempo Real:** Conexión directa con la API del Ministerio para la Transición Ecológica.
+- **Filtros Inteligentes:**
+  - Búsqueda por tipo de combustible (Gasolina 95/98, Diesel A/B, GLP, eléctricos...).
+  - Filtrado por marcas y franquicias (Repsol, Cepsa, Low Cost, Plenoil, etc.).
+- **Asistente de Ahorro:** Botones de acceso rápido para localizar las **"Top 3 Baratas"** y las **"Top 5 Cercanas"** (radio < 3km).
+- **Semáforo de Precios:** Código de colores (🟢 Verde, 🟠 Naranja, 🔴 Rojo) para identificar visualmente las estaciones más económicas respecto a la media.
+- **Navegación GPS "Turn-by-turn":** Cálculo de ruta en coche desde tu ubicación actual hasta el surtidor, con aviso visual de "¡Has llegado!".
 
 ## <a id="ux"></a>📱 Experiencia de Usuario (UX)
 
@@ -126,10 +137,45 @@ Tu guía completa con todos los datos estáticos y oficiales de la red.
 1. **Selección de Modo:** Elige entre **Metro**, **Bus Urbano** o **Interurbano** desde el menú principal.
 2. **Selección de Línea:** Accede al listado completo de líneas con sus colores oficiales para identificar rápidamente la tuya.
 3. **Herramientas de Detalle:** Una vez dentro de una línea, dispones de 4 opciones:
+
    - **🗺️ Ruta en Mapa:** Visualiza el trazado exacto de la línea. Toca los marcadores de las paradas para ver su nombre y **conexiones de transbordo** con otras líneas.
    - **📋 Ruta en Lista:** Consulta la secuencia ordenada de paradas, dividida en pestañas de Ida y Vuelta.
    - **💶 Tarifas:** Revisa los precios actualizados para 2025, tipos de billetes y descuentos por tarjeta.
    - **🕒 Horarios:** Consulta las horas de salida del primer y último servicio. _Nota: Las líneas Búho muestran un diseño especial con sus frecuencias nocturnas._
+
+### <a id="precios-de-gasolineras"></a>⛽ Precios de Gasolineras
+
+Este módulo te permite ahorrar encontrando el combustible más barato o la estación más cercana en Granada.
+
+1. **Modos de Visualización**
+
+- **Modo Mapa (Por defecto):** Si no seleccionas combustible, verás los logotipos de todas las gasolineras para orientarte.
+- **Modo Precios:** Al seleccionar un combustible (ej: _Gasolina sin plomo 95_), los iconos cambiarán para mostrar el precio por litro.
+
+2. **Uso de Filtros**
+
+1. **Tipo de Combustible:** Selecciona primero qué necesitas repostar. Es obligatorio para ver precios.
+1. **Filtrar por Marca:** (Opcional) Puedes limpiar el mapa para ver solo gasolineras de una franquicia concreta (ej: solo _Repsol_ o _Shell_).
+1. **Botones Rápidos:**
+
+   - **💶 TOP 3 BARATAS:** Localiza y destaca en verde las 3 estaciones más económicas de la ciudad.
+   - **📍 TOP 5 CERCANAS:** Usa tu GPS para encontrar las 5 estaciones más próximas (radio máx. 3km) y te indica la distancia.
+
+1. **Código de Colores (Semáforo)**
+
+El sistema calcula la media de precios en pantalla y colorea las etiquetas:
+
+- 🟢 **Verde:** Precio excelente (Muy barato).
+- 🟠 **Amarillo/Naranja:** Precio estándar/medio.
+- 🔴 **Rojo:** Precio elevado (Caro).
+
+4. **Navegación GPS**
+
+1. Toca cualquier gasolinera para abrir su ficha.
+1. Pulsa el botón **"🚗 IR ALLÍ"**.
+1. Se trazará una ruta azul en el mapa desde tu posición.
+1. Conduce siguiendo la línea; la app actualizará tu posición en tiempo real y te avisará cuando llegues al destino.
+1. Puedes cancelar la navegación pulsando el botón rojo flotante **"Cancelar Ruta"**.
 
 ### <a id="configuracion"></a>⚙️ Configuración y Privacidad
 

@@ -109,6 +109,7 @@ const CONFIRM_MESSAGES = {
 
 // 2.4. DEFINICIÓN DE SERVICIOS DEL HOME
 // ------------------------------------------
+
 const HOME_SERVICES = [
   {
     id: "transporte",
@@ -165,6 +166,14 @@ const HOME_SERVICES = [
     img: "imagenes/infoTransporte.webp",
     alt: "Información de Transporte",
     fallback: "Info+Transporte",
+  },
+  {
+    id: "gasolineras",
+    title: "BUSCADOR DE GASOLINERAS",
+    desc: "Localiza la más barata y sus precios en tiempo real.",
+    img: "imagenes/gasolina.webp", // Asegúrate de tener una imagen
+    alt: "Icono de Surtidor de Gasolina",
+    fallback: "Gasolineras+Precios",
   },
 ];
 
@@ -480,6 +489,12 @@ window.navigateTo = function (viewId, addToHistory = true) {
   }
   if (viewId === "info-transporte") {
     renderInfoTransporteMenu();
+  }
+  if (viewId === "gasolineras") {
+    initGasolinerasMap();
+    setTimeout(() => {
+      if (mapGasolineras) mapGasolineras.invalidateSize();
+    }, 200);
   }
 };
 
@@ -1113,13 +1128,13 @@ function handleLocationSuccess(pos) {
   // CLAVE: Animación suave. Al terminar ('moveend'), cargamos los marcadores.
   mapTransporte.flyTo(userLocationLatLng, 16, {
     duration: 1.5, // Animación un poco más lenta para dar fluidez
-    easeLinearity: 0.25
+    easeLinearity: 0.25,
   });
-  
+
   // Suscribirse una sola vez al fin del movimiento para cargar los buses
-  mapTransporte.once('moveend', () => {
-      // Pequeño delay extra para asegurar que el navegador recuperó aliento
-      setTimeout(renderizarCapasDiferidas, 100); 
+  mapTransporte.once("moveend", () => {
+    // Pequeño delay extra para asegurar que el navegador recuperó aliento
+    setTimeout(renderizarCapasDiferidas, 100);
   });
 }
 
@@ -1153,11 +1168,11 @@ let markersLoaded = false;
 // Función auxiliar para pintar las capas SOLO cuando sea necesario
 function renderizarCapasDiferidas() {
   if (markersLoaded || !mapTransporte) return;
-  
+
   // Añadimos las capas ahora que el mapa está quieto
   if (layers.urbano) layers.urbano.addTo(mapTransporte);
   if (layers.metro) layers.metro.addTo(mapTransporte);
-  
+
   // Restauramos estado visual de botones
   document.getElementById("btnUrbano").classList.add("active-layer");
   document.getElementById("btnUrbano").classList.remove("inactive-layer");
@@ -1203,34 +1218,33 @@ window.initTransporteMap = function () {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-            handleLocationSuccess(pos);
-            // Si el GPS responde rápido, handleLocationSuccess se encarga de pintar capas al terminar el zoom.
+          handleLocationSuccess(pos);
+          // Si el GPS responde rápido, handleLocationSuccess se encarga de pintar capas al terminar el zoom.
         },
         (err) => {
-            handleLocationError(err);
-            // Si falla el GPS, cargamos las capas inmediatamente para no dejar el mapa vacío
-            renderizarCapasDiferidas(); 
-            // Y centramos en vista general
-            const activeStops = [...dUrb, ...dMet];
-            if (activeStops.length > 0) {
-              const bounds = new L.featureGroup(
-                activeStops.map((s) => L.marker([s.stop_lat, s.stop_lon]))
-              ).getBounds();
-              mapTransporte.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
-            }
+          handleLocationError(err);
+          // Si falla el GPS, cargamos las capas inmediatamente para no dejar el mapa vacío
+          renderizarCapasDiferidas();
+          // Y centramos en vista general
+          const activeStops = [...dUrb, ...dMet];
+          if (activeStops.length > 0) {
+            const bounds = new L.featureGroup(
+              activeStops.map((s) => L.marker([s.stop_lat, s.stop_lon]))
+            ).getBounds();
+            mapTransporte.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+          }
         },
         { enableHighAccuracy: true, timeout: 10000 }
       );
     } else {
-        // Fallback si no hay soporte GPS
-        renderizarCapasDiferidas();
+      // Fallback si no hay soporte GPS
+      renderizarCapasDiferidas();
     }
-    
+
     // 5. Fallback de seguridad: Si por alguna razón el evento 'moveend' no salta
     // (ej: el usuario ya estaba en la posición exacta y no hubo animación),
     // forzamos la carga a los 2 segundos.
     setTimeout(renderizarCapasDiferidas, 2000);
-
   } else {
     setTimeout(() => {
       mapTransporte.invalidateSize();
@@ -4115,8 +4129,9 @@ window.lanzarAvisoActualizacion = function (worker) {
 
   const banner = document.createElement("div");
   banner.id = "update-banner";
-  banner.className = "fixed bottom-4 left-4 right-4 z-[5000] bg-gray-900 text-white p-4 rounded-xl shadow-2xl border border-gray-700 flex items-center justify-between transform translate-y-20 transition-transform duration-500";
-  
+  banner.className =
+    "fixed bottom-4 left-4 right-4 z-[5000] bg-gray-900 text-white p-4 rounded-xl shadow-2xl border border-gray-700 flex items-center justify-between transform translate-y-20 transition-transform duration-500";
+
   banner.innerHTML = `
     <div class="flex items-center gap-3">
         <span class="text-2xl">🚀</span>
@@ -4143,10 +4158,560 @@ window.lanzarAvisoActualizacion = function (worker) {
     const btn = document.getElementById("btn-update-now");
     btn.innerHTML = "Instalando...";
     btn.classList.add("opacity-50", "cursor-wait");
-    
+
     // Le decimos al Service Worker que tome el control (esto disparará el reload en index.html)
     if (worker) {
-        worker.postMessage({ action: "skipWaiting" });
+      worker.postMessage({ action: "skipWaiting" });
     }
   });
+};
+
+// ======================================================================
+// 12. MÓDULO: GASOLINERAS Y PRECIOS (CON NAVEGACIÓN GPS)
+// ======================================================================
+
+let mapGasolineras = null;
+let gasolinerasLayerGroup = null;
+let allGasolinerasData = [];
+let userGasLat = null;
+let userGasLon = null;
+let gasUserMarker = null;
+
+// Variables de Navegación
+let gasRouteControl = null;
+let gasWatchId = null;
+
+// Estado de filtros especiales
+let specialFilterMode = "none";
+
+const GRANADA_ID = "18087";
+const API_GAS_URL =
+  "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/?IDMunicipio=" +
+  GRANADA_ID;
+
+// Normalización
+const normalizeKey = (str) => {
+  if (!str) return "";
+  return str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+};
+
+// Mapeo
+const GAS_KEYS = {
+  NINGUNO: "rotulo",
+  G95: "gasolina 95 e5",
+  G97: "gasolina 97",
+  G98: "gasolina 98 e5",
+  A_HABITUAL: "gasoleo a",
+  A_MEJORADO: "gasoleo premium",
+  B: "gasoleo b",
+  C: "gasoleo c",
+  BIODIESEL: "biodiesel",
+  GLP: "gases licuados",
+  GNC: "gas natural comprimido",
+  GNL: "gas natural licuado",
+  ADBLUE: "adblue",
+  DIESEL_REN: "diesel renovable",
+  GASOLINA_REN: "gasolina renovable",
+};
+
+const DEFAULT_GAS_KEY = "NINGUNO";
+
+window.initGasolinerasMap = function () {
+  if (!mapGasolineras) {
+    mapGasolineras = createBaseMap("map-gasolineras", [37.1773, -3.5986], 13);
+    gasolinerasLayerGroup = L.layerGroup().addTo(mapGasolineras);
+
+    addLocationControl(mapGasolineras, () => {
+      actualizarUbicacionGasolineras();
+    });
+
+    fetchGasolineras();
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          userGasLat = pos.coords.latitude;
+          userGasLon = pos.coords.longitude;
+          updateUserGasMarker();
+        },
+        () => console.log("Ubicación gasolineras pendiente")
+      );
+    }
+  } else {
+    setTimeout(() => mapGasolineras.invalidateSize(), 200);
+  }
+};
+
+window.actualizarUbicacionGasolineras = function () {
+  if (!mapGasolineras) return;
+  mapGasolineras.locate({
+    setView: true,
+    maxZoom: 14,
+    enableHighAccuracy: true,
+  });
+  mapGasolineras.once("locationfound", (e) => {
+    userGasLat = e.latlng.lat;
+    userGasLon = e.latlng.lng;
+    updateUserGasMarker();
+    if (specialFilterMode === "near") filterGasStations();
+  });
+};
+
+function updateUserGasMarker() {
+  if (!mapGasolineras || !userGasLat) return;
+  if (gasUserMarker) mapGasolineras.removeLayer(gasUserMarker);
+  const icon = createCustomUserIcon("#2563eb", true); // Azul usuario
+  gasUserMarker = L.marker([userGasLat, userGasLon], {
+    icon: icon,
+    zIndexOffset: 1000,
+  })
+    .addTo(mapGasolineras)
+    .bindPopup("Tu ubicación");
+}
+
+// ---------------------------------------------------------
+// LÓGICA DE NAVEGACIÓN (Ruta Coche)
+// ---------------------------------------------------------
+window.iniciarRutaGasolinera = function (destLat, destLon) {
+  if (!navigator.geolocation) {
+    alert("Se necesita GPS para calcular la ruta.");
+    return;
+  }
+
+  // 1. Limpiar rutas previas
+  detenerRutaGasolinera();
+  mapGasolineras.closePopup();
+
+  // 2. Obtener posición actual e iniciar
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const userLat = pos.coords.latitude;
+      const userLon = pos.coords.longitude;
+
+      // Dibujar ruta (OSRM Driving Profile)
+      dibujarRutaCoche(userLat, userLon, destLat, destLon);
+
+      // Mostrar botón cancelar
+      const btnCancel = document.getElementById("btn-cancel-gas-route");
+      if (btnCancel) btnCancel.classList.remove("hidden");
+
+      // Centrar mapa
+      mapGasolineras.flyTo([userLat, userLon], 15);
+
+      // Iniciar vigilancia
+      monitorizarLlegadaGasolinera(destLat, destLon);
+    },
+    (err) => {
+      alert("Error al obtener tu ubicación: " + err.message);
+    },
+    { enableHighAccuracy: true }
+  );
+};
+
+function dibujarRutaCoche(startLat, startLon, endLat, endLon) {
+  gasRouteControl = L.Routing.control({
+    waypoints: [L.latLng(startLat, startLon), L.latLng(endLat, endLon)],
+    router: L.Routing.osrmv1({
+      serviceUrl: "https://router.project-osrm.org/route/v1",
+      profile: "driving", // PERFIL COCHE
+    }),
+    lineOptions: {
+      styles: [{ color: "#2563eb", opacity: 0.8, weight: 6 }],
+    },
+    createMarker: function () {
+      return null;
+    }, // No crear marcadores extra
+    addWaypoints: false,
+    draggableWaypoints: false,
+    fitSelectedRoutes: true,
+    show: false,
+  }).addTo(mapGasolineras);
+}
+
+function monitorizarLlegadaGasolinera(destLat, destLon) {
+  if (gasWatchId) navigator.geolocation.clearWatch(gasWatchId);
+
+  gasWatchId = navigator.geolocation.watchPosition(
+    (pos) => {
+      userGasLat = pos.coords.latitude;
+      userGasLon = pos.coords.longitude;
+
+      updateUserGasMarker(); // Mueve el icono azul
+
+      const dist = mapGasolineras.distance(
+        [userGasLat, userGasLon],
+        [destLat, destLon]
+      );
+
+      // Si estamos a menos de 40 metros
+      if (dist < 40) {
+        ejecutarLlegada(); // Reusamos la función global de arrival-notification
+        detenerRutaGasolinera();
+      }
+    },
+    (err) => console.warn(err),
+    {
+      enableHighAccuracy: true,
+      maximumAge: 1000,
+    }
+  );
+}
+
+window.detenerRutaGasolinera = function () {
+  if (gasRouteControl) {
+    mapGasolineras.removeControl(gasRouteControl);
+    gasRouteControl = null;
+  }
+  if (gasWatchId) {
+    navigator.geolocation.clearWatch(gasWatchId);
+    gasWatchId = null;
+  }
+  const btnCancel = document.getElementById("btn-cancel-gas-route");
+  if (btnCancel) btnCancel.classList.add("hidden");
+};
+
+// ---------------------------------------------------------
+// FUNCIONES DE DATOS Y FILTRADO
+// ---------------------------------------------------------
+
+window.fetchGasolineras = async function () {
+  const updateBtn = document.querySelector(
+    "#gasolineras-view button[onclick='fetchGasolineras()']"
+  );
+  if (updateBtn) {
+    updateBtn.innerHTML =
+      '<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>';
+    updateBtn.disabled = true;
+  }
+  const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(API_GAS_URL);
+  try {
+    const res = await fetch(proxyUrl);
+    if (!res.ok) throw new Error("Error fetching gas data");
+    const data = await res.json();
+    if (!data.ListaEESSPrecio || data.ListaEESSPrecio.length === 0)
+      throw new Error("Sin datos");
+
+    allGasolinerasData = data.ListaEESSPrecio.filter(
+      (g) => g.IDProvincia === "18"
+    ).map((g) => {
+      g.Latitud = g.Latitud ? g.Latitud.replace(",", ".") : null;
+      g["Longitud (WGS84)"] = g["Longitud (WGS84)"]
+        ? g["Longitud (WGS84)"].replace(",", ".")
+        : null;
+      return g;
+    });
+
+    populateBrandSelect();
+
+    if (updateBtn) {
+      updateBtn.innerHTML =
+        '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>';
+      updateBtn.disabled = false;
+    }
+    filterGasStations();
+  } catch (e) {
+    console.error(e);
+    if (updateBtn) {
+      updateBtn.textContent = "Error";
+      updateBtn.disabled = false;
+    }
+  }
+};
+
+function populateBrandSelect() {
+  const select = document.getElementById("gas-brand-select");
+  if (!select) return;
+  const brands = new Set();
+  allGasolinerasData.forEach((g) => {
+    if (g.Rótulo) brands.add(getCleanBrandName(g.Rótulo));
+  });
+  const sortedBrands = Array.from(brands).sort();
+  const currentVal = select.value;
+  select.innerHTML = '<option value="ALL">Todas las Marcas</option>';
+  sortedBrands.forEach(
+    (brand) =>
+      (select.innerHTML += `<option value="${brand}">${brand}</option>`)
+  );
+  if (sortedBrands.includes(currentVal)) select.value = currentVal;
+}
+
+window.resetSpecialFilters = function () {
+  specialFilterMode = "none";
+  updateFilterButtonsUI();
+};
+
+window.activarFiltroEspecial = function (mode) {
+  const fuelSelect = document.getElementById("gas-fuel-select");
+  if (fuelSelect.value === "NINGUNO") {
+    alert("Por favor, selecciona primero un tipo de combustible.");
+    return;
+  }
+  if (mode === "near" && !userGasLat) {
+    alert("Necesitamos tu ubicación. Permite el acceso al GPS.");
+    actualizarUbicacionGasolineras();
+    return;
+  }
+  specialFilterMode = specialFilterMode === mode ? "none" : mode;
+  updateFilterButtonsUI();
+  filterGasStations();
+};
+
+function updateFilterButtonsUI() {
+  const btnCheap = document.getElementById("btn-gas-cheap");
+  const btnNear = document.getElementById("btn-gas-near");
+  btnCheap.classList.remove("ring-2", "ring-green-600", "bg-green-100");
+  btnNear.classList.remove("ring-2", "ring-blue-600", "bg-blue-100");
+  if (specialFilterMode === "cheap")
+    btnCheap.classList.add("ring-2", "ring-green-600", "bg-green-100");
+  else if (specialFilterMode === "near")
+    btnNear.classList.add("ring-2", "ring-blue-600", "bg-blue-100");
+}
+
+function createGasLogoIcon(rotulo) {
+  let color = "#2563EB";
+  let text = rotulo.substring(0, 3).toUpperCase();
+  let bg = "#E5E7EB";
+  if (rotulo.includes("REPSOL")) {
+    color = "#EF4444";
+    bg = "#FEE2E2";
+    text = "RSP";
+  } else if (rotulo.includes("CEPSA")) {
+    color = "#F59E0B";
+    bg = "#FFFBEB";
+    text = "CEP";
+  } else if (rotulo.includes("BP")) {
+    color = "#10B981";
+    bg = "#D1FAE5";
+    text = "BP";
+  } else if (rotulo.includes("SHELL")) {
+    color = "#EAB308";
+    bg = "#FEF3C7";
+    text = "SHL";
+  } else if (rotulo.includes("LOW")) {
+    color = "#6366F1";
+    bg = "#E0E7FF";
+    text = "LOW";
+  } else if (rotulo.includes("PETROL")) {
+    color = "#374151";
+    bg = "#D1D5DB";
+    text = "PTL";
+  } else if (rotulo.includes("ALCAMPO") || rotulo.includes("CARREFOUR")) {
+    color = "#ef4444";
+    bg = "#fee2e2";
+    text = "CC";
+  }
+
+  return L.divIcon({
+    className: "gas-price-pin gas-logo-pin",
+    html: `<div class="gas-logo-icon" style="background-color: ${color}; color: white; border: 3px solid ${bg};">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="${ICONS.pin}" fill="white" opacity="0.8"/>
+                <text x="12" y="17" font-size="12" font-weight="900" text-anchor="middle" fill="white" class="notranslate">${text}</text>
+            </svg>
+           </div>`,
+    iconSize: [48, 48],
+    iconAnchor: [24, 48],
+  });
+}
+
+function getCleanBrandName(rawName) {
+  if (!rawName) return "OTRAS";
+  const upper = rawName.toUpperCase();
+  if (upper.includes("REPSOL")) return "REPSOL";
+  if (upper.includes("CEPSA")) return "CEPSA";
+  if (upper.includes("BP")) return "BP";
+  if (upper.includes("SHELL")) return "SHELL";
+  if (upper.includes("GALP")) return "GALP";
+  if (upper.includes("CARREFOUR")) return "CARREFOUR";
+  if (upper.includes("ALCAMPO")) return "ALCAMPO";
+  if (upper.includes("BALLENOIL")) return "BALLENOIL";
+  if (upper.includes("PLENOIL")) return "PLENOIL";
+  if (upper.includes("PETROPRIX")) return "PETROPRIX";
+  if (upper.includes("Q8")) return "Q8";
+  if (upper.includes("MEROIL")) return "MEROIL";
+  if (upper.includes("AVIA")) return "AVIA";
+  if (upper.includes("E.S.", "E.S", "E. S.")) return "E.S.";
+  return rawName.trim().toUpperCase();
+}
+
+const findPriceKey = (gasStation, searchTerm) => {
+  if (!searchTerm) return null;
+  const keys = Object.keys(gasStation);
+  return keys.find((key) => {
+    const cleanKey = normalizeKey(key);
+    return cleanKey.includes(searchTerm) && cleanKey.startsWith("precio");
+  });
+};
+
+window.filterGasStations = function () {
+  if (!mapGasolineras || allGasolinerasData.length === 0) return;
+
+  const fuelSelect = document.getElementById("gas-fuel-select");
+  const brandSelect = document.getElementById("gas-brand-select");
+
+  const selectedFuel = fuelSelect.value;
+  const selectedBrand = brandSelect ? brandSelect.value : "ALL";
+  const fuelName = fuelSelect.options[fuelSelect.selectedIndex].text;
+
+  gasolinerasLayerGroup.clearLayers();
+
+  const isLogoMode = selectedFuel === DEFAULT_GAS_KEY;
+  const targetSearchTerm = isLogoMode ? null : GAS_KEYS[selectedFuel];
+
+  // 1. FILTRADO INICIAL
+  let filteredData = allGasolinerasData.filter((g) => {
+    // Filtro Marca
+    if (
+      selectedBrand !== "ALL" &&
+      getCleanBrandName(g.Rótulo) !== selectedBrand
+    )
+      return false;
+
+    // Filtro Coordenadas válidas
+    if (!g.Latitud || !g["Longitud (WGS84)"]) return false;
+
+    // Si es modo precio, verificar que tenga precio válido
+    if (!isLogoMode) {
+      const pk = findPriceKey(g, targetSearchTerm);
+      if (!pk || !g[pk] || parseFloat(g[pk].replace(",", ".")) <= 0)
+        return false;
+      g._tempPrice = parseFloat(g[pk].replace(",", "."));
+    }
+    return true;
+  });
+
+  // 2. FILTROS ESPECIALES (Baratas / Cercanas)
+  if (!isLogoMode && specialFilterMode !== "none") {
+    if (specialFilterMode === "cheap") {
+      filteredData.sort((a, b) => a._tempPrice - b._tempPrice);
+      filteredData = filteredData.slice(0, 3);
+    } else if (specialFilterMode === "near") {
+      if (userGasLat && userGasLon) {
+        filteredData.forEach((g) => {
+          const lat = parseFloat(g.Latitud);
+          const lon = parseFloat(g["Longitud (WGS84)"]);
+          g._tempDist = mapGasolineras.distance(
+            [userGasLat, userGasLon],
+            [lat, lon]
+          );
+        });
+
+        // Filtro de 5km
+        filteredData = filteredData.filter((g) => g._tempDist <= 5000);
+
+        filteredData.sort((a, b) => a._tempDist - b._tempDist);
+        filteredData = filteredData.slice(0, 5);
+      } else {
+        console.warn("Ubicación no disponible para filtro cercanía");
+      }
+    }
+  }
+
+  // Calcular precio mínimo global
+  let minPrice = Infinity;
+  if (!isLogoMode && filteredData.length > 0) {
+    minPrice = Math.min(...filteredData.map((g) => g._tempPrice));
+  }
+
+  const bounds = [];
+
+  // 3. RENDERIZADO
+  filteredData.forEach((g) => {
+    const lat = parseFloat(g.Latitud);
+    const lon = parseFloat(g["Longitud (WGS84)"]);
+    const finalIcon = createGasLogoIcon(g.Rótulo);
+
+    let priceHtml = "";
+
+    if (isLogoMode) {
+      priceHtml = `<p class="text-xs text-gray-400 mt-2 italic">Selecciona combustible para ver precios.</p>`;
+    } else {
+      const priceDisplay = g._tempPrice.toFixed(3).replace(".", ",");
+      let color = "#1f2937";
+      let badge = "";
+
+      if (specialFilterMode === "cheap") {
+        color = "#10B981";
+        badge =
+          '<span class="block text-[10px] text-white bg-green-500 rounded px-1 py-0.5 font-bold mt-1 w-fit mx-auto">🏆 TOP BARATA</span>';
+      } else if (specialFilterMode === "near") {
+        const distKm = (g._tempDist / 1000).toFixed(1);
+        if (g._tempPrice <= minPrice * 1.02) color = "#10B981";
+        else if (g._tempPrice >= minPrice * 1.1) color = "#DC2626";
+        else color = "#F59E0B";
+        badge = `<span class="block text-[10px] text-blue-600 font-bold mt-1 bg-blue-50 rounded px-1">📍 a ${distKm} km</span>`;
+      } else {
+        if (g._tempPrice <= minPrice * 1.03) color = "#10B981";
+        else if (g._tempPrice >= minPrice * 1.15) color = "#DC2626";
+        else color = "#F59E0B";
+      }
+
+      priceHtml = `
+            <div class="mt-2 pt-2 border-t border-gray-100">
+                <p class="text-[10px] text-gray-400 uppercase tracking-wide font-bold">${fuelName}</p>
+                <div class="flex flex-col items-center justify-center mt-1">
+                    <span class="text-2xl font-black leading-none" style="color: ${color}">${priceDisplay} €</span>
+                    ${badge}
+                </div>
+            </div>
+        `;
+    }
+
+    const popupHtml = `
+        <div class="font-sans text-center min-w-[180px]">
+            <div class="flex items-center justify-center gap-2 mb-1">
+                 <span class="w-2 h-2 rounded-full" style="background-color: ${
+                   g.Rótulo.includes("REPSOL") ? "#ff8200" : "#3b82f6"
+                 }"></span>
+                 <h3 class="font-bold text-gray-800 text-sm leading-tight notranslate">${
+                   g.Rótulo
+                 }</h3>
+            </div>
+            <p class="text-xs text-gray-500 leading-snug px-2">${
+              g.Dirección
+            }</p>
+            ${priceHtml}
+            <button onclick="iniciarRutaGasolinera(${lat}, ${lon})" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg mt-2 text-xs flex items-center justify-center gap-2 shadow-md transition-transform active:scale-95">
+                <span>🚗 IR ALLÍ</span>
+            </button>
+        </div>`;
+
+    const marker = L.marker([lat, lon], { icon: finalIcon }).bindPopup(
+      popupHtml
+    );
+    gasolinerasLayerGroup.addLayer(marker);
+    bounds.push([lat, lon]);
+  });
+
+  if (bounds.length > 0) {
+    const group = new L.featureGroup(gasolinerasLayerGroup.getLayers());
+    mapGasolineras.fitBounds(group.getBounds(), {
+      padding: [50, 50],
+      maxZoom: 15,
+    });
+  } else {
+    // === LÓGICA DE ALERTA Y RESET ===
+    if (specialFilterMode === "near") {
+      alert(
+        "No se encontraron gasolineras con ese combustible a menos de 5km."
+      );
+    } else if (specialFilterMode === "cheap") {
+      alert("No se encontraron precios para ese combustible.");
+    } else if (!isLogoMode) {
+      alert("Actualmente no hay gasolineras con ese combustible.");
+
+      // 1. Resetear el select al valor por defecto (NINGUNO)
+      fuelSelect.value = "NINGUNO";
+
+      // 2. Limpiar filtros especiales por si acaso
+      resetSpecialFilters();
+
+      // 3. Volver a ejecutar para mostrar el mapa base
+      filterGasStations();
+    }
+  }
 };
