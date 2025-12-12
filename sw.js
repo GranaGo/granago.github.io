@@ -2,7 +2,7 @@
    GRANÁGO - SERVICE WORKER (SIN WORKBOX) - API + CACHE BUSTING
    =============================================================== */
 
-const CACHE_VERSION = 'v4.4'; // Tu script update-cache-version lo actualizará
+const CACHE_VERSION = 'v4.5'; // Tu script update-cache-version lo actualizará
 const STATIC_CACHE = `granago-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `granago-dynamic-${CACHE_VERSION}`;
 const API_CACHE = `granago-api-${CACHE_VERSION}`;
