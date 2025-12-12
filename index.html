@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
   <head>
+    <!-- HEAD: Metadatos, CDN y recursos externos organizados para mejorar lectura -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GranáGo</title>
@@ -10,8 +11,8 @@
       content="WYhRzsesqTEFSgFBxUaCCt5zwCAkuyjUtUk9-QBTICA"
     />
 
+    <!-- Third-party CSS/JS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
-
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -26,6 +27,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
+    <!-- Styles: Custom styles (order matters, tailwind then custom) -->
     <link rel="stylesheet" href="css/styles.css?v=v4.5" />
     <link rel="preload" as="image" href="imagenes/Fondo.webp" />
 
@@ -41,6 +43,7 @@
   </head>
 
   <body class="min-h-screen flex flex-col text-gray-800">
+    <!-- Top Controls: Language + Theme -->
     <div class="absolute top-4 left-4 z-50 flex gap-2">
       <button
         onclick="cambiarIdioma('es')"
@@ -68,6 +71,8 @@
 
     <div id="google_translate_element" style="display: none"></div>
 
+    <!-- Traducción Google (contenedor oculto) -->
+    <!-- Theme Toggle -->
     <button
       id="theme-toggle"
       aria-label="Cambiar tema"
@@ -76,6 +81,7 @@
       🌙
     </button>
 
+    <!-- Background and App Container -->
     <div
       class="fixed inset-0 bg-no-repeat bg-center bg-cover pointer-events-none opacity-15 -z-10"
       style="background-image: url('imagenes/Fondo.webp')"
@@ -100,6 +106,7 @@
         </a>
       </header>
 
+      <!-- View: Home (Servicios Principales) -->
       <div id="home-view" class="view-section active">
         <section>
           <h2 class="text-xl font-semibold mb-6 text-center md:text-left">
@@ -112,6 +119,7 @@
         </section>
       </div>
 
+      <!-- View: Info Transporte (Rutas/Lineas/Detalle) -->
       <div id="info-transporte-view" class="view-section">
         <div class="flex items-center mb-6">
           <button
@@ -137,6 +145,7 @@
         <div id="info-content-container" class="space-y-6"></div>
       </div>
 
+      <!-- View: Transporte (Mapa y Paradas) -->
       <div id="transporte-view" class="view-section">
         <div class="flex items-center mb-6">
           <button
@@ -352,6 +361,7 @@
         </div>
       </div>
 
+      <!-- View: ZBE (Zona de Bajas Emisiones) -->
       <div id="zbe-view" class="view-section">
         <div class="flex items-center mb-6">
           <button
@@ -523,6 +533,7 @@
         </div>
       </div>
 
+      <!-- View: ORA (Estacionamiento regulado) -->
       <div id="ora-view" class="view-section">
         <div class="flex items-center mb-6">
           <button
@@ -820,6 +831,7 @@
         </div>
       </div>
 
+      <!-- View: Cortes y Eventos (Mapa de obras/manifestaciones) -->
       <div id="cortes-view" class="view-section">
         <div class="flex items-center mb-6">
           <button
@@ -920,6 +932,7 @@
         </div>
       </div>
 
+      <!-- View: Mi Coche (Guardar y recuperar ubicación) -->
       <div id="coche-view" class="view-section">
         <div class="flex items-center mb-6">
           <button
@@ -997,6 +1010,7 @@
         </div>
       </div>
 
+      <!-- View: Puntos (Lugares de interés y filtros) -->
       <div id="puntos-view" class="view-section">
         <div class="flex items-center mb-6">
           <button
@@ -1133,6 +1147,7 @@
         </div>
       </div>
 
+      <!-- View: Gasolineras (Buscar top baratas/cercanas) -->
       <div id="gasolineras-view" class="view-section">
         <div class="flex items-center mb-6">
           <button
@@ -1256,6 +1271,7 @@
           </button>
         </div>
       </div>
+      <!-- View: Parkings (Estado en tiempo real) -->
       <div id="parkings-view" class="view-section">
         <div class="flex items-center mb-6">
           <button
@@ -1625,132 +1641,8 @@
 
     <script src="js/main.js?v=v4.5" type="module"></script>
 
-    <script>
-      const toggleButton = document.getElementById("theme-toggle");
-      const body = document.body;
-
-      // Función unificada para aplicar el tema
-      function setTheme(isDark) {
-        if (isDark) {
-          body.classList.add("dark-mode");
-          toggleButton.innerHTML = "☀️"; // Icono Sol
-          toggleButton.style.backgroundColor = "#333";
-          toggleButton.style.color = "#fff";
-          localStorage.setItem("theme", "dark");
-        } else {
-          body.classList.remove("dark-mode");
-          toggleButton.innerHTML = "🌙"; // Icono Luna
-          toggleButton.style.backgroundColor = "#fff";
-          toggleButton.style.color = "#333";
-          localStorage.setItem("theme", "light");
-        }
-      }
-
-      // 1. Cargar preferencia al iniciar
-      // Comprueba localStorage o preferencia del sistema si es la primera vez
-      const savedTheme = localStorage.getItem("theme");
-      const systemPrefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)"
-      ).matches;
-
-      if (savedTheme === "dark" || (!savedTheme && systemPrefersDark)) {
-        setTheme(true);
-      } else {
-        setTheme(false);
-      }
-
-      // 2. Evento Click
-      toggleButton.addEventListener("click", () => {
-        const isCurrentlyDark = body.classList.contains("dark-mode");
-        setTheme(!isCurrentlyDark); // Invertir estado
-      });
-    </script>
-
-    <script>
-      let newWorker;
-      let refreshing = false;
-
-      // Evento para recargar la página cuando el nuevo SW tome el control
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.addEventListener("controllerchange", () => {
-          if (!refreshing) {
-            refreshing = true;
-            window.location.reload();
-          }
-        });
-
-        window.addEventListener("load", () => {
-          navigator.serviceWorker
-            .register("./sw.js", { scope: "/" })
-            .then((reg) => {
-              console.log("SW registrado:", reg.scope);
-
-              // 1. COMPROBACIÓN INICIAL: ¿Hay una actualización esperando?
-              // Si el usuario acaba de abrir la app y ya había una versión nueva descargada de antes,
-              // mostramos el aviso (o aplicamos directamente).
-              if (reg.waiting) {
-                console.log(
-                  "Actualización pendiente encontrada al inicio. Mostrando aviso."
-                );
-                showUpdateNotification(reg.waiting); // Mostrar aviso si hay uno en espera
-              }
-
-              // 2. DETECCIÓN DE NUEVAS VERSIONES (Mientras se usa la app)
-              reg.addEventListener("updatefound", () => {
-                newWorker = reg.installing;
-
-                newWorker.addEventListener("statechange", () => {
-                  // Si el nuevo worker se ha instalado (descargado los archivos)
-                  if (newWorker.state === "installed") {
-                    // Si ya hay un worker activo, significa que el usuario está usando una versión antigua
-                    // y debe ser preguntado si quiere actualizar.
-                    if (reg.active) {
-                      // Aquí lanzamos el aviso visual
-                      showUpdateNotification(newWorker);
-                    } else {
-                      // Si no hay trabajador activo (primera carga), lo activa directamente.
-                      console.log(
-                        "Primer Service Worker instalado. Activando..."
-                      );
-                      newWorker.postMessage({ action: "skipWaiting" });
-                    }
-                  }
-                });
-              });
-
-              // Opcional: Forzar chequeo de actualización al cargar
-              // reg.update();
-            })
-            .catch((err) => console.error("Error SW:", err));
-        });
-      }
-
-      /* Función que muestra el banner (Llama a tu función de main.js) */
-      function showUpdateNotification(worker) {
-        if (typeof window.lanzarAvisoActualizacion === "function") {
-          window.lanzarAvisoActualizacion(worker);
-        } else {
-          // Fallback por seguridad
-          let confirmar = confirm(
-            "Nueva versión disponible. ¿Actualizar ahora?"
-          );
-          if (confirmar && worker) {
-            worker.postMessage({ action: "skipWaiting" });
-          }
-        }
-      }
-    </script>
-
-    <script type="text/javascript">
-      function googleTranslateElementInit() {
-        new google.translate.TranslateElement(
-          {
-            pageLanguage: "es",
-          },
-          "google_translate_element"
-        );
-      }
-    </script>
+    <!-- Scripts: Theme, Service Worker and Google Translate logic moved to js/main.js for clarity. -->
+    <!-- Google translate loader remains but its callback is defined in js/main.js -->
     <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   </body>
 </html>

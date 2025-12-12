@@ -3675,6 +3675,9 @@ function googleTranslateElementInit() {
   );
 }
 
+// Exponer la callback de Google Translate a `window` para que el script externo pueda llamarla
+window.googleTranslateElementInit = googleTranslateElementInit;
+
 /* 2) Carga el script de google translate (si no está ya) */
 function loadGoogleTranslateScript(cbName = "googleTranslateElementInit") {
   if (window.google && window.google.translate) {
@@ -4144,6 +4147,106 @@ const UI = {
 // 18. INICIALIZACIÓN Y LISTENERS (DOM Ready)
 // ======================================================================
 
+// Inicializador: Gestión del Tema (Light/Dark)
+function initThemeToggle() {
+  try {
+    const toggleButton = document.getElementById("theme-toggle");
+    const body = document.body;
+
+    // Función unificada para aplicar el tema y exponerla globalmente
+    function setTheme(isDark) {
+      if (isDark) {
+        body.classList.add("dark-mode");
+        if (toggleButton) toggleButton.innerHTML = "☀️"; // Icono Sol
+        if (toggleButton) toggleButton.style.backgroundColor = "#333";
+        if (toggleButton) toggleButton.style.color = "#fff";
+        localStorage.setItem("theme", "dark");
+      } else {
+        body.classList.remove("dark-mode");
+        if (toggleButton) toggleButton.innerHTML = "🌙"; // Icono Luna
+        if (toggleButton) toggleButton.style.backgroundColor = "#fff";
+        if (toggleButton) toggleButton.style.color = "#333";
+        localStorage.setItem("theme", "light");
+      }
+    }
+
+    // Exponer globalmente en caso de que otros módulos llamen a setTheme
+    window.setTheme = setTheme;
+
+    // 1. Cargar preferencia al iniciar
+    const savedTheme = localStorage.getItem("theme");
+    const systemPrefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
+
+    if (savedTheme === "dark" || (!savedTheme && systemPrefersDark)) {
+      setTheme(true);
+    } else {
+      setTheme(false);
+    }
+
+    // 2. Evento Click
+    if (toggleButton)
+      toggleButton.addEventListener("click", () => {
+        const isCurrentlyDark = body.classList.contains("dark-mode");
+        setTheme(!isCurrentlyDark);
+      });
+  } catch (e) {
+    console.warn("initThemeToggle Failure:", e);
+  }
+}
+
+// Inicializador: Service Worker (PWA registration + update flow)
+function initServiceWorkerRegistration() {
+  if (!("serviceWorker" in navigator)) return;
+
+  let newWorker;
+  let refreshing = false;
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!refreshing) {
+      refreshing = true;
+      window.location.reload();
+    }
+  });
+
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("./sw.js", { scope: "/" })
+      .then((reg) => {
+        console.log("SW registrado:", reg.scope);
+
+        if (reg.waiting) {
+          console.log(
+            "Actualización pendiente encontrada al inicio. Mostrando aviso."
+          );
+          if (typeof window.lanzarAvisoActualizacion === "function") {
+            window.lanzarAvisoActualizacion(reg.waiting);
+          }
+        }
+
+        reg.addEventListener("updatefound", () => {
+          newWorker = reg.installing;
+
+          newWorker.addEventListener("statechange", () => {
+            if (newWorker.state === "installed") {
+              if (reg.active) {
+                if (typeof window.lanzarAvisoActualizacion === "function") {
+                  window.lanzarAvisoActualizacion(newWorker);
+                }
+              } else {
+                newWorker.postMessage({ action: "skipWaiting" });
+              }
+            }
+          });
+        });
+      })
+      .catch((err) => console.error("Error SW:", err));
+  });
+}
+
+// Nota: la función googleTranslateElementInit se define en el Módulo de Google Translate (arriba)
+
 document.addEventListener("DOMContentLoaded", () => {
   // Carga inicial de datos
   loadMetroStops();
@@ -4249,6 +4352,10 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("touchmove", doDrag, { passive: false });
     window.addEventListener("touchend", endDrag);
   }
+
+  // Inicializadores de comportamientos globales
+  initThemeToggle();
+  initServiceWorkerRegistration();
 });
 
 // Cerrar al hacer click fuera (Backdrop click)
@@ -4990,8 +5097,13 @@ window.fetchParkingData = async function () {
     tbody.innerHTML =
       '<tr><td colspan="3" class="text-center py-4"><div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div><span class="text-xs text-gray-400">Leyendo tabla oficial...</span></td></tr>';
 
+  // --- MODIFICACIÓN AQUÍ ---
+  // Añadimos ?t=timestamp para evitar que el proxy nos devuelva datos viejos
+  const timestamp = new Date().getTime();
   const targetUrl =
-    "http://www.movilidadgranada.com/aparcamientos/par_tabla.php";
+    "http://www.movilidadgranada.com/aparcamientos/par_tabla.php?t=" +
+    timestamp;
+
   const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
 
   try {
@@ -5037,9 +5149,9 @@ window.fetchParkingData = async function () {
         return n1.includes(n2) || n2.includes(n1);
       });
 
-      // --- PROCESAMIENTO DE ESTADO ---
+      // --- PROCESAMIENTO DE ESTADO (Lógica Personalizada por número) ---
       let plazasNumero = rawPlazas;
-      let numInt = parseInt(rawPlazas);
+      let numInt = parseInt(rawPlazas); // Intentamos convertir a número
       let esNumero = !isNaN(numInt);
 
       let estadoTexto = "";
@@ -5047,34 +5159,31 @@ window.fetchParkingData = async function () {
       let colorPin = "";
       let markerText = "";
 
-      const codigo = rawEstado.toUpperCase();
+      // Si no es un número (ej: pone "CERRADO"), asumimos que son 0 plazas para la lógica
+      let plazasLogica = esNumero ? numInt : 0;
 
-      if (
-        codigo.includes("R") ||
-        rawPlazas.toUpperCase().includes("CERRADO") ||
-        rawPlazas.toUpperCase().includes("COMPLETO") ||
-        (esNumero && numInt === 0)
-      ) {
-        // ROJO
+      // 1. COMPLETO (Menos de 5 plazas)
+      if (plazasLogica < 5) {
         estadoTexto = "Completo";
         estadoColor = "text-red-600 bg-red-50 border-red-100";
         colorPin = "parking-lleno";
         markerText = "🚫";
-        if (!esNumero) plazasNumero = "0";
-      } else if (codigo.includes("A")) {
-        // NARANJA
+        // Si el texto original no era un número (ej: "CERRADO"), lo mantenemos visualmente
+        if (!esNumero) plazasNumero = rawPlazas;
+      }
+      // 2. ÚLTIMAS PLAZAS (Entre 5 y 50 plazas)
+      else if (plazasLogica <= 50) {
         estadoTexto = "Últimas Plazas";
         estadoColor = "text-orange-600 bg-orange-50 border-orange-100";
         colorPin = "parking-medio";
         markerText = "!";
-      } else {
-        // VERDE
+      }
+      // 3. DISPONIBLE (Más de 50 plazas)
+      else {
         estadoTexto = "Disponible";
         estadoColor = "text-green-600 bg-green-50 border-green-100";
         colorPin = "parking-libre";
-        markerText = ""; // Sin texto en el pin verde
-
-        if (esNumero && numInt < 20) estadoTexto = "Últimas";
+        markerText = "";
       }
 
       // --- BOTÓN DE LOCALIZAR (CHINCHETA) ---
