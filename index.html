@@ -26,7 +26,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <link rel="stylesheet" href="css/styles.css?v=v4.4" />
+    <link rel="stylesheet" href="css/styles.css?v=v4.5" />
     <link rel="preload" as="image" href="imagenes/Fondo.webp" />
 
     <link rel="icon" type="image/x-icon" href="imagenes/Logo.ico" />
@@ -1375,30 +1375,65 @@
     </div>
 
     <div
-      id="custom-confirm-modal"
-      class="fixed inset-0 z-[500] bg-black/50 hidden items-center justify-center transition-opacity duration-300 opacity-0"
+      id="global-modal"
+      class="fixed inset-0 z-[5000] bg-black/60 hidden flex items-center justify-center p-4 transition-opacity duration-300 opacity-0 backdrop-blur-sm"
     >
       <div
-        class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-sm w-full mx-4"
+        class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full transform scale-95 transition-transform duration-300 border border-gray-100 dark:border-gray-700 overflow-hidden"
       >
-        <p
-          id="modal-message-text"
-          class="text-lg font-semibold mb-6 text-gray-800 dark:text-gray-100"
+        <div
+          id="modal-header"
+          class="p-6 pb-0 flex flex-col items-center text-center"
         >
-          ¿Seguro que quieres borrar la ubicación del coche?
-        </p>
-        <div class="flex justify-end gap-3">
+          <div
+            id="modal-icon-container"
+            class="mb-4 p-3 rounded-full bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-400"
+          >
+            <svg
+              class="w-8 h-8"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <h3
+            id="modal-title"
+            class="text-xl font-bold text-gray-900 dark:text-white mb-2"
+          >
+            Aviso
+          </h3>
+        </div>
+
+        <div class="px-6 pb-6 text-center">
+          <p
+            id="modal-message"
+            class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed"
+          >
+            Mensaje por defecto...
+          </p>
+        </div>
+
+        <div
+          class="bg-gray-50 dark:bg-gray-700/50 px-6 py-4 flex justify-end gap-3"
+        >
           <button
-            id="modal-cancel-btn"
-            class="px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+            id="modal-btn-cancel"
+            class="hidden px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600"
           >
             Cancelar
           </button>
           <button
-            id="modal-confirm-btn"
-            class="px-4 py-2 text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 transition"
+            id="modal-btn-confirm"
+            class="px-6 py-2 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-500/30"
           >
-            Borrar
+            Aceptar
           </button>
         </div>
       </div>
@@ -1588,7 +1623,7 @@
       </div>
     </footer>
 
-    <script src="js/main.js?v=v4.4" type="module"></script>
+    <script src="js/main.js?v=v4.5" type="module"></script>
 
     <script>
       const toggleButton = document.getElementById("theme-toggle");
