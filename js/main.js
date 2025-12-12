@@ -100,7 +100,137 @@ const SICONS = {
 
 // Mensaje de Error
 const UNAVAILABLE_MESSAGE = "Servicio no disponible actualmente.";
+// ==========================================
+// NUEVO: SISTEMA DE MODALES PERSONALIZADOS
+// ==========================================
 
+/**
+ * Muestra una alerta (Reemplazo de alert())
+ * @param {string} message - El texto a mostrar
+ * @param {string} type - 'info', 'error', 'success', 'warning'
+ */
+window.showAppAlert = function (message, type = "info") {
+  showGlobalModal({
+    type: type,
+    message: message,
+    isConfirm: false,
+  });
+};
+
+/**
+ * Muestra una confirmación (Reemplazo de confirm())
+ * @param {string} message - Pregunta
+ * @param {Function} onConfirm - Callback si dice SÍ
+ * @param {Function} onCancel - Callback si dice NO (opcional)
+ */
+window.showAppConfirm = function (message, onConfirm, onCancel = null) {
+  showGlobalModal({
+    type: "question",
+    message: message,
+    isConfirm: true,
+    onConfirm: onConfirm,
+    onCancel: onCancel,
+  });
+};
+
+// Función interna que manipula el DOM
+function showGlobalModal(options) {
+  const modal = document.getElementById("global-modal");
+  const titleEl = document.getElementById("modal-title");
+  const msgEl = document.getElementById("modal-message");
+  const iconContainer = document.getElementById("modal-icon-container");
+  const btnConfirm = document.getElementById("modal-btn-confirm");
+  const btnCancel = document.getElementById("modal-btn-cancel");
+
+  if (!modal) return;
+
+  // 1. Configurar Contenido
+  msgEl.textContent = options.message;
+
+  // 2. Configurar Estilos según Tipo
+  let iconSvg = "";
+  let colorClass = "";
+  let titleText = "";
+
+  switch (options.type) {
+    case "error":
+      colorClass =
+        "text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-900/30";
+      titleText = "¡Vaya!";
+      iconSvg =
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />';
+      break;
+    case "success":
+      colorClass =
+        "text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/30";
+      titleText = "¡Hecho!";
+      iconSvg =
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />';
+      break;
+    case "question":
+      colorClass =
+        "text-orange-600 bg-orange-50 dark:text-orange-400 dark:bg-orange-900/30";
+      titleText = "¿Estás seguro?";
+      iconSvg =
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />';
+      break;
+    default: // info
+      colorClass =
+        "text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/30";
+      titleText = "Información";
+      iconSvg =
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />';
+  }
+
+  // Aplicar estilos
+  iconContainer.className = `mb-4 p-3 rounded-full ${colorClass} mx-auto w-fit`;
+  iconContainer.innerHTML = `<svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">${iconSvg}</svg>`;
+  titleEl.textContent = titleText;
+
+  // 3. Configurar Botones
+  // Limpiar listeners antiguos clonando el botón
+  const newBtnConfirm = btnConfirm.cloneNode(true);
+  btnConfirm.parentNode.replaceChild(newBtnConfirm, btnConfirm);
+
+  const newBtnCancel = btnCancel.cloneNode(true);
+  btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
+
+  // Lógica Cancelar
+  if (options.isConfirm) {
+    newBtnCancel.classList.remove("hidden");
+    newBtnCancel.onclick = () => {
+      closeGlobalModal();
+      if (options.onCancel) options.onCancel();
+    };
+  } else {
+    newBtnCancel.classList.add("hidden");
+  }
+
+  // Lógica Aceptar
+  newBtnConfirm.onclick = () => {
+    closeGlobalModal();
+    if (options.onConfirm) options.onConfirm();
+  };
+
+  // 4. Mostrar Modal (Animación)
+  modal.classList.remove("hidden");
+  setTimeout(() => {
+    modal.classList.remove("opacity-0");
+    modal.querySelector("div").classList.remove("scale-95");
+    modal.querySelector("div").classList.add("scale-100");
+  }, 10);
+}
+
+window.closeGlobalModal = function () {
+  const modal = document.getElementById("global-modal");
+  if (!modal) return;
+
+  modal.classList.add("opacity-0");
+  modal.querySelector("div").classList.add("scale-95");
+  modal.querySelector("div").classList.remove("scale-100");
+
+  setTimeout(() => modal.classList.add("hidden"), 300);
+};
 // Mensajes de Confirmación (Multi-idioma)
 const CONFIRM_MESSAGES = {
   es: "¿Seguro que quieres borrar la ubicación del coche?",
@@ -1163,11 +1293,11 @@ function handleLocationError(err) {
 
   // Añadimos alertas visuales para saber qué pasa en el móvil
   if (err.code === 1) {
-    alert(
+    showAppAlert(
       "❌ Permiso denegado. Ve a Ajustes > Privacidad > Localización y activa Safari/Chrome."
     );
   } else if (err.code === 2) {
-    alert("⚠️ Ubicación no disponible. ¿Tienes el GPS encendido?");
+    showAppAlert("⚠️ Ubicación no disponible. ¿Tienes el GPS encendido?");
   } else if (err.code === 3) {
     // Si es timeout, no alertamos siempre, pero es bueno saberlo
     console.log("Tiempo de espera agotado, intentando con menor precisión...");
@@ -2022,7 +2152,7 @@ function actualizarInterfazCoche() {
 // ------------------------------------------
 window.guardarUbicacionCoche = function () {
   if (!navigator.geolocation) {
-    alert("Necesitamos permiso de ubicación para guardar donde estás.");
+    showAppAlert("Necesitamos permiso de ubicación para guardar donde estás.");
     return;
   }
 
@@ -2053,7 +2183,9 @@ window.guardarUbicacionCoche = function () {
     (err) => {
       // ERROR: RESTAURAR EL BOTÓN A SU ESTADO ORIGINAL
       console.error("Error obteniendo ubicación:", err);
-      alert("Error obteniendo ubicación. Asegúrate de tener el GPS activo.");
+      showAppAlert(
+        "Error obteniendo ubicación. Asegúrate de tener el GPS activo."
+      );
 
       // 3. Restaurar el HTML del botón al span original (texto y estructura)
       btn.innerHTML = `<span>${textoOriginal}</span>`;
@@ -2068,7 +2200,7 @@ window.calcularRutaCoche = function () {
   if (!savedData) return;
 
   if (!navigator.geolocation) {
-    alert("Necesitamos tu ubicación para calcular la ruta.");
+    showAppAlert("Necesitamos tu ubicación para calcular la ruta.");
     return;
   }
 
@@ -2127,59 +2259,23 @@ window.calcularRutaCoche = function () {
 
       // Si la ruta falla
       rutaControl.on("routingerror", function (e) {
-        alert("Error al calcular la ruta. Inténtalo de nuevo más tarde.");
+        showAppAlert(
+          "Error al calcular la ruta. Inténtalo de nuevo más tarde."
+        );
         btn.innerHTML = originalText;
       });
     },
     (err) => {
-      alert("No pudimos obtener tu ubicación actual.");
+      showAppAlert("No pudimos obtener tu ubicación actual.");
       btn.innerHTML = originalText;
     }
   );
 };
 
-// 11.4. BORRADO DE UBICACIÓN (MODAL CUSTOM)
-// ------------------------------------------
-// LÓGICA DE MODAL CUSTOMIZADO (Paso 2)
-function showCustomConfirm(message, callback) {
-  const modal = document.getElementById("custom-confirm-modal");
-  const messageEl = document.getElementById("modal-message-text");
-  const confirmBtn = document.getElementById("modal-confirm-btn");
-  const cancelBtn = document.getElementById("modal-cancel-btn");
-
-  // Muestra el modal con el mensaje
-  messageEl.textContent = message;
-
-  // Configura la visibilidad con animación
-  modal.classList.remove("hidden");
-  setTimeout(() => modal.classList.remove("opacity-0"), 10);
-
-  // Limpia y añade listeners para evitar duplicados
-  const cleanup = () => {
-    confirmBtn.removeEventListener("click", onConfirm);
-    cancelBtn.removeEventListener("click", onCancel);
-    modal.classList.add("opacity-0");
-    setTimeout(() => modal.classList.add("hidden"), 300);
-  };
-
-  const onConfirm = () => {
-    cleanup();
-    callback(true); // Llama al callback con 'true' (confirmado)
-  };
-
-  const onCancel = () => {
-    cleanup();
-    callback(false); // Llama al callback con 'false' (cancelado)
-  };
-
-  confirmBtn.addEventListener("click", onConfirm);
-  cancelBtn.addEventListener("click", onCancel);
-}
-
 window.borrarUbicacionCoche = function () {
   const message = CONFIRM_MESSAGES[currentLanguage] || CONFIRM_MESSAGES["es"];
 
-  showCustomConfirm(message, (confirmed) => {
+  showAppConfirm(message, () => {
     if (confirmed) {
       // 1. ELIMINAR EL DATO. Esto es lo único que debe ejecutarse.
       localStorage.removeItem("parking_data");
@@ -2202,9 +2298,7 @@ window.borrarUbicacionCoche = function () {
       // de que el widget de Google Translate se calme después de la interacción.
       // Si el popup persiste, es posible que el usuario deba hacer clic en el botón de idioma
       // de nuevo para restablecer el traductor.
-      alert(
-        "Ubicación del coche borrada correctamente. / Car location successfully deleted."
-      );
+      showAppAlert("Ubicación del coche borrada correctamente.");
     }
     // Si no está confirmado (cancelar), no hacemos nada.
   });
@@ -2678,7 +2772,7 @@ function actualizarPosicionUsuarioPuntos(lat, lng) {
 // Función principal llamada por el botón "IR"
 window.iniciarRutaAPie = function (destLat, destLon) {
   if (!navigator.geolocation) {
-    alert("Tu navegador no soporta geolocalización.");
+    showAppAlert("Tu navegador no soporta geolocalización.");
     return;
   }
 
@@ -2704,7 +2798,7 @@ window.iniciarRutaAPie = function (destLat, destLon) {
       iniciarVigilanciaLlegada(destLat, destLon);
     },
     (err) => {
-      alert("No podemos acceder a tu ubicación para calcular la ruta.");
+      showAppAlert("No podemos acceder a tu ubicación para calcular la ruta.");
     },
     { enableHighAccuracy: true }
   );
@@ -3849,7 +3943,7 @@ window.rechazarCookies = function () {
   // Si rechaza, borramos las cookies de Google Translate por si acaso
   document.cookie =
     "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  alert(
+  showAppAlert(
     "Has rechazado las cookies. La traducción automática y algunas funciones podrían no estar disponibles. / You have rejected cookies. Automatic translation and some features may not be available."
   );
 };
@@ -4341,7 +4435,7 @@ function updateUserGasMarker() {
 // ---------------------------------------------------------
 window.iniciarRutaGasolinera = function (destLat, destLon) {
   if (!navigator.geolocation) {
-    alert("Se necesita GPS para calcular la ruta.");
+    showAppAlert("Se necesita GPS para calcular la ruta.");
     return;
   }
 
@@ -4369,7 +4463,7 @@ window.iniciarRutaGasolinera = function (destLat, destLon) {
       monitorizarLlegadaGasolinera(destLat, destLon);
     },
     (err) => {
-      alert("Error al obtener tu ubicación: " + err.message);
+      showAppAlert("Error al obtener tu ubicación: " + err.message);
     },
     { enableHighAccuracy: true }
   );
@@ -4524,11 +4618,11 @@ window.resetSpecialFilters = function () {
 window.activarFiltroEspecial = function (mode) {
   const fuelSelect = document.getElementById("gas-fuel-select");
   if (fuelSelect.value === "NINGUNO") {
-    alert("Por favor, selecciona primero un tipo de combustible.");
+    showAppAlert("Por favor, selecciona primero un tipo de combustible.");
     return;
   }
   if (mode === "near" && !userGasLat) {
-    alert("Necesitamos tu ubicación. Permite el acceso al GPS.");
+    showAppAlert("Necesitamos tu ubicación. Permite el acceso al GPS.");
     actualizarUbicacionGasolineras();
     return;
   }
@@ -4773,13 +4867,13 @@ window.filterGasStations = function () {
   } else {
     // === LÓGICA DE ALERTA Y RESET ===
     if (specialFilterMode === "near") {
-      alert(
+      showAppAlert(
         "No se encontraron gasolineras con ese combustible a menos de 5km."
       );
     } else if (specialFilterMode === "cheap") {
-      alert("No se encontraron precios para ese combustible.");
+      showAppAlert("No se encontraron precios para ese combustible.");
     } else if (!isLogoMode) {
-      alert("Actualmente no hay gasolineras con ese combustible.");
+      showAppAlert("Actualmente no hay gasolineras con ese combustible.");
 
       // 1. Resetear el select al valor por defecto (NINGUNO)
       fuelSelect.value = "NINGUNO";
