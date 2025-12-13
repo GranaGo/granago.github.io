@@ -2825,11 +2825,12 @@ window.iniciarRutaAPie = function (destLat, destLon) {
     return;
   }
 
-  // Cerramos el popup para ver el mapa
+  // Cerrar popup
   if (mapPuntos) mapPuntos.closePopup();
 
-  // Limpiar rutas previas y vigilantes
-  detenerNavegacion();
+  // --- CAMBIO AQUÍ: FALSE PARA MODO SILENCIOSO ---
+  // Limpiamos rutas previas sin asustar al usuario con alertas
+  detenerNavegacion(false);
 
   // Obtener ubicación actual e iniciar
   GeoManager.getPosition(
@@ -2837,17 +2838,17 @@ window.iniciarRutaAPie = function (destLat, destLon) {
       const userLat = pos.coords.latitude;
       const userLon = pos.coords.longitude;
 
-      // 1. Dibujar la ruta
+      // Dibujar ruta
       dibujarRuta(userLat, userLon, destLat, destLon);
 
-      // 1.5. Centrar el mapa en la posición actual
+      // Centrar mapa
       mapPuntos.flyTo([userLat, userLon], 16, { duration: 0.8 });
 
-      // 2. Empezar a vigilar la posición para detectar llegada
+      // Vigilar llegada
       iniciarVigilanciaLlegada(destLat, destLon);
     },
     (err) => {
-      showAppAlert("No podemos acceder a tu ubicación para calcular la ruta.");
+      showAppAlert("No podemos acceder a tu ubicación.");
     }
   );
 };
@@ -2931,30 +2932,31 @@ function ejecutarLlegada() {
   }, 3000);
 }
 
-window.detenerNavegacion = function () {
-  console.log("🛑 Cancelando ruta..."); // Para depuración
-
-  // 1. Quitar línea del mapa (Visual)
+// Modifica esta función en main.js
+window.detenerNavegacion = function (mostrarAlerta = true) {
+  // 1. Quitar línea del mapa
   if (puntosRouteControl) {
     if (mapPuntos) mapPuntos.removeControl(puntosRouteControl);
     puntosRouteControl = null;
   }
 
-  // 2. Detener GPS (Batería)
+  // 2. Detener GPS
   if (typeof GeoManager !== "undefined") {
     GeoManager.stop();
   }
 
-  // 3. Ocultar el botón rojo
+  // 3. Ocultar botón cancelar
   const btnCancel = document.getElementById("btn-cancel-navigation");
   if (btnCancel) {
     btnCancel.classList.add("hidden");
   }
 
-  // 4. FEEDBACK AL USUARIO (¡Lo nuevo!)
-  showAppAlert("Ruta cancelada correctamente", "success");
+  // 4. FEEDBACK (SOLO SI SE PIDE)
+  if (mostrarAlerta) {
+    showAppAlert("Ruta cancelada correctamente", "success");
+  }
 
-  // 5. Refrescar mapa por si acaso
+  // 5. Refrescar mapa
   if (mapPuntos) mapPuntos.invalidateSize();
 };
 
