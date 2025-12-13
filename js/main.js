@@ -466,7 +466,12 @@ function initGenericMap(elementId, options = {}) {
     const clickAction =
       onLocationClick ||
       (() => {
-        map.locate({ setView: true, maxZoom: 16, enableHighAccuracy: true });
+        map.locate({
+          setView: true,
+          maxZoom: 16,
+          enableHighAccuracy: true,
+          duration: 0.8,
+        });
       });
 
     addLocationControl(map, clickAction);
@@ -1341,8 +1346,8 @@ function handleLocationSuccess(pos) {
   // 2. Iniciar Animación de Vuelo (FlyTo)
   // Importante: No cargamos los buses todavía para que el vuelo sea fluido
   mapTransporte.flyTo(userLocationLatLng, 16, {
-    duration: 1.5,
-    easeLinearity: 0.25,
+    duration: 0.8,
+    easeLinearity: 0.5,
   });
 
   // 3. Cargar datos SOLO cuando termine el vuelo
@@ -1429,13 +1434,18 @@ window.initTransporteMap = function () {
       center: [37.177, -3.598],
       zoom: 13,
       onLocationClick: () => {
-        GeoManager.getPosition(
-          (pos) => handleLocationSuccess(pos),
-          (err) => {
-            handleLocationError(err);
-            centerMapOnUser(); // Intento de recentrado simple
-          }
-        );
+        // LÓGICA DE VELOCIDAD:
+        // 1. Si ya sabemos dónde estás, volamos al instante sin preguntar al GPS
+        if (userLocationLatLng) {
+          mapTransporte.flyTo(userLocationLatLng, 16, { duration: 0.6 });
+        }
+        // 2. Si no, entonces sí preguntamos (solo la primera vez tarda)
+        else {
+          GeoManager.getPosition(
+            (pos) => handleLocationSuccess(pos),
+            (err) => handleLocationError(err)
+          );
+        }
       },
     });
 
@@ -2802,7 +2812,7 @@ function actualizarPosicionUsuarioPuntos(lat, lng) {
   }
 }
 
-// Función principal llamada por el botón "IR"
+// Función principal llamada por el botón "IR" del popup
 window.iniciarRutaAPie = function (destLat, destLon) {
   if (!navigator.geolocation) {
     showAppAlert("Tu navegador no soporta geolocalización.");
@@ -2810,13 +2820,13 @@ window.iniciarRutaAPie = function (destLat, destLon) {
   }
 
   // Cerramos el popup para ver el mapa
-  mapPuntos.closePopup();
+  if (mapPuntos) mapPuntos.closePopup();
 
   // Limpiar rutas previas y vigilantes
   detenerNavegacion();
 
   // Obtener ubicación actual e iniciar
-  navigator.geolocation.getCurrentPosition(
+  GeoManager.getPosition(
     (pos) => {
       const userLat = pos.coords.latitude;
       const userLon = pos.coords.longitude;
@@ -2824,16 +2834,15 @@ window.iniciarRutaAPie = function (destLat, destLon) {
       // 1. Dibujar la ruta
       dibujarRuta(userLat, userLon, destLat, destLon);
 
-      // 1.5. Centrar el mapa en la posición actual al iniciar la ruta
-      mapPuntos.flyTo([userLat, userLon], 16);
+      // 1.5. Centrar el mapa en la posición actual
+      mapPuntos.flyTo([userLat, userLon], 16, { duration: 0.8 });
 
       // 2. Empezar a vigilar la posición para detectar llegada
       iniciarVigilanciaLlegada(destLat, destLon);
     },
     (err) => {
       showAppAlert("No podemos acceder a tu ubicación para calcular la ruta.");
-    },
-    { enableHighAccuracy: true }
+    }
   );
 };
 
@@ -2843,7 +2852,8 @@ function dibujarRuta(startLat, startLon, endLat, endLon) {
   }
 
   // Mostrar botón de cancelar
-  document.getElementById("btn-cancel-navigation").classList.remove("hidden");
+  const btnCancel = document.getElementById("btn-cancel-navigation");
+  if (btnCancel) btnCancel.classList.remove("hidden");
 
   puntosRouteControl = L.Routing.control({
     waypoints: [L.latLng(startLat, startLon), L.latLng(endLat, endLon)],
@@ -2879,29 +2889,17 @@ function iniciarVigilanciaLlegada(destLat, destLon) {
         [currentLat, currentLon],
         [destLat, destLon]
       );
-      console.log(`Distancia: ${dist.toFixed(0)}m`);
 
+      // Depuración (Opcional)
+      // console.log(`Distancia al destino: ${dist.toFixed(0)} metros`);
+
+      // SI ESTAMOS CERCA (menos de 30 metros)
       if (dist < ARRIVAL_THRESHOLD) {
         ejecutarLlegada();
       }
     },
-    (err) => console.warn("Error GPS Ruta a pie:", err)
+    (err) => console.warn(err)
   );
-}
-
-function detenerNavegacion() {
-  // Quitar línea del mapa
-  if (puntosRouteControl) {
-    mapPuntos.removeControl(puntosRouteControl);
-    puntosRouteControl = null;
-  }
-
-  // Detener GPS usando el Manager
-  GeoManager.stop();
-
-  // Ocultar botón cancelar
-  const btnCancel = document.getElementById("btn-cancel-navigation");
-  if (btnCancel) btnCancel.classList.add("hidden");
 }
 
 function ejecutarLlegada() {
@@ -2926,6 +2924,24 @@ function ejecutarLlegada() {
     }, 300); // Esperar a que acabe la transición de escala
   }, 3000);
 }
+
+window.detenerNavegacion = function () {
+  // Quitar línea del mapa
+  if (puntosRouteControl) {
+    mapPuntos.removeControl(puntosRouteControl);
+    puntosRouteControl = null;
+  }
+
+  // Detener GPS usando el Manager
+  GeoManager.stop();
+
+  // Ocultar botón de cancelar
+  const btnCancel = document.getElementById("btn-cancel-navigation");
+  if (btnCancel) btnCancel.classList.add("hidden");
+
+  // Opcional: Centrar mapa de nuevo para ver contexto
+  if (mapPuntos) mapPuntos.invalidateSize();
+};
 
 // ======================================================================
 // 13. MÓDULO: INFORMACIÓN DE TRANSPORTE (Rutas, Horarios, Tarifas)
