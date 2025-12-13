@@ -2825,26 +2825,17 @@ window.iniciarRutaAPie = function (destLat, destLon) {
     return;
   }
 
-  // Cerrar popup
   if (mapPuntos) mapPuntos.closePopup();
 
-  // --- CAMBIO AQUÍ: FALSE PARA MODO SILENCIOSO ---
-  // Limpiamos rutas previas sin asustar al usuario con alertas
-  detenerNavegacion(false);
+  // --- IMPORTANTE: EL 'false' AQUÍ ES LA CLAVE ---
+  window.detenerNavegacion(false);
 
-  // Obtener ubicación actual e iniciar
   GeoManager.getPosition(
     (pos) => {
       const userLat = pos.coords.latitude;
       const userLon = pos.coords.longitude;
-
-      // Dibujar ruta
       dibujarRuta(userLat, userLon, destLat, destLon);
-
-      // Centrar mapa
       mapPuntos.flyTo([userLat, userLon], 16, { duration: 0.8 });
-
-      // Vigilar llegada
       iniciarVigilanciaLlegada(destLat, destLon);
     },
     (err) => {
@@ -2932,8 +2923,14 @@ function ejecutarLlegada() {
   }, 3000);
 }
 
-// Modifica esta función en main.js
-window.detenerNavegacion = function (mostrarAlerta = true) {
+window.detenerNavegacion = function (param) {
+  // LÓGICA BLINDADA:
+  // Solo silenciamos si recibimos explícitamente 'false'.
+  // Si no recibimos nada (undefined) o recibimos un evento de clic (objeto), mostramos alerta.
+  const mostrarAlerta = param !== false;
+
+  console.log("🛑 Deteniendo navegación. Alerta visible:", mostrarAlerta);
+
   // 1. Quitar línea del mapa
   if (puntosRouteControl) {
     if (mapPuntos) mapPuntos.removeControl(puntosRouteControl);
@@ -2951,7 +2948,7 @@ window.detenerNavegacion = function (mostrarAlerta = true) {
     btnCancel.classList.add("hidden");
   }
 
-  // 4. FEEDBACK (SOLO SI SE PIDE)
+  // 4. FEEDBACK (SOLO SI NO ES MODO SILENCIOSO)
   if (mostrarAlerta) {
     showAppAlert("Ruta cancelada correctamente", "success");
   }
