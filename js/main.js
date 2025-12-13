@@ -2597,10 +2597,10 @@ window.initPuntosMap = function () {
   }
 
   const btnCancel = document.getElementById("btn-cancel-navigation");
-    if (btnCancel) {
-        // Eliminamos el onclick del HTML para evitar conflictos y usamos JS directo
-        btnCancel.onclick = window.detenerNavegacion;
-    }
+  if (btnCancel) {
+    // Eliminamos el onclick del HTML para evitar conflictos y usamos JS directo
+    btnCancel.onclick = window.detenerNavegacion;
+  }
 };
 
 // 12.3. LÓGICA DE FILTRADO (BÚSQUEDA Y BOTONES)
@@ -2931,7 +2931,7 @@ function ejecutarLlegada() {
   }, 3000);
 }
 
-window.detenerNavegacion = function() {
+window.detenerNavegacion = function () {
   console.log("🛑 Cancelando ruta..."); // Para depuración
 
   // 1. Quitar línea del mapa (Visual)
@@ -2941,16 +2941,16 @@ window.detenerNavegacion = function() {
   }
 
   // 2. Detener GPS (Batería)
-  if (typeof GeoManager !== 'undefined') {
-      GeoManager.stop();
+  if (typeof GeoManager !== "undefined") {
+    GeoManager.stop();
   }
 
   // 3. Ocultar el botón rojo
   const btnCancel = document.getElementById("btn-cancel-navigation");
   if (btnCancel) {
-      btnCancel.classList.add("hidden");
+    btnCancel.classList.add("hidden");
   }
-  
+
   // 4. FEEDBACK AL USUARIO (¡Lo nuevo!)
   showAppAlert("Ruta cancelada correctamente", "success");
 
@@ -4295,6 +4295,29 @@ function initServiceWorkerRegistration() {
             }
           });
         });
+        // --- C. ESTO ES LO NUEVO: FORZAR COMPROBACIÓN (POLLING) --- //
+
+        // 1. Comprobar cada vez que el usuario vuelve a la pestaña/app
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible") {
+            console.log("App visible: Comprobando actualizaciones...");
+            reg
+              .update()
+              .catch((err) =>
+                console.warn("Error al buscar actualizaciones:", err)
+              );
+          }
+        });
+
+        // 2. Comprobar automáticamente cada hora (por si la deja abierta mucho tiempo)
+        setInterval(() => {
+          console.log("Intervalo: Comprobando actualizaciones...");
+          reg
+            .update()
+            .catch((err) =>
+              console.warn("Error al buscar actualizaciones:", err)
+            );
+        }, 60 * 60 * 1000); // 1 hora
       })
       .catch((err) => console.error("Error SW:", err));
   });
