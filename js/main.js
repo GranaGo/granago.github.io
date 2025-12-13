@@ -4281,9 +4281,9 @@ function initThemeToggle() {
 function initServiceWorkerRegistration() {
   if (!("serviceWorker" in navigator)) return;
 
-  let newWorker;
   let refreshing = false;
 
+  // Recargar solo una vez cuando el nuevo SW tome el control
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if (!refreshing) {
       refreshing = true;
@@ -4297,55 +4297,61 @@ function initServiceWorkerRegistration() {
       .then((reg) => {
         console.log("SW registrado:", reg.scope);
 
+        // 1. CASO: Ya hay una actualización esperando (Usuario cerró y volvió a abrir)
         if (reg.waiting) {
-          console.log(
-            "Actualización pendiente encontrada al inicio. Mostrando aviso."
-          );
+          console.log("Update waiting: Lanzando aviso directo.");
           if (typeof window.lanzarAvisoActualizacion === "function") {
             window.lanzarAvisoActualizacion(reg.waiting);
           }
+          return;
         }
 
+        // 2. CASO: Se está instalando justo ahora (Usuario abrió mientras descargaba)
+        if (reg.installing) {
+          console.log("Update installing: Vigilando estado...");
+          trackInstalling(reg.installing, reg);
+          return;
+        }
+
+        // 3. CASO: Detectamos actualización futura (Polling o navegación)
         reg.addEventListener("updatefound", () => {
-          newWorker = reg.installing;
-
-          newWorker.addEventListener("statechange", () => {
-            if (newWorker.state === "installed") {
-              if (reg.active) {
-                if (typeof window.lanzarAvisoActualizacion === "function") {
-                  window.lanzarAvisoActualizacion(newWorker);
-                }
-              } else {
-                newWorker.postMessage({ action: "skipWaiting" });
-              }
-            }
-          });
+          console.log("Update found: Nueva versión detectada.");
+          trackInstalling(reg.installing, reg);
         });
-        // --- C. ESTO ES LO NUEVO: FORZAR COMPROBACIÓN (POLLING) --- //
 
-        // 1. Comprobar cada vez que el usuario vuelve a la pestaña/app
+        // --- POLLING AUTOMÁTICO ---
+        // Comprobar actualizaciones cada vez que la app vuelve a ser visible
         document.addEventListener("visibilitychange", () => {
           if (document.visibilityState === "visible") {
-            console.log("App visible: Comprobando actualizaciones...");
             reg
               .update()
-              .catch((err) =>
-                console.warn("Error al buscar actualizaciones:", err)
-              );
+              .catch((e) => console.warn("Error checking SW update", e));
           }
         });
 
-        // 2. Comprobar automáticamente cada hora (por si la deja abierta mucho tiempo)
+        // Comprobar cada hora
         setInterval(() => {
-          console.log("Intervalo: Comprobando actualizaciones...");
           reg
             .update()
-            .catch((err) =>
-              console.warn("Error al buscar actualizaciones:", err)
-            );
-        }, 60 * 60 * 1000); // 1 hora
+            .catch((e) => console.warn("Error checking SW update", e));
+        }, 60 * 60 * 1000);
       })
       .catch((err) => console.error("Error SW:", err));
+  });
+}
+
+// Función auxiliar para no repetir código
+function trackInstalling(worker, reg) {
+  if (!worker) return;
+  worker.addEventListener("statechange", () => {
+    if (worker.state === "installed") {
+      // Solo mostramos el aviso si ya hay un controlador activo (es una actualización, no la primera visita)
+      if (navigator.serviceWorker.controller) {
+        if (typeof window.lanzarAvisoActualizacion === "function") {
+          window.lanzarAvisoActualizacion(worker);
+        }
+      }
+    }
   });
 }
 
@@ -5364,123 +5370,113 @@ window.fetchParkingData = async function () {
 };
 
 // ======================================================================
-// 21. MÓDULO: CULTURA (FINAL: FILTROS ESTRICTOS + CATEGORÍA 'MATTER')
+// 21. MÓDULO: CULTURA (JUNTA DE ANDALUCÍA + AYUNTAMIENTO FILTRADO)
 // ======================================================================
 
 let allCulturaEvents = [];
 let culturaCategories = new Set();
 
+// Helper para convertir "DD/MM/YYYY" a objeto Date
+function parseSpanishDate(dateStr) {
+  if (!dateStr) return null;
+  const parts = dateStr.trim().split("/");
+  if (parts.length !== 3) return null;
+  // Año, Mes (restamos 1 porque Enero es 0), Día
+  return new Date(parts[2], parts[1] - 1, parts[0]);
+}
+
+// ==========================================
+// INICIALIZADOR DE VISTA (AUTO-CARGA)
+// ==========================================
+
 window.initCulturaView = function () {
-  // Si la lista está vacía, cargamos. Si ya tiene datos, no molestamos a la API.
-  if (allCulturaEvents.length === 0) {
+  // 1. Comprobamos si el contenedor de resultados existe
+  const container = document.getElementById("cultura-results-container");
+  if (!container) return;
+
+  // 2. Lógi  ca de auto-carga:
+  // Si la lista de eventos está vacía (length === 0)
+  // O si el HTML del contenedor está vacío (por si hubo un error visual antes)
+  const isContainerEmpty = container.innerHTML.trim() === "";
+
+  if (allCulturaEvents.length === 0 || isContainerEmpty) {
+    console.log("🚀 Iniciando carga automática de cultura...");
     fetchCulturaData();
   }
 };
 
-window.fetchCulturaData = async function () {
-  const container = document.getElementById("cultura-results-container");
-  const select = document.getElementById("cultura-cat-select");
-
-  // Spinner (AZUL)
-  container.innerHTML =
-    '<div class="text-center py-10"><div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto"></div><p class="text-gray-400 mt-2 text-sm">Buscando eventos vigentes en Granada...</p></div>';
-
+// --- FUENTE 1: JUNTA DE ANDALUCÍA ---
+async function fetchEventosJunta() {
   const targetUrl =
     "https://datos.juntadeandalucia.es/api/v0/schedule/all?format=json";
   const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
 
   try {
     const res = await fetch(proxyUrl);
-    if (!res.ok) throw new Error(`Error API: ${res.status}`);
-
+    if (!res.ok) throw new Error(`Junta API: ${res.status}`);
     const rawData = await res.json();
 
-    // 1. FILTRO DE LUGAR (GRANADA)
-    let granadaEvents = rawData.filter((ev) => {
-      // A) Chequeo directo campo 'province'
+    // Filtro estricto para Granada
+    const granadaEvents = rawData.filter((ev) => {
       if (ev.province && Array.isArray(ev.province)) {
         return ev.province.some(
           (p) => p.province && p.province.toLowerCase() === "granada"
         );
       }
-      // B) Chequeo 'location' si no hay provincia
-      if (ev.location) {
-        return ev.location.toLowerCase().includes("granada");
-      }
+      if (ev.location) return ev.location.toLowerCase().includes("granada");
       return false;
     });
 
-    // Configuración de fecha actual (HOY 00:00:00)
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
 
-    // 2. MAPEO DE DATOS
-    allCulturaEvents = granadaEvents
+    return granadaEvents
       .map((ev, index) => {
         const titulo = ev.title || "Evento Cultural";
 
-        // Limpieza HTML Descripción
+        // Limpieza de descripción HTML
         let descRaw = ev.description || "";
         const tempDiv = document.createElement("div");
-        // Reemplazos para que el texto respire
         tempDiv.innerHTML = descRaw
           .replace(/<br\s*\/?>/gi, "\n")
           .replace(/<\/p>/gi, "\n\n");
         const descLimpia = tempDiv.textContent || tempDiv.innerText || "";
 
-        // --- LÓGICA DE FECHAS (ISO YYYY-MM-DD) ---
+        // Lógica de fechas
         let fechaInicio = null;
         let fechaFin = null;
         let fechaTexto = "Consultar fechas";
 
-        // La Junta suele usar 'date_registration' como array
         if (
           ev.date_registration &&
           Array.isArray(ev.date_registration) &&
           ev.date_registration.length > 0
         ) {
           const d = ev.date_registration[0];
-
-          // Parseo directo (El formato del JSON es YYYY-MM-DD, JS lo lee bien)
           if (d.start_date_registration)
             fechaInicio = new Date(d.start_date_registration);
           if (d.end_date_registration)
             fechaFin = new Date(d.end_date_registration);
-
-          // Si no tiene fin, asumimos que es un evento de 1 día
           if (!fechaFin && fechaInicio) fechaFin = new Date(fechaInicio);
 
-          // Construcción texto para mostrar
           if (fechaInicio) {
             const op = { day: "numeric", month: "short" };
             const iniStr = fechaInicio.toLocaleDateString("es-ES", op);
-
-            if (fechaFin && fechaFin.getTime() !== fechaInicio.getTime()) {
-              const finStr = fechaFin.toLocaleDateString("es-ES", op);
-              fechaTexto = `${iniStr} - ${finStr}`;
-            } else {
-              fechaTexto = iniStr;
-            }
+            fechaTexto =
+              fechaFin && fechaFin.getTime() !== fechaInicio.getTime()
+                ? `${iniStr} - ${fechaFin.toLocaleDateString("es-ES", op)}`
+                : iniStr;
           }
         }
 
-        // --- LÓGICA DE CATEGORÍA (PRIORIDAD: MATTER) ---
+        // Categoría (Prioridad: Materia > Tema)
         let tipo = "Varios";
-
-        // 1. Prioridad: MATTER (Materia)
         if (ev.matter) {
           if (Array.isArray(ev.matter) && ev.matter.length > 0) {
-            // A veces es un objeto {"id":..., "value":...} o string directo
             const m = ev.matter[0];
             tipo = typeof m === "object" ? m.matter || m.name || m.value : m;
-          } else if (typeof ev.matter === "string") {
-            tipo = ev.matter;
-          }
-        }
-
-        // 2. Respaldo: THEMES (Temas) - Solo si matter falló
-        if (
-          (!tipo || tipo === "Varios") &&
+          } else if (typeof ev.matter === "string") tipo = ev.matter;
+        } else if (
           ev.themes &&
           Array.isArray(ev.themes) &&
           ev.themes.length > 0
@@ -5494,57 +5490,234 @@ window.fetchCulturaData = async function () {
         if (ev.address) {
           tempDiv.innerHTML = ev.address;
           lugar = tempDiv.textContent.trim() || "Granada";
-        } else if (ev.location) {
-          lugar = ev.location;
-        }
-
-        // Datos extra
-        const horario = ev.schedule || "Consultar horario";
-        let precio = "Gratis / Consultar";
-        if (ev.cost) precio = ev.cost;
+        } else if (ev.location) lugar = ev.location;
 
         return {
-          id: index,
+          id: `junta-${index}`,
           titulo: titulo,
           descripcion: descLimpia,
           fechaInicio: fechaInicio,
-          fechaFin: fechaFin, // Guardamos la fecha fin real para filtrar
+          fechaFin: fechaFin,
           fechaTexto: fechaTexto,
-          horario: horario,
-          precio: precio,
-          url: "",
-          tipo: tipo || "Varios",
+          horario: ev.schedule || "Consultar horario",
+          precio: ev.cost || "Gratis / Consultar",
+          url: "", // La Junta raramente da URL directa útil
+          tipo: tipo || "Agenda Junta",
           lugarMostrar: lugar,
+          imagen: null, // La Junta no suele proveer imágenes limpias
         };
       })
-      .filter((ev) => {
-        // --- FILTRO DE VIGENCIA ESTRICTO ---
+      .filter((ev) => ev.fechaFin && ev.fechaFin >= hoy);
+  } catch (e) {
+    console.warn("Error Junta:", e);
+    return [];
+  }
+}
 
-        // 1. Debe tener fecha válida
-        if (!ev.fechaFin) return false;
+// --- FUENTE 2: AYUNTAMIENTO RSS (SCANNER DE FECHAS FLEXIBLE) ---
+async function fetchAytoGeneralFiltered() {
+  const targetUrl = "http://www.granada.org/rssayto.xml";
+  const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
 
-        // 2. La fecha de FINALIZACIÓN debe ser MAYOR o IGUAL a HOY
-        // (Es decir, el evento no ha terminado todavía)
-        return ev.fechaFin >= hoy;
-      });
+  const keywordsAdministrativas = [
+    "pleno",
+    "junta de gobierno",
+    "decreto",
+    "licitación",
+    "adjudicación",
+    "pago",
+    "impuesto",
+    "ibi",
+    "asfaltado",
+    "tributo",
+    "tg7",
+    "recursos humanos",
+    "economía y hacienda",
+    "noticia",
+    "kb",
+  ];
 
-    // 3. ORDENAR (Lo más próximo a hoy primero)
-    allCulturaEvents.sort((a, b) => a.fechaInicio - b.fechaInicio);
+  try {
+    const res = await fetch(proxyUrl);
+    if (!res.ok) return [];
 
-    // 4. LIMITAR (Para rendimiento)
-    const eventosParaMostrar = allCulturaEvents.slice(0, 50);
+    const buffer = await res.arrayBuffer();
+    const decoder = new TextDecoder("iso-8859-1");
+    const text = decoder.decode(buffer);
 
-    console.log("✨ Eventos vigentes encontrados:", eventosParaMostrar.length);
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(text, "text/xml");
+    const items = Array.from(xmlDoc.querySelectorAll("item"));
 
-    // 5. LLENAR SELECTOR DE CATEGORÍAS
+    return items
+      .map((item, index) => {
+        let rawTitle = item.querySelector("title")?.textContent || "";
+        const rawDesc = item.querySelector("description")?.textContent || "";
+        const link = item.querySelector("link")?.textContent || "#";
+        const titleLower = rawTitle.toLowerCase();
+
+        // 1. FILTRO BLACKLIST
+        if (keywordsAdministrativas.some((k) => titleLower.includes(k)))
+          return null;
+
+        // 2. ESCANEO DE FECHAS (Busca patrones DD/MM/YYYY en cualquier parte)
+        const datePattern = /(\d{2}\/\d{2}\/\d{4})/g;
+        const foundDates = rawTitle.match(datePattern);
+
+        let realTitle = rawTitle;
+        let realCat = "Agenda Municipal";
+        let startDate = new Date();
+        let endDate = null;
+        let fechaTexto = "Ver noticia";
+
+        if (foundDates && foundDates.length > 0) {
+          // --- A) PROCESAR FECHAS ENCONTRADAS ---
+
+          // La primera fecha siempre es Inicio
+          startDate = parseSpanishDate(foundDates[0]);
+
+          if (foundDates.length >= 2) {
+            // Si hay una segunda fecha, es el Fin
+            endDate = parseSpanishDate(foundDates[1]);
+          } else {
+            // Si solo hay una, el evento dura todo ese día
+            endDate = new Date(startDate);
+            endDate.setHours(23, 59, 59);
+          }
+
+          // Generar texto bonito de fechas
+          const op = { day: "numeric", month: "short" };
+          if (
+            startDate &&
+            endDate &&
+            startDate.getTime() !== endDate.getTime()
+          ) {
+            // Si las fechas son distintas (y no es el mismo día ajustado a 23:59)
+            // Comprobamos si es el mismo día real ignorando horas para el texto
+            if (
+              startDate.getDate() === endDate.getDate() &&
+              startDate.getMonth() === endDate.getMonth()
+            ) {
+              fechaTexto = startDate.toLocaleDateString("es-ES", op);
+            } else {
+              fechaTexto = `${startDate.toLocaleDateString(
+                "es-ES",
+                op
+              )} - ${endDate.toLocaleDateString("es-ES", op)}`;
+            }
+          } else if (startDate) {
+            fechaTexto = startDate.toLocaleDateString("es-ES", op);
+          }
+
+          // --- B) LIMPIEZA DE TÍTULO Y CATEGORÍA ---
+
+          // 1. Eliminamos las fechas del texto original para que no ensucien
+          let textWithoutDates = rawTitle.replace(datePattern, "").trim();
+
+          // 2. Limpiamos puntos y espacios sobrantes al final
+          // Ej: "Concierto. Musica. . ." -> "Concierto. Musica"
+          textWithoutDates = textWithoutDates.replace(/[\s\.]+$/, "");
+
+          // 3. Separamos Título y Categoría por el ÚLTIMO punto restante
+          const lastDotIndex = textWithoutDates.lastIndexOf(".");
+
+          if (lastDotIndex !== -1) {
+            realTitle = textWithoutDates.substring(0, lastDotIndex).trim();
+            realCat = textWithoutDates.substring(lastDotIndex + 1).trim();
+          } else {
+            realTitle = textWithoutDates;
+            // Si no hay puntos, intentamos inferir categoría básica
+            if (realTitle.length < 5) realTitle = "Evento Cultural";
+          }
+
+          // Limpieza extra por si quedaron puntos al inicio de la categoría
+          realCat = realCat.replace(/^\./, "").trim();
+        } else {
+          // --- C) FALLBACK (SIN FECHAS EN TÍTULO) ---
+          const keywordsCulturales = [
+            "concierto",
+            "teatro",
+            "exposición",
+            "festival",
+            "taller",
+            "infantil",
+            "navidad",
+            "cultura",
+          ];
+          const esCultural = keywordsCulturales.some((k) =>
+            (rawTitle + rawDesc).toLowerCase().includes(k)
+          );
+
+          if (!esCultural) return null;
+
+          // Vigencia por defecto 7 días
+          endDate = new Date();
+          endDate.setDate(endDate.getDate() + 7);
+        }
+
+        // 3. IMAGEN
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = rawDesc;
+        let imgUrl = tempDiv.querySelector("img")?.src || null;
+        if (imgUrl && imgUrl.startsWith("/"))
+          imgUrl = "http://www.granada.org" + imgUrl;
+
+        return {
+          id: `ayto-${index}`,
+          titulo: realTitle,
+          descripcion: "", // Oculta según tu petición anterior
+          fechaInicio: startDate,
+          fechaFin: endDate,
+          fechaTexto: fechaTexto,
+          horario: "Consultar",
+          precio: "-",
+          tipo: realCat || "Varios",
+          lugarMostrar: "Granada",
+          url: link,
+          imagen: imgUrl,
+        };
+      })
+      .filter((ev) => ev !== null);
+  } catch (e) {
+    console.warn("Error RSS Ayto:", e);
+    return [];
+  }
+}
+
+// --- FUNCIÓN PRINCIPAL ORQUESTADORA ---
+window.fetchCulturaData = async function () {
+  const container = document.getElementById("cultura-results-container");
+  const select = document.getElementById("cultura-cat-select");
+
+  // Spinner
+  container.innerHTML =
+    '<div class="text-center py-10"><div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto"></div><p class="text-gray-400 mt-2 text-sm">Consultando agenda oficial...</p></div>';
+
+  try {
+    // Ejecutar las dos fuentes en paralelo
+    const [eventosJunta, eventosAyto] = await Promise.all([
+      fetchEventosJunta(),
+      fetchAytoGeneralFiltered(),
+    ]);
+
+    // Unir
+    allCulturaEvents = [...eventosJunta, ...eventosAyto];
+
+    // Ordenar por fecha (más próximo a hoy primero)
+    allCulturaEvents.sort((a, b) => {
+      if (!a.fechaInicio) return 1;
+      if (!b.fechaInicio) return -1;
+      return a.fechaInicio - b.fechaInicio;
+    });
+
+    // Llenar Select de Categorías
     culturaCategories = new Set();
-    eventosParaMostrar.forEach((ev) => {
+    allCulturaEvents.forEach((ev) => {
       if (ev.tipo) culturaCategories.add(ev.tipo);
     });
 
     if (select) {
       select.innerHTML = '<option value="TODOS">Todas las categorías</option>';
-      // Ordenar alfabéticamente las categorías
       Array.from(culturaCategories)
         .sort()
         .forEach((cat) => {
@@ -5552,10 +5725,14 @@ window.fetchCulturaData = async function () {
         });
     }
 
-    renderCulturaEvents(eventosParaMostrar);
+    console.log(
+      `✨ Eventos cargados: Junta (${eventosJunta.length}) + Ayto (${eventosAyto.length})`
+    );
+
+    renderCulturaEvents(allCulturaEvents);
   } catch (e) {
-    console.error("❌ Error JS:", e);
-    container.innerHTML = `<div class="p-4 text-center text-red-500">Error cargando datos: ${e.message}</div>`;
+    console.error("Error global cultura:", e);
+    container.innerHTML = `<div class="p-4 text-center text-red-500">No se pudieron cargar eventos. Revisa tu conexión.</div>`;
   }
 };
 
@@ -5569,58 +5746,101 @@ window.renderCulturaEvents = function (events) {
                 <svg class="w-16 h-16 mb-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <p class="font-bold text-sm">No hay eventos activos hoy.</p>
-                <p class="text-xs mt-1">Inténtalo más tarde o cambia los filtros.</p>
+                <p class="font-bold text-sm">No hay eventos activos.</p>
+                <p class="text-xs mt-1">Prueba a limpiar los filtros.</p>
             </div>`;
     return;
   }
 
   let html = "";
-
   events.forEach((ev) => {
+    // DETECTAR ORIGEN: ¿Es del XML del Ayuntamiento?
+    const isAyto = ev.id && ev.id.toString().startsWith("ayto-");
+
+    // 1. Bloque Izquierdo: IMAGEN (Si hay) o FECHA (Default)
+    let leftBlock = "";
+
+    if (ev.imagen) {
+      leftBlock = `
+                <div class="h-32 sm:h-auto sm:w-36 bg-gray-200 shrink-0 relative group">
+                    <img src="${ev.imagen}" class="w-full h-full object-cover transition duration-500 group-hover:scale-110" alt="${ev.titulo}" loading="lazy">
+                </div>`;
+    } else {
+      leftBlock = `
+                <div class="hidden sm:flex sm:w-36 bg-blue-50 flex-col items-center justify-center p-3 text-center border-r border-blue-100 shrink-0">
+                    <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wide block mb-1">FECHAS</span>
+                    <span class="text-xs font-black text-blue-700 leading-tight capitalize text-center">${ev.fechaTexto}</span>
+                </div>`;
+    }
+
+    // 2. Botón de Enlace (Fundamental para Ayto)
+    let actionBtn = "";
+    if (ev.url) {
+      actionBtn = `
+                <a href="${ev.url}" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block bg-gray-100 hover:bg-blue-50 text-blue-600 hover:text-blue-700 text-xs font-bold px-3 py-2 rounded-lg transition-colors border border-gray-200 w-full sm:w-auto text-center">
+                    🔗 Ver Noticia Original
+                </a>`;
+    }
+
+    // 3. Bloques condicionales (Solo se muestran si NO es del Ayuntamiento)
+    const infoTags = !isAyto
+      ? `
+            <div class="flex flex-wrap gap-2 text-xs text-gray-500 mb-1">
+                <div class="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border border-gray-100">
+                    <span>🕒</span> <span class="truncate max-w-[200px]">${ev.horario}</span>
+                </div>
+                <div class="flex items-center gap-1 bg-green-50 text-green-700 px-2 py-1 rounded border border-green-100 font-bold">
+                    <span>💶</span> <span>${ev.precio}</span>
+                </div>
+            </div>`
+      : "";
+
+    const descriptionBlock = !isAyto
+      ? `
+            <div class="text-xs text-gray-600 mt-1 bg-gray-50 p-2 rounded-lg border border-gray-100 max-h-32 overflow-y-auto custom-scrollbar whitespace-pre-line">
+                ${ev.descripcion}
+            </div>`
+      : "";
+
+    // CONSTRUCCIÓN HTML
     html += `
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col sm:flex-row hover:shadow-md transition-shadow duration-300">
-            <div class="sm:w-36 bg-blue-50 flex flex-col items-center justify-center p-3 text-center border-b sm:border-b-0 sm:border-r border-blue-100 shrink-0">
-                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wide block mb-1">FECHAS</span>
-                <span class="text-xs font-black text-blue-700 leading-tight capitalize text-center">${ev.fechaTexto}</span>
-            </div>
+            ${leftBlock}
             
             <div class="p-4 flex-1 flex flex-col gap-2 min-w-0">
                 <div class="flex justify-between items-start mb-1">
                     <span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider notranslate truncate mr-2 max-w-[40%]">
                         ${ev.tipo}
                     </span>
+                    
                     <div class="flex items-start gap-1 text-right max-w-[55%] text-gray-500">
-                        <span class="text-[11px] font-bold leading-tight notranslate break-words text-right">${ev.lugarMostrar}</span>
-                        <svg class="w-3 h-3 text-blue-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
-                        </svg>
+                        <span class="text-[11px] font-bold leading-tight notranslate break-words text-right">${
+                          ev.lugarMostrar
+                        }</span>
+                        <svg class="w-3 h-3 text-blue-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
                     </div>
                 </div>
 
-                <h3 class="font-bold text-base text-gray-800 leading-snug notranslate pr-2">${ev.titulo}</h3>
+                <h3 class="font-bold text-base text-gray-800 leading-snug notranslate pr-2">${
+                  ev.titulo
+                }</h3>
                 
-                <div class="flex flex-wrap gap-2 text-xs text-gray-500 mb-1">
-                    <div class="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border border-gray-100">
-                        <span>🕒</span> <span class="truncate max-w-[200px]">${ev.horario}</span>
-                    </div>
-                    <div class="flex items-center gap-1 bg-green-50 text-green-700 px-2 py-1 rounded border border-green-100 font-bold">
-                        <span>💶</span> <span>${ev.precio}</span>
-                    </div>
-                </div>
+                ${
+                  !ev.imagen
+                    ? `<p class="text-xs font-bold text-blue-600 sm:hidden mb-1">${ev.fechaTexto}</p>`
+                    : ""
+                }
 
-                <div class="text-xs text-gray-600 mt-1 bg-gray-50 p-2 rounded-lg border border-gray-100 max-h-32 overflow-y-auto custom-scrollbar whitespace-pre-line">
-                    ${ev.descripcion}
-                </div>
+                ${infoTags}
+                ${descriptionBlock}
+                
+                ${actionBtn}
             </div>
-        </div>
-        `;
+        </div>`;
   });
 
   container.innerHTML = html;
 };
-
-// ... Mantén la función filtrarEventosCultura() igual ...
 
 // Función de filtro (sin mapa)
 window.filtrarEventosCultura = function () {

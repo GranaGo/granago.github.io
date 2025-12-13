@@ -20,6 +20,7 @@
 - [ℹ️ Información de Transporte](#info-transporte)
 - [⛽ Precios de Gasolineras](#precios-de-gasolineras)
 - [🅿️ Estado de Parkings](#parkings)
+- [🎭 Cultura y Ocio](#cultura)
 - [⚙️ Configuración y Privacidad](#configuracion)
 
 3. [📱 Experiencia de Usuario](#ux)
@@ -80,6 +81,13 @@
   - 🟢 **Verde:** Disponible.
   - 🟠 **Naranja:** Últimas plazas.
   - 🔴 **Rojo:** Completo o Cerrado.
+
+### 🎭 Agenda Cultural Unificada
+
+- **Motor de Búsqueda Híbrido:** Agregación en tiempo real de eventos procedentes de la **Junta de Andalucía** y el **Ayuntamiento de Granada**.
+- **Algoritmo de Filtrado Inteligente:** Sistema propio que analiza el feed de noticias municipales y utiliza listas de palabras clave para separar automáticamente contenidos culturales (conciertos, teatro, talleres) de trámites administrativos (plenos, licitaciones), garantizando una agenda limpia.
+- **Parsing de Fechas Avanzado:** Tecnología de extracción de texto capaz de leer y normalizar fechas incrustadas en títulos desordenados para mostrar calendarios precisos y descartar eventos pasados.
+- **Normalización de Datos:** Unificación de formatos dispares (XML antiguo y JSON moderno) en una interfaz visual coherente.
 
 ## <a id="ux"></a>📱 Experiencia de Usuario (UX)
 
@@ -206,6 +214,28 @@ Evita dar vueltas innecesarias consultando la ocupación de los parkings públic
 
 4. **Refresco de Datos:**
    Pulsa el botón **"Actualizar Datos"** arriba a la derecha para volver a descargar la información más reciente desde el servidor.
+
+### <a id="cultura"></a>🎭 Cultura y Ocio
+
+Descubre qué hacer en Granada con una agenda siempre actualizada que combina múltiples fuentes oficiales.
+
+1. **Auto-Carga Inteligente:**
+   Al entrar, la app escanea las fuentes oficiales y elimina automáticamente los eventos caducados.
+
+2. **Herramientas de Búsqueda:**
+
+   - **Buscador por Texto:** Escribe "Jazz", "Lorca" o "Infantil" para filtrar la lista instantáneamente.
+   - **Selector de Categorías:** Usa el desplegable para aislar tipos de eventos específicos (Música, Exposiciones, Literatura...).
+
+3. **Lectura de Tarjetas:**
+   La interfaz adapta el diseño según la fuente para ofrecerte la mejor información disponible:
+
+   - **Eventos con Imagen:** Se muestran con la carátula oficial del evento a la izquierda.
+   - **Eventos sin Imagen:** Muestran un bloque distintivo con la fecha destacada.
+   - **Etiquetas:** Identifica rápidamente si es gratuito, el horario y el lugar.
+
+4. **Acceso a Fuente:**
+   Para comprar entradas o leer la nota de prensa completa, pulsa el botón **"🔗 Ver Noticia Original"**, que te llevará a la web oficial del organizador en una nueva pestaña sin cerrar la app.
 
 ### <a id="configuracion"></a>⚙️ Configuración y Privacidad
 
