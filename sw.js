@@ -32,6 +32,7 @@ const STATIC_ASSETS = [
   "/imagenes/zbeMapa.webp",
   "/imagenes/gasolina.webp",
   "/imagenes/parking.webp",
+  "/images/culturayocio.webp",
   "/README.md",
 ];
 

@@ -311,6 +311,14 @@ const HOME_SERVICES = [
     alt: "Parking Granada",
     fallback: "Parking+Granada",
   },
+  {
+    id: "cultura",
+    title: "CULTURA Y OCIO",
+    desc: "Agenda de eventos en Granada.",
+    img: "imagenes/culturayocio.webp",
+    alt: "Cultura Granada",
+    fallback: "Cultura+Granada",
+  },
 ];
 
 // ======================================================================
@@ -718,6 +726,10 @@ window.navigateTo = function (viewId, addToHistory = true) {
 
   if (viewId === "parkings") {
     initParkingsMap();
+  }
+
+  if (viewId === "cultura") {
+    initCulturaView();
   }
 };
 
@@ -1960,7 +1972,7 @@ function renderCortes(datosParaPintar) {
     // AÑADIMOS CLASE IDENTIFICATIVA Y DATA-INDEX
     itemDiv.className =
       "corte-card-item bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 mb-4 group";
-    itemDiv.setAttribute("data-index", index); // Importante para vincular con el mapa
+    itemDiv.setAttribute("data-index", index);
 
     const cajaFinPublicacion = ev.fechaFin
       ? `<div class="mt-3 inline-flex items-center gap-2 bg-gray-100 border border-gray-200 rounded-lg px-3 py-1.5 shadow-sm">
@@ -1975,6 +1987,8 @@ function renderCortes(datosParaPintar) {
                </button>`
       : "";
 
+    // --- CAMBIO AQUÍ: Descripción completa con scroll ---
+    // Quitamos 'line-clamp-3' y ponemos 'max-h-40 overflow-y-auto'
     itemDiv.innerHTML = `
             <div class="flex flex-wrap gap-2 mb-2 items-center">
                 <div class="${ev.tipo.clase} px-2 py-0.5 rounded shadow-sm text-[10px] font-black uppercase tracking-wide notranslate">
@@ -1987,9 +2001,9 @@ function renderCortes(datosParaPintar) {
                 ${ev.titulo}
             </h4>
             
-            <p class="text-sm text-gray-600 leading-relaxed line-clamp-3">
+            <div class="text-sm text-gray-600 leading-relaxed max-h-40 overflow-y-auto custom-scrollbar whitespace-pre-line bg-gray-50 p-2 rounded-lg border border-gray-50">
                 ${ev.descripcion}
-            </p>
+            </div>
             
             <div class="flex flex-wrap items-end justify-between gap-2 border-t border-gray-50 pt-2 mt-2">
                 ${cajaFinPublicacion}
@@ -2012,7 +2026,6 @@ function renderCortes(datosParaPintar) {
               mapCortes.invalidateSize();
               mapCortes.flyTo([ev.lat, ev.lon], 16, { duration: 1.5 });
               cortesLayerGroup.eachLayer((layer) => {
-                // Buscamos el marcador por el índice que asignamos antes
                 if (layer.options.dataIndex === index) {
                   setTimeout(() => layer.openPopup(), 1600);
                 }
@@ -5348,4 +5361,283 @@ window.fetchParkingData = async function () {
     if (tbody)
       tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-red-500">Error obteniendo datos.<br><small>${err.message}</small></td></tr>`;
   }
+};
+
+// ======================================================================
+// 21. MÓDULO: CULTURA (FINAL: FILTROS ESTRICTOS + CATEGORÍA 'MATTER')
+// ======================================================================
+
+let allCulturaEvents = [];
+let culturaCategories = new Set();
+
+window.initCulturaView = function () {
+  // Si la lista está vacía, cargamos. Si ya tiene datos, no molestamos a la API.
+  if (allCulturaEvents.length === 0) {
+    fetchCulturaData();
+  }
+};
+
+window.fetchCulturaData = async function () {
+  const container = document.getElementById("cultura-results-container");
+  const select = document.getElementById("cultura-cat-select");
+
+  // Spinner (AZUL)
+  container.innerHTML =
+    '<div class="text-center py-10"><div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto"></div><p class="text-gray-400 mt-2 text-sm">Buscando eventos vigentes en Granada...</p></div>';
+
+  const targetUrl =
+    "https://datos.juntadeandalucia.es/api/v0/schedule/all?format=json";
+  const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
+
+  try {
+    const res = await fetch(proxyUrl);
+    if (!res.ok) throw new Error(`Error API: ${res.status}`);
+
+    const rawData = await res.json();
+
+    // 1. FILTRO DE LUGAR (GRANADA)
+    let granadaEvents = rawData.filter((ev) => {
+      // A) Chequeo directo campo 'province'
+      if (ev.province && Array.isArray(ev.province)) {
+        return ev.province.some(
+          (p) => p.province && p.province.toLowerCase() === "granada"
+        );
+      }
+      // B) Chequeo 'location' si no hay provincia
+      if (ev.location) {
+        return ev.location.toLowerCase().includes("granada");
+      }
+      return false;
+    });
+
+    // Configuración de fecha actual (HOY 00:00:00)
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    // 2. MAPEO DE DATOS
+    allCulturaEvents = granadaEvents
+      .map((ev, index) => {
+        const titulo = ev.title || "Evento Cultural";
+
+        // Limpieza HTML Descripción
+        let descRaw = ev.description || "";
+        const tempDiv = document.createElement("div");
+        // Reemplazos para que el texto respire
+        tempDiv.innerHTML = descRaw
+          .replace(/<br\s*\/?>/gi, "\n")
+          .replace(/<\/p>/gi, "\n\n");
+        const descLimpia = tempDiv.textContent || tempDiv.innerText || "";
+
+        // --- LÓGICA DE FECHAS (ISO YYYY-MM-DD) ---
+        let fechaInicio = null;
+        let fechaFin = null;
+        let fechaTexto = "Consultar fechas";
+
+        // La Junta suele usar 'date_registration' como array
+        if (
+          ev.date_registration &&
+          Array.isArray(ev.date_registration) &&
+          ev.date_registration.length > 0
+        ) {
+          const d = ev.date_registration[0];
+
+          // Parseo directo (El formato del JSON es YYYY-MM-DD, JS lo lee bien)
+          if (d.start_date_registration)
+            fechaInicio = new Date(d.start_date_registration);
+          if (d.end_date_registration)
+            fechaFin = new Date(d.end_date_registration);
+
+          // Si no tiene fin, asumimos que es un evento de 1 día
+          if (!fechaFin && fechaInicio) fechaFin = new Date(fechaInicio);
+
+          // Construcción texto para mostrar
+          if (fechaInicio) {
+            const op = { day: "numeric", month: "short" };
+            const iniStr = fechaInicio.toLocaleDateString("es-ES", op);
+
+            if (fechaFin && fechaFin.getTime() !== fechaInicio.getTime()) {
+              const finStr = fechaFin.toLocaleDateString("es-ES", op);
+              fechaTexto = `${iniStr} - ${finStr}`;
+            } else {
+              fechaTexto = iniStr;
+            }
+          }
+        }
+
+        // --- LÓGICA DE CATEGORÍA (PRIORIDAD: MATTER) ---
+        let tipo = "Varios";
+
+        // 1. Prioridad: MATTER (Materia)
+        if (ev.matter) {
+          if (Array.isArray(ev.matter) && ev.matter.length > 0) {
+            // A veces es un objeto {"id":..., "value":...} o string directo
+            const m = ev.matter[0];
+            tipo = typeof m === "object" ? m.matter || m.name || m.value : m;
+          } else if (typeof ev.matter === "string") {
+            tipo = ev.matter;
+          }
+        }
+
+        // 2. Respaldo: THEMES (Temas) - Solo si matter falló
+        if (
+          (!tipo || tipo === "Varios") &&
+          ev.themes &&
+          Array.isArray(ev.themes) &&
+          ev.themes.length > 0
+        ) {
+          const t = ev.themes[0];
+          tipo = typeof t === "object" ? t.themes || t.name : t;
+        }
+
+        // Ubicación
+        let lugar = "Granada";
+        if (ev.address) {
+          tempDiv.innerHTML = ev.address;
+          lugar = tempDiv.textContent.trim() || "Granada";
+        } else if (ev.location) {
+          lugar = ev.location;
+        }
+
+        // Datos extra
+        const horario = ev.schedule || "Consultar horario";
+        let precio = "Gratis / Consultar";
+        if (ev.cost) precio = ev.cost;
+
+        return {
+          id: index,
+          titulo: titulo,
+          descripcion: descLimpia,
+          fechaInicio: fechaInicio,
+          fechaFin: fechaFin, // Guardamos la fecha fin real para filtrar
+          fechaTexto: fechaTexto,
+          horario: horario,
+          precio: precio,
+          url: "",
+          tipo: tipo || "Varios",
+          lugarMostrar: lugar,
+        };
+      })
+      .filter((ev) => {
+        // --- FILTRO DE VIGENCIA ESTRICTO ---
+
+        // 1. Debe tener fecha válida
+        if (!ev.fechaFin) return false;
+
+        // 2. La fecha de FINALIZACIÓN debe ser MAYOR o IGUAL a HOY
+        // (Es decir, el evento no ha terminado todavía)
+        return ev.fechaFin >= hoy;
+      });
+
+    // 3. ORDENAR (Lo más próximo a hoy primero)
+    allCulturaEvents.sort((a, b) => a.fechaInicio - b.fechaInicio);
+
+    // 4. LIMITAR (Para rendimiento)
+    const eventosParaMostrar = allCulturaEvents.slice(0, 50);
+
+    console.log("✨ Eventos vigentes encontrados:", eventosParaMostrar.length);
+
+    // 5. LLENAR SELECTOR DE CATEGORÍAS
+    culturaCategories = new Set();
+    eventosParaMostrar.forEach((ev) => {
+      if (ev.tipo) culturaCategories.add(ev.tipo);
+    });
+
+    if (select) {
+      select.innerHTML = '<option value="TODOS">Todas las categorías</option>';
+      // Ordenar alfabéticamente las categorías
+      Array.from(culturaCategories)
+        .sort()
+        .forEach((cat) => {
+          select.innerHTML += `<option value="${cat}">${cat}</option>`;
+        });
+    }
+
+    renderCulturaEvents(eventosParaMostrar);
+  } catch (e) {
+    console.error("❌ Error JS:", e);
+    container.innerHTML = `<div class="p-4 text-center text-red-500">Error cargando datos: ${e.message}</div>`;
+  }
+};
+
+window.renderCulturaEvents = function (events) {
+  const container = document.getElementById("cultura-results-container");
+  container.innerHTML = "";
+
+  if (events.length === 0) {
+    container.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-12 text-gray-400 bg-gray-50 rounded-xl border border-gray-100">
+                <svg class="w-16 h-16 mb-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p class="font-bold text-sm">No hay eventos activos hoy.</p>
+                <p class="text-xs mt-1">Inténtalo más tarde o cambia los filtros.</p>
+            </div>`;
+    return;
+  }
+
+  let html = "";
+
+  events.forEach((ev) => {
+    html += `
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col sm:flex-row hover:shadow-md transition-shadow duration-300">
+            <div class="sm:w-36 bg-blue-50 flex flex-col items-center justify-center p-3 text-center border-b sm:border-b-0 sm:border-r border-blue-100 shrink-0">
+                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wide block mb-1">FECHAS</span>
+                <span class="text-xs font-black text-blue-700 leading-tight capitalize text-center">${ev.fechaTexto}</span>
+            </div>
+            
+            <div class="p-4 flex-1 flex flex-col gap-2 min-w-0">
+                <div class="flex justify-between items-start mb-1">
+                    <span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider notranslate truncate mr-2 max-w-[40%]">
+                        ${ev.tipo}
+                    </span>
+                    <div class="flex items-start gap-1 text-right max-w-[55%] text-gray-500">
+                        <span class="text-[11px] font-bold leading-tight notranslate break-words text-right">${ev.lugarMostrar}</span>
+                        <svg class="w-3 h-3 text-blue-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <h3 class="font-bold text-base text-gray-800 leading-snug notranslate pr-2">${ev.titulo}</h3>
+                
+                <div class="flex flex-wrap gap-2 text-xs text-gray-500 mb-1">
+                    <div class="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border border-gray-100">
+                        <span>🕒</span> <span class="truncate max-w-[200px]">${ev.horario}</span>
+                    </div>
+                    <div class="flex items-center gap-1 bg-green-50 text-green-700 px-2 py-1 rounded border border-green-100 font-bold">
+                        <span>💶</span> <span>${ev.precio}</span>
+                    </div>
+                </div>
+
+                <div class="text-xs text-gray-600 mt-1 bg-gray-50 p-2 rounded-lg border border-gray-100 max-h-32 overflow-y-auto custom-scrollbar whitespace-pre-line">
+                    ${ev.descripcion}
+                </div>
+            </div>
+        </div>
+        `;
+  });
+
+  container.innerHTML = html;
+};
+
+// ... Mantén la función filtrarEventosCultura() igual ...
+
+// Función de filtro (sin mapa)
+window.filtrarEventosCultura = function () {
+  const input = document.getElementById("cultura-search-input");
+  const select = document.getElementById("cultura-cat-select");
+  if (!input || !select) return;
+
+  const term = input.value.toLowerCase().trim();
+  const cat = select.value;
+
+  const filtered = allCulturaEvents.filter((ev) => {
+    const titulo = (ev.titulo || "").toLowerCase();
+    const desc = (ev.descripcion || "").toLowerCase();
+    const matchesText = titulo.includes(term) || desc.includes(term);
+    const matchesCat = cat === "TODOS" || ev.tipo === cat;
+    return matchesText && matchesCat;
+  });
+
+  renderCulturaEvents(filtered);
 };
