@@ -3585,46 +3585,49 @@ window.showInfoSchedule = function () {
     return `${hora.toString().padStart(2, "0")}:${minutos}`;
   };
 
-  // 1. BUSCAR CANDIDATOS EN LA BASE DE DATOS
-  // Buscamos todas las líneas que coincidan con el nombre (ej: "111")
-  let candidates = ALL_SCHEDULES.filter((s) => s.name === currentInfoLine.name);
+  // 1. NORMALIZACIÓN DE NOMBRES (La solución al problema de la captura)
+  // Obtenemos el nombre tal cual viene de la ruta (Ej: "0122A")
+  const rawName = currentInfoLine.name;
+  // Creamos una versión "limpia" quitando los ceros del principio (Ej: "122A")
+  const cleanName = rawName.replace(/^0+/, "");
 
-  // CORRECCIÓN PARA INTERURBANO 111:
-  // Si no encuentra "111" y estamos en interurbano, probamos buscar "111L"
+  // 2. BUSCAR CANDIDATOS EN LA BASE DE DATOS
+  // Ahora buscamos si el horario coincide con el nombre original O con el nombre limpio
+  let candidates = ALL_SCHEDULES.filter(
+    (s) => s.name === rawName || s.name === cleanName
+  );
+
+  // 3. FALLBACKS ESPECÍFICOS (Por si acaso)
+  // Si no encuentra nada y es la línea 111 (o 0111), probamos buscar "111L" explícitamente
   if (
     candidates.length === 0 &&
     currentInfoMode === "interurbano" &&
-    currentInfoLine.name === "111"
+    cleanName === "111"
   ) {
     candidates = ALL_SCHEDULES.filter((s) => s.name === "111L");
   }
 
+  // Si sigue sin encontrar y es interurbano, intentamos buscar por nombre largo si contiene código
+  if (candidates.length === 0 && currentInfoMode === "interurbano") {
+    candidates = ALL_SCHEDULES.filter((s) => s.name.includes(cleanName));
+  }
+
   let schedObj = null;
 
-  // 2. FILTRAR EL CORRECTO SEGÚN EL MODO
+  // 4. SELECCIONAR EL OBJETO FINAL
   if (candidates.length > 0) {
+    // (Resto de tu lógica original para elegir entre Búho o Normal se mantiene igual...)
     if (currentInfoMode === "urbano") {
-      // MODO URBANO:
-      // Intentamos buscar uno que diga "BUHO" en su nombre largo (para el 111/121)
       schedObj = candidates.find(
         (s) => s.long_name && s.long_name.toUpperCase().includes("BUHO")
       );
-
-      // Si no encuentra ninguno que diga Búho (ej: línea 4, 33...), cogemos el primero que haya
-      if (!schedObj) {
-        schedObj = candidates[0];
-      }
+      if (!schedObj) schedObj = candidates[0];
     } else if (currentInfoMode === "interurbano") {
-      // MODO INTERURBANO:
-      // Cogemos el que NO sea Búho (para evitar que salga el urbano 121)
       schedObj = candidates.find(
         (s) => !s.long_name || !s.long_name.toUpperCase().includes("BUHO")
       );
-
-      // Si por lo que sea no queda ninguno, usamos el primero disponible
       if (!schedObj) schedObj = candidates[0];
     } else {
-      // MODO METRO:
       schedObj = candidates[0];
     }
   }
@@ -3671,26 +3674,25 @@ window.showInfoSchedule = function () {
 
     // Cabecera de la tarjeta
     html += `
-            <div class="info-card-white overflow-hidden">
+            <div class="info-card-white overflow-hidden mb-4">
                 <div class="bg-gray-100 dark:bg-gray-700/50 px-4 py-2 font-bold border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                    <span>${dia.label}</span>
+                    <span class="text-gray-800 dark:text-gray-100">${dia.label}</span>
                 </div>
                 <div class="p-4">`;
 
     if (currentInfoMode === "interurbano") {
       // --- FORMATO LISTA COMPLETA (Para Interurbanos) ---
+      // CORRECCIÓN: Quitada opacity-80, añadido text-gray-900 y font-medium
       if (h.ida && h.ida.length)
-        html += `<p class="text-xs font-bold text-blue-600 mb-1">IDA (Salidas):</p><p class="text-sm mb-3 leading-relaxed opacity-80 font-mono text-gray-600">${h.ida
-          .map((t) => normalizeTime(t)) // USO DE LA FUNCIÓN CORRECTORA
+        html += `<p class="text-xs font-bold text-blue-600 mb-1">IDA (Salidas):</p><p class="text-sm mb-3 leading-relaxed font-mono font-medium text-gray-900 dark:text-gray-300">${h.ida
+          .map((t) => normalizeTime(t))
           .join(", ")}</p>`;
       if (h.vuelta && h.vuelta.length)
-        html += `<p class="text-xs font-bold text-red-600 mb-1">VUELTA (Salidas):</p><p class="text-sm leading-relaxed opacity-80 font-mono text-gray-600">${h.vuelta
-          .map((t) => normalizeTime(t)) // USO DE LA FUNCIÓN CORRECTORA
+        html += `<p class="text-xs font-bold text-red-600 mb-1">VUELTA (Salidas):</p><p class="text-sm leading-relaxed font-mono font-medium text-gray-900 dark:text-gray-300">${h.vuelta
+          .map((t) => normalizeTime(t))
           .join(", ")}</p>`;
     } else {
       // --- FORMATO PRIMERO / ÚLTIMO (Para Urbanos y Búhos) ---
-
-      // Aplicamos normalizeTime a las variables de primero y último
       const idaFirst = h.ida[0] ? normalizeTime(h.ida[0]) : "--:--";
       const idaLast = h.ida.length
         ? normalizeTime(h.ida[h.ida.length - 1])
@@ -3700,15 +3702,14 @@ window.showInfoSchedule = function () {
         ? normalizeTime(h.vuelta[h.vuelta.length - 1])
         : "--:--";
 
-      // Si la lista es corta (ej: Búhos a veces tienen pocas salidas), mostramos lista. Si es larga, resumen.
       if (h.ida.length > 0 && h.ida.length <= 15) {
-        // Muestra lista completa si son pocos horarios (útil para Búhos)
-        html += `<div class="mb-3"><p class="text-xs font-bold text-blue-600 mb-1">IDA:</p><p class="text-sm opacity-80 font-mono">${h.ida
-          .map((t) => normalizeTime(t)) // USO DE LA FUNCIÓN CORRECTORA
+        // CORRECCIÓN: Quitada opacity-80, forzado color oscuro
+        html += `<div class="mb-3"><p class="text-xs font-bold text-blue-600 mb-1">IDA:</p><p class="text-sm font-mono font-medium text-gray-900 dark:text-gray-300">${h.ida
+          .map((t) => normalizeTime(t))
           .join(", ")}</p></div>`;
         if (h.vuelta.length)
-          html += `<div><p class="text-xs font-bold text-red-600 mb-1">VUELTA:</p><p class="text-sm opacity-80 font-mono">${h.vuelta
-            .map((t) => normalizeTime(t)) // USO DE LA FUNCIÓN CORRECTORA
+          html += `<div><p class="text-xs font-bold text-red-600 mb-1">VUELTA:</p><p class="text-sm font-mono font-medium text-gray-900 dark:text-gray-300">${h.vuelta
+            .map((t) => normalizeTime(t))
             .join(", ")}</p></div>`;
       } else {
         // Formato Resumen
@@ -3717,15 +3718,15 @@ window.showInfoSchedule = function () {
                     <div class="bg-blue-50 dark:bg-blue-900/10 p-3 rounded-lg border border-blue-100 dark:border-blue-800">
                         <p class="text-xs font-black text-blue-600 uppercase mb-2">IDA</p>
                         <div class="flex justify-between items-end px-2">
-                            <div class="text-left"><span class="text-[10px] text-gray-400 block">Primer</span><b class="text-lg text-gray-700 dark:text-gray-200">${idaFirst}</b></div>
-                            <div class="text-right"><span class="text-[10px] text-gray-400 block">Último</span><b class="text-lg text-gray-700 dark:text-gray-200">${idaLast}</b></div>
+                            <div class="text-left"><span class="text-[10px] text-gray-500 block">Primer</span><b class="text-lg text-gray-900 dark:text-white">${idaFirst}</b></div>
+                            <div class="text-right"><span class="text-[10px] text-gray-500 block">Último</span><b class="text-lg text-gray-900 dark:text-white">${idaLast}</b></div>
                         </div>
                     </div>
                     <div class="bg-red-50 dark:bg-red-900/10 p-3 rounded-lg border border-red-100 dark:border-red-800">
                         <p class="text-xs font-black text-red-600 uppercase mb-2">VUELTA</p>
                         <div class="flex justify-between items-end px-2">
-                            <div class="text-left"><span class="text-[10px] text-gray-400 block">Primer</span><b class="text-lg text-gray-700 dark:text-gray-200">${vueltaFirst}</b></div>
-                            <div class="text-right"><span class="text-[10px] text-gray-400 block">Último</span><b class="text-lg text-gray-700 dark:text-gray-200">${vueltaLast}</b></div>
+                            <div class="text-left"><span class="text-[10px] text-gray-500 block">Primer</span><b class="text-lg text-gray-900 dark:text-white">${vueltaFirst}</b></div>
+                            <div class="text-right"><span class="text-[10px] text-gray-500 block">Último</span><b class="text-lg text-gray-900 dark:text-white">${vueltaLast}</b></div>
                         </div>
                     </div>
                 </div>`;
@@ -5113,32 +5114,32 @@ let mapParkings = null;
 let parkingLayerGroup = null;
 let parkingUpdateInterval = null;
 
-// UBICACIONES EXACTAS DE LOS PARKINGS DE LA TABLA OFICIAL
+// UBICACIONES EXACTAS DE LOS PARKINGS (COORDENADAS CORREGIDAS A ENTRADAS)
 const PARKING_LOCATIONS = [
-  { name: "Alhambra", lat: 37.1744, lon: -3.5852 }, // Parking Generalife
-  { name: "Boutique Luna Centro", lat: 37.1713, lon: -3.5989 }, // Acera del Darro
-  { name: "Escolapios", lat: 37.1667, lon: -3.595 }, // Paseo de los Basilios
-  { name: "Estadio Nuevo Los Cármenes", lat: 37.1528, lon: -3.5955 }, // Zaidín
+  { name: "Alhambra", lat: 37.1738, lon: -3.5855 }, // Parking Generalife (Entrada)
+  { name: "Boutique Luna Centro", lat: 37.1715, lon: -3.5989 }, // Acera del Darro
+  { name: "Escolapios", lat: 37.167, lon: -3.5948 }, // Paseo de los Basilios
+  { name: "Estadio Nuevo Los Cármenes", lat: 37.1534, lon: -3.5957 }, // Entrada Parking Estadio
   { name: "Ganivet", lat: 37.1724, lon: -3.5985 }, // Calle Ángel Ganivet
   { name: "Garaje Rex", lat: 37.1716, lon: -3.6035 }, // Calle Recogidas
-  { name: "Granada Centro Alsina", lat: 37.1758, lon: -3.6055 }, // Calle Arabial (Junto Hipercor)
+  { name: "Granada Centro Alsina", lat: 37.1758, lon: -3.6058 }, // Junto Hipercor/Hnos Maristas
   { name: "HH Maristas", lat: 37.1775, lon: -3.6025 }, // Calle Sócrates
   { name: "La Caleta", lat: 37.1869, lon: -3.6093 }, // Av. Constitución
   { name: "La Hípica", lat: 37.1625, lon: -3.5955 }, // Calle Fontiveros
   { name: "Luna de Granada", lat: 37.1738, lon: -3.6115 }, // Plaza Manuel Cano
   { name: "Mondragones", lat: 37.186, lon: -3.6085 }, // Ribera del Beiro
-  { name: "Méndez Núñez", lat: 37.1785, lon: -3.613 }, // Calle María Moliner
+  { name: "Méndez Núñez", lat: 37.1787, lon: -3.6128 }, // Entrada exacta autopista
   { name: "Palacio de Congresos", lat: 37.1655, lon: -3.5983 }, // Paseo del Violón
-  { name: "Pedro Antonio de Alarcón", lat: 37.1745, lon: -3.6055 }, // Calle Pedro Antonio 40
-  { name: "Puerta Real", lat: 37.171, lon: -3.5995 }, // Acera del Darro
-  { name: "San Agustín", lat: 37.1778, lon: -3.599 }, // Mercado San Agustín
+  { name: "Pedro Antonio de Alarcón", lat: 37.1743, lon: -3.6055 }, // Entrada exacta
+  { name: "Puerta Real", lat: 37.1713, lon: -3.5994 }, // Entrada Acera del Darro
+  { name: "San Agustín", lat: 37.1776, lon: -3.5991 }, // Entrada por Gran Vía/Cárcel
   { name: "San Juan de Dios", lat: 37.1795, lon: -3.6025 }, // Rector López Argüeta
   { name: "San Lázaro", lat: 37.1865, lon: -3.606 }, // Plaza San Lázaro
   { name: "Sócrates", lat: 37.1775, lon: -3.6025 }, // Calle Sócrates
   { name: "Traumatología", lat: 37.1885, lon: -3.608 }, // Ribera del Beiro
   { name: "Triunfo-Ave", lat: 37.1855, lon: -3.609 }, // Junto Estación Tren
   { name: "Victoria", lat: 37.1731, lon: -3.5999 }, // Calle San Antón
-  { name: "Violón", lat: 37.1691, lon: -3.5978 }, // Paseo del Violón
+  { name: "Violón", lat: 37.1691, lon: -3.5976 }, // Entrada Rotonda Aviación
 ];
 
 // Inicialización del Mapa
