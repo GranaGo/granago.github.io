@@ -36,9 +36,7 @@ let currentLanguage = "es";
 // Variables para la navegación en Puntos de Interés
 let puntosUserMarker = null; // Marcador del usuario en mapPuntos
 let puntosRouteControl = null; // Control de ruta (línea azul)
-let navigationWatchId = null; // ID del watchPosition para detectar llegada
 const ARRIVAL_THRESHOLD = 30; // Distancia en metros para considerar "llegada"
-let cocheWatchId = null; // Para guardar el ID del rastreo del GPS
 
 let mapPuntos = null;
 let puntosLayerControl = null;
@@ -441,6 +439,42 @@ function addLocationControl(map, onClickCallback) {
   new LocationControl({ position: "bottomleft" }).addTo(map);
 }
 
+/**
+ * FACTORÍA GENÉRICA UNIFICADA
+ * Crea un mapa base y añade opcionalmente el botón de "Mi Ubicación".
+ * @param {string} elementId - ID del contenedor HTML del mapa.
+ * @param {object} options - { center, zoom, showLocationBtn, onLocationClick }
+ */
+function initGenericMap(elementId, options = {}) {
+  // Valores por defecto
+  const {
+    center = [37.1773, -3.5986],
+    zoom = 13,
+    showLocationBtn = true,
+    onLocationClick = null,
+  } = options;
+
+  const element = document.getElementById(elementId);
+  if (!element) return null;
+
+  // 1. Crear Mapa Base (Usa tu función existente)
+  const map = createBaseMap(elementId, center, zoom);
+
+  // 2. Añadir Botón de Ubicación (Opcional)
+  if (showLocationBtn) {
+    // Si no se pasa una función específica, usa una genérica de Leaflet
+    const clickAction =
+      onLocationClick ||
+      (() => {
+        map.locate({ setView: true, maxZoom: 16, enableHighAccuracy: true });
+      });
+
+    addLocationControl(map, clickAction);
+  }
+
+  return map;
+}
+
 // 3.3. UTILIDADES DE CÓMPUTO Y FORMATO
 // ------------------------------------------
 // Función auxiliar para obtener color (Sustituir la existente)
@@ -492,6 +526,76 @@ function scrollToElement(selector) {
     element.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 }
+
+/**
+ * GEO MANAGER CENTRALIZADO
+ * Gestiona el acceso al GPS para evitar múltiples watchPosition simultáneos.
+ */
+const GeoManager = {
+  activeWatchId: null, // ID del proceso nativo de watchPosition
+  activeLeafletMap: null, // Referencia a un mapa usando .locate() (si aplica)
+
+  // A. OBTENER POSICIÓN UNA VEZ (Para centrar mapas)
+  getPosition: function (onSuccess, onError) {
+    if (!navigator.geolocation) {
+      if (onError) onError({ code: 0, message: "GPS no soportado" });
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(onSuccess, onError, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0,
+    });
+  },
+
+  // B. SEGUIMIENTO CONTINUO (Para modo Coche, Navegación, etc.)
+  startWatching: function (onSuccess, onError) {
+    // 1. Siempre detenemos cualquier rastro anterior primero
+    this.stop();
+
+    if (!navigator.geolocation) return;
+
+    console.log("📍 GeoManager: Iniciando rastreo continuo...");
+    this.activeWatchId = navigator.geolocation.watchPosition(
+      onSuccess,
+      (err) => {
+        console.warn("GeoManager Error:", err);
+        if (onError) onError(err);
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 10000,
+      }
+    );
+  },
+
+  // C. REGISTRAR MAPA LEAFLET (Si usas map.locate en lugar de navigator)
+  trackMapLocate: function (map) {
+    this.stop(); // Detener otros rastreos
+    this.activeLeafletMap = map;
+  },
+
+  // D. DETENER TODO (Limpieza)
+  stop: function () {
+    // 1. Parar watchPosition nativo
+    if (this.activeWatchId !== null) {
+      navigator.geolocation.clearWatch(this.activeWatchId);
+      console.log(
+        "🛑 GeoManager: WatchPosition detenido ID:",
+        this.activeWatchId
+      );
+      this.activeWatchId = null;
+    }
+
+    // 2. Parar locate de Leaflet (si hay uno activo)
+    if (this.activeLeafletMap) {
+      this.activeLeafletMap.stopLocate();
+      console.log("🛑 GeoManager: Leaflet locate detenido.");
+      this.activeLeafletMap = null;
+    }
+  },
+};
 
 // 3.4. UTILS DE MARCADORES (ICONOS)
 // ------------------------------------------
@@ -546,105 +650,69 @@ if (!window.history.state) {
 }
 
 window.navigateTo = function (viewId, addToHistory = true) {
-  if (typeof detenerNavegacion === "function") {
-    detenerNavegacion();
-  }
-  // 2. NUEVO: DETENER RASTREO GPS DE 'COCHE' SI SALIMOS DE ESA VISTA
-  if (viewId !== "coche" && cocheWatchId !== null) {
-    navigator.geolocation.clearWatch(cocheWatchId);
-    cocheWatchId = null;
-    console.log("GPS Coche detenido");
-  }
+  // 1. LIMPIEZA CENTRALIZADA DE GPS Y PROCESOS
+  // Detenemos el GPS globalmente. Si la nueva vista (ej: coche) lo necesita,
+  // su función 'init' correspondiente se encargará de reactivarlo.
+  // Esto asegura que nunca haya dos procesos de GPS peleando.
+  GeoManager.stop();
 
-  // 3. NUEVO: DETENER RASTREO GPS DE 'PUNTOS' SI SALIMOS DE ESA VISTA
-  if (viewId !== "puntos" && mapPuntos) {
-    mapPuntos.stopLocate(); // Función de Leaflet para parar el watch
-    console.log("GPS Puntos detenido");
-  }
-
+  // Limpieza específica de intervalo de Parkings si salimos de esa vista
   if (viewId !== "parkings" && parkingUpdateInterval !== null) {
     clearInterval(parkingUpdateInterval);
     parkingUpdateInterval = null;
     console.log("Actualización de Parkings detenida.");
   }
 
-  // Ocultar todas las vistas
+  // 2. Lógica visual (Ocultar/Mostrar secciones)
   document.querySelectorAll(".view-section").forEach((el) => {
     el.classList.remove("active");
     if (addToHistory) window.scrollTo(0, 0);
   });
-  // Mostrar la seleccionada
+
   const view = document.getElementById(viewId + "-view");
   if (view) view.classList.add("active");
 
-  // Scroll top
   window.scrollTo(0, 0);
 
-  // 3. GESTIÓN DEL HISTORIAL (La magia para el botón atrás)
+  // 3. Gestión del Historial
   if (addToHistory) {
     if (viewId === "home") {
-      // Si vamos a HOME, limpiamos la URL
       window.history.pushState({ view: "home" }, "Home", " ");
     } else {
-      // Si vamos a una SECCIÓN, añadimos el hash (ej: #transporte)
       window.history.pushState({ view: viewId }, "", `#${viewId}`);
     }
   }
-  // Cargas perezosas (Lazy Load)
+
+  // 4. Inicialización perezosa (Lazy Load) de las vistas
   if (viewId === "transporte") {
     const select = document.getElementById("metro-stop-select");
     if (select && select.options.length <= 1) loadMetroStops();
-    initTransporteMap(); // Inicializar/Actualizar mapa de transporte
-    // TRUCO CLAVE: Forzar recálculo de tamaño tras una pequeña pausa
+    initTransporteMap();
+    // Ajuste visual tras carga
     setTimeout(() => {
-      if (mapTransporte) {
-        mapTransporte.invalidateSize();
-        // Reajustar la vista a todas las paradas si es necesario
-        //const activeStops = [...dUrb, ...dMet]; // Tus datos globales
-        //if (activeStops.length > 0) {
-        //const bounds = new L.featureGroup(
-        // activeStops.map((s) => L.marker([s.stop_lat, s.stop_lon]))
-        // ).getBounds();
-        // mapTransporte.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
-        // }
-        if (layers.urbano || layers.metro) {
-          // Esto asegura que si ya cargó datos, se centre bien
-        }
-      }
-    }, 200); // 200ms de retraso
+      if (mapTransporte) mapTransporte.invalidateSize();
+    }, 200);
   }
-  if (viewId === "ora") {
-    renderOraStreets();
-  }
-  if (viewId === "cortes") {
-    initCortesMap();
-  }
+
+  if (viewId === "ora") renderOraStreets();
+  if (viewId === "cortes") initCortesMap();
+
   if (viewId === "coche") {
-    initCocheMap();
-    setTimeout(() => {
-      if (mapCoche) mapCoche.invalidateSize();
-    }, 200);
+    initCocheMap(); // Esto reactivará el GeoManager.startWatching
   }
+
   if (viewId === "puntos") {
-    initPuntosMap();
-    setTimeout(() => {
-      if (mapPuntos) mapPuntos.invalidateSize();
-    }, 200);
+    initPuntosMap(); // Esto reactivará el mapa y el GeoManager
   }
-  if (viewId === "info-transporte") {
-    renderInfoTransporteMenu();
-  }
+
+  if (viewId === "info-transporte") renderInfoTransporteMenu();
+
   if (viewId === "gasolineras") {
     initGasolinerasMap();
-    setTimeout(() => {
-      if (mapGasolineras) mapGasolineras.invalidateSize();
-    }, 200);
   }
+
   if (viewId === "parkings") {
     initParkingsMap();
-    setTimeout(() => {
-      if (mapParkings) mapParkings.invalidateSize();
-    }, 200);
   }
 };
 
@@ -1252,39 +1320,35 @@ function handleLocationSuccess(pos) {
 
   userLocationLatLng = L.latLng(lat, lon);
 
-  // Limpiar marcadores y círculos anteriores
-  if (userMarker) {
-    userMarker.remove();
-  }
-  if (userAccuracyCircle) {
-    userAccuracyCircle.remove();
-  }
+  // 1. Pintar Marcador del Usuario (Ligero)
+  if (userMarker) userMarker.remove();
+  if (userAccuracyCircle) userAccuracyCircle.remove();
 
-  // Crear el marcador del usuario
   const customIcon = createCustomUserIcon();
+
+  // Añadimos el marcador del usuario inmediatamente
   userMarker = L.marker(userLocationLatLng, { icon: customIcon })
     .addTo(mapTransporte)
-    .bindPopup("Estás aquí. Precisión: " + accuracy.toFixed(0) + " metros.")
-    .openPopup();
+    .bindPopup("Estás aquí. Precisión: " + accuracy.toFixed(0) + "m.");
 
-  // Crear círculo de precisión
   userAccuracyCircle = L.circle(userLocationLatLng, {
     radius: accuracy,
-    color: "#1e40af", // Blue-700
-    fillColor: "#60a5fa", // Blue-400
+    color: "#1e40af",
+    fillColor: "#60a5fa",
     fillOpacity: 0.2,
   }).addTo(mapTransporte);
 
-  // CLAVE: Animación suave. Al terminar ('moveend'), cargamos los marcadores.
+  // 2. Iniciar Animación de Vuelo (FlyTo)
+  // Importante: No cargamos los buses todavía para que el vuelo sea fluido
   mapTransporte.flyTo(userLocationLatLng, 16, {
-    duration: 1.5, // Animación un poco más lenta para dar fluidez
+    duration: 1.5,
     easeLinearity: 0.25,
   });
 
-  // Suscribirse una sola vez al fin del movimiento para cargar los buses
+  // 3. Cargar datos SOLO cuando termine el vuelo
   mapTransporte.once("moveend", () => {
-    // Pequeño delay extra para asegurar que el navegador recuperó aliento
-    setTimeout(renderizarCapasDiferidas, 100);
+    // Pequeño timeout para asegurar que el motor de renderizado respire
+    setTimeout(renderizarCapasDiferidas, 150);
   });
 }
 
@@ -1304,35 +1368,53 @@ function handleLocationError(err) {
   }
 }
 
-function centerMapOnUser() {
-  if (userLocationLatLng && mapTransporte) {
-    mapTransporte.flyTo(userLocationLatLng, 16);
-  }
-}
-
 // ======================================================================
 // OPTIMIZACIÓN: Variables para controlar si ya se cargaron los marcadores
 // ======================================================================
 let markersLoaded = false;
 
-// Función auxiliar para pintar las capas SOLO cuando sea necesario
+// Variable de control para evitar recargas
+let isDataBound = false;
+
 function renderizarCapasDiferidas() {
   if (markersLoaded || !mapTransporte) return;
 
-  // Añadimos las capas ahora que el mapa está quieto
-  if (layers.urbano) layers.urbano.addTo(mapTransporte);
-  if (layers.metro) layers.metro.addTo(mapTransporte);
+  // 1. Crear los datos AHORA (Lazy Load), no al inicio
+  // Esto evita que la app se congele al abrirse
+  if (!isDataBound) {
+    if (typeof dUrb !== "undefined") layers.urbano = bindData(dUrb, "urbano");
+    if (typeof dInt !== "undefined") layers.inter = bindData(dInt, "inter");
+    if (typeof dMet !== "undefined") layers.metro = bindData(dMet, "metro");
+    isDataBound = true;
+  }
 
-  // Restauramos estado visual de botones
-  document.getElementById("btnUrbano").classList.add("active-layer");
-  document.getElementById("btnUrbano").classList.remove("inactive-layer");
-  document.getElementById("btnMetro").classList.add("active-layer");
-  document.getElementById("btnMetro").classList.remove("inactive-layer");
-  document.getElementById("btnInter").classList.add("inactive-layer");
-  document.getElementById("btnInter").classList.remove("active-layer");
+  // 2. Añadir capas al mapa (Batch)
+  // Usamos requestAnimationFrame para que el navegador pinte todo junto suavemente
+  requestAnimationFrame(() => {
+    if (layers.urbano) layers.urbano.addTo(mapTransporte);
+    if (layers.metro) layers.metro.addTo(mapTransporte);
 
-  markersLoaded = true;
-  console.log("✅ Marcadores renderizados tras la animación.");
+    // 3. Actualizar interfaz de botones de una sola vez
+    const btnUrb = document.getElementById("btnUrbano");
+    const btnMet = document.getElementById("btnMetro");
+    const btnInt = document.getElementById("btnInter");
+
+    if (btnUrb) {
+      btnUrb.className =
+        "btn btn-urbano px-4 py-2 text-xs font-bold rounded-lg transition-colors duration-200 active-layer flex items-center";
+    }
+    if (btnMet) {
+      btnMet.className =
+        "btn btn-metro px-4 py-2 text-xs font-bold rounded-lg transition-colors duration-200 active-layer flex items-center";
+    }
+    if (btnInt) {
+      btnInt.className =
+        "btn btn-inter px-4 py-2 text-xs font-bold rounded-lg transition-colors duration-200 inactive-layer flex items-center";
+    }
+
+    markersLoaded = true;
+    console.log("✅ Capas renderizadas tras animación.");
+  });
 }
 
 // 8.3. INICIALIZACIÓN DEL MAPA DE TRANSPORTE
@@ -1342,59 +1424,39 @@ window.initTransporteMap = function () {
   if (!mapElement) return;
 
   if (!mapTransporte) {
-    // 1. Crear Mapa base (ligero)
-    mapTransporte = createBaseMap("map-transporte", [37.177, -3.598], 13);
-
-    // 2. Preparar datos en memoria (bindData es rápido, addTo es lento)
-    // NO los añadimos al mapa todavía (.addTo)
-    layers.urbano = bindData(dUrb, "urbano");
-    layers.inter = bindData(dInt, "inter");
-    layers.metro = bindData(dMet, "metro");
-
-    // 3. Añadir control de ubicación
-    addLocationControl(mapTransporte, () => {
-      if (userLocationLatLng) {
-        centerMapOnUser();
-      } else if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          handleLocationSuccess,
-          handleLocationError,
-          { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+    // 1. Iniciar mapa base (vacío y ligero)
+    mapTransporte = initGenericMap("map-transporte", {
+      center: [37.177, -3.598],
+      zoom: 13,
+      onLocationClick: () => {
+        GeoManager.getPosition(
+          (pos) => handleLocationSuccess(pos),
+          (err) => {
+            handleLocationError(err);
+            centerMapOnUser(); // Intento de recentrado simple
+          }
         );
-      }
+      },
     });
 
-    // 4. Iniciar Geolocalización
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          handleLocationSuccess(pos);
-          // Si el GPS responde rápido, handleLocationSuccess se encarga de pintar capas al terminar el zoom.
-        },
-        (err) => {
-          handleLocationError(err);
-          // Si falla el GPS, cargamos las capas inmediatamente para no dejar el mapa vacío
-          renderizarCapasDiferidas();
-          // Y centramos en vista general
-          const activeStops = [...dUrb, ...dMet];
-          if (activeStops.length > 0) {
-            const bounds = new L.featureGroup(
-              activeStops.map((s) => L.marker([s.stop_lat, s.stop_lon]))
-            ).getBounds();
-            mapTransporte.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
-          }
-        },
-        { enableHighAccuracy: true, timeout: 10000 }
-      );
-    } else {
-      // Fallback si no hay soporte GPS
-      renderizarCapasDiferidas();
-    }
+    // NOTA: Hemos quitado bindData de aquí. Se hará en renderizarCapasDiferidas.
 
-    // 5. Fallback de seguridad: Si por alguna razón el evento 'moveend' no salta
-    // (ej: el usuario ya estaba en la posición exacta y no hubo animación),
-    // forzamos la carga a los 2 segundos.
-    setTimeout(renderizarCapasDiferidas, 2000);
+    // 2. Obtener GPS y activar la secuencia
+    GeoManager.getPosition(
+      (pos) => {
+        // Éxito: El flujo será: Zoom -> Fin Zoom -> Cargar Datos
+        handleLocationSuccess(pos);
+      },
+      (err) => {
+        // Error: Cargamos datos inmediatamente sin zoom
+        handleLocationError(err);
+        renderizarCapasDiferidas();
+      }
+    );
+
+    // 3. Fallback de seguridad
+    // Si el usuario no tiene GPS o el evento 'moveend' falla, cargamos a los 2.5s
+    setTimeout(renderizarCapasDiferidas, 2500);
   } else {
     setTimeout(() => {
       mapTransporte.invalidateSize();
@@ -1680,13 +1742,15 @@ window.initCortesMap = function () {
     return;
   }
 
-  // --- USA LA FACTORÍA ---
-  mapCortes = createBaseMap("map-cortes", [37.1773, -3.5986], 13);
-  // -----------------------
+  // --- NUEVO: USANDO initGenericMap (Sin botón ubicación) ---
+  mapCortes = initGenericMap("map-cortes", {
+    center: [37.1773, -3.5986],
+    zoom: 13,
+    showLocationBtn: false,
+  });
 
-  // Creamos el grupo de capas para los marcadores
+  // Creamos el grupo de capas y cargamos datos (MANTENER)
   cortesLayerGroup = L.layerGroup().addTo(mapCortes);
-
   fetchCortesData();
 };
 
@@ -2062,37 +2126,32 @@ function _handleCocheLocationSuccess(pos) {
 
 window.initCocheMap = function () {
   if (!mapCoche) {
-    // --- USA LA FACTORÍA ---
-    mapCoche = createBaseMap("map-coche", [37.1773, -3.5986], 15);
-
-    // --- AÑADIMOS EL BOTÓN DE UBICACIÓN ---
-    addLocationControl(mapCoche, () => {
-      // Al pulsar el botón, forzamos centrado y reiniciamos el watch si se perdió
-      if (userLocationLatLng) {
-        mapCoche.flyTo(userLocationLatLng, 16);
-      }
+    mapCoche = initGenericMap("map-coche", {
+      center: [37.1773, -3.5986],
+      zoom: 15,
+      onLocationClick: () => {
+        // Si pulsamos el botón, centramos en la ubicación conocida
+        if (userLocationLatLng) mapCoche.flyTo(userLocationLatLng, 16);
+      },
     });
 
-    // --- ACTIVAR RASTREO EN TIEMPO REAL (WATCH) ---
-    if (navigator.geolocation) {
-      // Cancelamos cualquier watch anterior por seguridad
-      if (cocheWatchId) navigator.geolocation.clearWatch(cocheWatchId);
-
-      cocheWatchId = navigator.geolocation.watchPosition(
-        (pos) => {
-          // Esta función se ejecutará cada vez que te muevas
-          _handleCocheLocationSuccess(pos);
-        },
-        (err) => console.log("Esperando señal GPS precisa..."),
-        {
-          enableHighAccuracy: true,
-          maximumAge: 0,
-          timeout: 10000,
-        }
-      );
-    }
+    // ACTIVAR RASTREO CENTRALIZADO
+    // GeoManager se encarga de limpiar cualquier watch anterior automáticamente
+    GeoManager.startWatching(
+      (pos) => {
+        _handleCocheLocationSuccess(pos);
+      },
+      (err) => console.log("Esperando GPS para Mi Coche...")
+    );
   } else {
     mapCoche.invalidateSize();
+    // Reactivar rastreo al volver a la pestaña
+    GeoManager.startWatching(
+      (pos) => {
+        _handleCocheLocationSuccess(pos);
+      },
+      (err) => console.log("Reconectando GPS Coche...")
+    );
   }
   actualizarInterfazCoche();
 };
@@ -2462,65 +2521,39 @@ window.initPuntosMap = function () {
   if (!mapElement) return;
 
   if (!mapPuntos) {
-    // 1. Crear Mapa
-    mapPuntos = createBaseMap("map-puntos", [37.1773, -3.5986], 14);
-
-    // 2. Añadir botón de "Mi Ubicación" (con recentrado forzado)
-    addLocationControl(mapPuntos, () => {
-      mapPuntos.locate({
-        setView: true,
-        maxZoom: 19,
-        enableHighAccuracy: true,
-      });
+    mapPuntos = initGenericMap("map-puntos", {
+      center: [37.1773, -3.5986],
+      zoom: 14,
+      onLocationClick: () => {
+        // Lógica nativa de Leaflet
+        mapPuntos.locate({
+          setView: true,
+          maxZoom: 19,
+          enableHighAccuracy: true,
+        });
+      },
     });
 
-    // ============================================================
-    // 3. RECUPERACIÓN DE DATOS (ESTA ES LA PARTE QUE FALTABA)
-    // ============================================================
-
-    // A) Inicializar los Grupos de Capas (Layers)
+    // Cargar datos POI (Mantiene tu lógica original)
     if (typeof POI_LAYERS_CONFIG !== "undefined") {
       POI_LAYERS_CONFIG.forEach((config) => {
-        // Creamos el grupo y lo añadimos al mapa por defecto
         puntosLayerGroups[config.slug] = L.layerGroup().addTo(mapPuntos);
       });
-    } else {
-      console.error(
-        "❌ Error: POI_LAYERS_CONFIG no está definido. Revisa transporte.js"
-      );
     }
-
-    // B) Crear y distribuir los Marcadores
     if (typeof POI_DATA !== "undefined") {
-      let puntosCargados = 0;
       POI_DATA.forEach((poi) => {
         const marker = createPoiMarker(poi);
-
-        // Verificamos si existe el grupo para ese slug
         if (puntosLayerGroups[poi.type_slug]) {
           puntosLayerGroups[poi.type_slug].addLayer(marker);
-          puntosCargados++;
-        } else {
-          console.warn(
-            `⚠️ Aviso: El punto "${poi.name}" tiene una categoría desconocida: "${poi.type_slug}". No se mostrará.`
-          );
         }
       });
-      console.log(`✅ Mapa cargado con ${puntosCargados} lugares de interés.`);
-    } else {
-      console.error("❌ Error: POI_DATA no está definido.");
     }
-
-    // C) Renderizar los botones de filtro
     renderPuntosFilterButtons();
 
-    // ============================================================
-    // 4. GEOLOCALIZACIÓN EN TIEMPO REAL (NUEVO)
-    // ============================================================
-
+    // Evento de Leaflet
     mapPuntos.on("locationfound", function (e) {
       if (puntosUserMarker) {
-        puntosUserMarker.setLatLng(e.latlng); // Mueve el marcador azul
+        puntosUserMarker.setLatLng(e.latlng);
       } else {
         const icon = createCustomUserIcon("#2563eb", true);
         puntosUserMarker = L.marker(e.latlng, {
@@ -2529,28 +2562,28 @@ window.initPuntosMap = function () {
         })
           .addTo(mapPuntos)
           .bindPopup("📍 Estás aquí");
-
-        // 💡 NUEVA LÍNEA: Centrar solo la PRIMERA vez que se encuentra la ubicación
         mapPuntos.flyTo(e.latlng, 16);
       }
     });
 
-    // Activar el "watch: true" para seguimiento continuo
-    mapPuntos.locate({
-      setView: false, // <-- CAMBIO CLAVE: Ya no centra el mapa automáticamente
-      maxZoom: 19,
-      enableHighAccuracy: true,
-      watch: true,
-    });
-  } else {
-    // Si ya existía el mapa, solo reajustamos tamaño y reactivamos GPS
-    mapPuntos.invalidateSize();
+    // INICIAR Y REGISTRAR EN MANAGER
     mapPuntos.locate({
       setView: false,
       maxZoom: 19,
       enableHighAccuracy: true,
       watch: true,
     });
+    GeoManager.trackMapLocate(mapPuntos);
+  } else {
+    mapPuntos.invalidateSize();
+    // Reactivar y registrar
+    mapPuntos.locate({
+      setView: false,
+      maxZoom: 19,
+      enableHighAccuracy: true,
+      watch: true,
+    });
+    GeoManager.trackMapLocate(mapPuntos);
   }
 };
 
@@ -2834,32 +2867,41 @@ function dibujarRuta(startLat, startLon, endLat, endLon) {
 }
 
 function iniciarVigilanciaLlegada(destLat, destLon) {
-  if (navigationWatchId) navigator.geolocation.clearWatch(navigationWatchId);
-
-  navigationWatchId = navigator.geolocation.watchPosition(
+  // Usamos el Manager para vigilancia continua
+  GeoManager.startWatching(
     (pos) => {
       const currentLat = pos.coords.latitude;
       const currentLon = pos.coords.longitude;
 
-      // Actualizar marcador visual del usuario
       actualizarPosicionUsuarioPuntos(currentLat, currentLon);
 
-      // Calcular distancia al destino (en metros)
       const dist = mapPuntos.distance(
         [currentLat, currentLon],
         [destLat, destLon]
       );
+      console.log(`Distancia: ${dist.toFixed(0)}m`);
 
-      console.log(`Distancia al destino: ${dist.toFixed(0)} metros`);
-
-      // SI ESTAMOS CERCA (ej: menos de 30 metros)
       if (dist < ARRIVAL_THRESHOLD) {
         ejecutarLlegada();
       }
     },
-    (err) => console.warn(err),
-    { enableHighAccuracy: true, maximumAge: 1000 }
+    (err) => console.warn("Error GPS Ruta a pie:", err)
   );
+}
+
+function detenerNavegacion() {
+  // Quitar línea del mapa
+  if (puntosRouteControl) {
+    mapPuntos.removeControl(puntosRouteControl);
+    puntosRouteControl = null;
+  }
+
+  // Detener GPS usando el Manager
+  GeoManager.stop();
+
+  // Ocultar botón cancelar
+  const btnCancel = document.getElementById("btn-cancel-navigation");
+  if (btnCancel) btnCancel.classList.add("hidden");
 }
 
 function ejecutarLlegada() {
@@ -2883,24 +2925,6 @@ function ejecutarLlegada() {
       popup.classList.remove("active");
     }, 300); // Esperar a que acabe la transición de escala
   }, 3000);
-}
-
-function detenerNavegacion() {
-  // Quitar línea del mapa
-  if (puntosRouteControl) {
-    mapPuntos.removeControl(puntosRouteControl);
-    puntosRouteControl = null;
-  }
-
-  // Detener GPS
-  if (navigationWatchId) {
-    navigator.geolocation.clearWatch(navigationWatchId);
-    navigationWatchId = null;
-  }
-
-  // Ocultar botón de cancelar
-  const btnCancel = document.getElementById("btn-cancel-navigation");
-  if (btnCancel) btnCancel.classList.add("hidden");
 }
 
 // ======================================================================
@@ -4248,26 +4272,27 @@ function initServiceWorkerRegistration() {
 // Nota: la función googleTranslateElementInit se define en el Módulo de Google Translate (arriba)
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Carga inicial de datos
+  // 1. Cargas Iniciales
   loadMetroStops();
   renderFavorites("bus");
   renderFavorites("metro");
   renderHomeGrid();
-  // Inicializar el mapa de transporte si la vista de transporte es la inicial
+
+  // Inicializar mapa si es la vista activa
   if (document.getElementById("transporte-view").classList.contains("active")) {
     initTransporteMap();
   }
 
-  // Setup Modal Interactividad (Touch/Mouse)
+  // 2. Setup Modal ZBE (Optimizado)
   const modalContainer = document.getElementById("zbe-modal");
 
   if (modalContainer) {
-    // Prevenir scroll de la página al tocar el modal
+    // Prevenir scroll global
     modalContainer.addEventListener("touchmove", (e) => e.preventDefault(), {
       passive: false,
     });
 
-    // Zoom con rueda ratón
+    // Zoom con rueda
     modalContainer.addEventListener(
       "wheel",
       (e) => {
@@ -4279,31 +4304,11 @@ document.addEventListener("DOMContentLoaded", () => {
       { passive: false }
     );
 
-    // Manejadores de eventos unificados
-    const startDrag = (e) => {
-      if (e.touches && e.touches.length === 2) {
-        // Pinch to Zoom init
-        modalState.isDragging = false;
-        modalState.initialDist = Math.hypot(
-          e.touches[0].pageX - e.touches[1].pageX,
-          e.touches[0].pageY - e.touches[1].pageY
-        );
-        modalState.initialScale = modalState.scale;
-      } else if (!e.touches || e.touches.length === 1) {
-        // Pan init
-        modalState.isDragging = true;
-        modalState.startX = e.touches ? e.touches[0].clientX : e.clientX;
-        modalState.startY = e.touches ? e.touches[0].clientY : e.clientY;
-        modalState.lastX = modalState.pX;
-        modalState.lastY = modalState.pY;
+    // --- LÓGICA DE ARRASTRE OPTIMIZADA ---
 
-        const img = document.getElementById("zbe-modal-img");
-        if (img) img.style.cursor = "grabbing";
-      }
-    };
-
+    // Función que se ejecuta al MOVER (Mouse/Touch)
     const doDrag = (e) => {
-      // Pinch to Zoom Action
+      // Lógica Pinch to Zoom
       if (e.touches && e.touches.length === 2 && modalState.initialDist > 0) {
         const currentDist = Math.hypot(
           e.touches[0].pageX - e.touches[1].pageX,
@@ -4318,42 +4323,84 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Pan Action
+      // Lógica Pan (Arrastre)
       if (!modalState.isDragging) return;
 
       const x = e.touches ? e.touches[0].clientX : e.clientX;
       const y = e.touches ? e.touches[0].clientY : e.clientY;
-
       const deltaX = x - modalState.startX;
       const deltaY = y - modalState.startY;
 
       modalState.pX = modalState.lastX + deltaX;
       modalState.pY = modalState.lastY + deltaY;
-
       requestUpdate();
     };
 
+    // Función que se ejecuta al SOLTAR
     const endDrag = () => {
       modalState.isDragging = false;
       modalState.initialDist = 0;
       const img = document.getElementById("zbe-modal-img");
       if (img) img.style.cursor = "grab";
+
+      // LIMPIEZA: Quitamos los listeners de la ventana para dejar de gastar recursos
+      window.removeEventListener("mousemove", doDrag);
+      window.removeEventListener("mouseup", endDrag);
+      window.removeEventListener("touchmove", doDrag);
+      window.removeEventListener("touchend", endDrag);
     };
 
-    // Listeners Mouse
-    modalContainer.addEventListener("mousedown", startDrag);
-    window.addEventListener("mousemove", doDrag);
-    window.addEventListener("mouseup", endDrag);
+    // Función que se ejecuta al PRESIONAR (Inicio)
+    const startDrag = (e) => {
+      // Si es touch
+      if (e.touches) {
+        // Pinch start
+        if (e.touches.length === 2) {
+          modalState.isDragging = false;
+          modalState.initialDist = Math.hypot(
+            e.touches[0].pageX - e.touches[1].pageX,
+            e.touches[0].pageY - e.touches[1].pageY
+          );
+          modalState.initialScale = modalState.scale;
+        }
+        // Pan start
+        else if (e.touches.length === 1) {
+          modalState.isDragging = true;
+          modalState.startX = e.touches[0].clientX;
+          modalState.startY = e.touches[0].clientY;
+          modalState.lastX = modalState.pX;
+          modalState.lastY = modalState.pY;
+        }
 
-    // Listeners Touch
+        // ACTIVACIÓN: Añadimos listeners globales temporalmente
+        window.addEventListener("touchmove", doDrag, { passive: false });
+        window.addEventListener("touchend", endDrag);
+      }
+      // Si es Mouse
+      else {
+        modalState.isDragging = true;
+        modalState.startX = e.clientX;
+        modalState.startY = e.clientY;
+        modalState.lastX = modalState.pX;
+        modalState.lastY = modalState.pY;
+
+        const img = document.getElementById("zbe-modal-img");
+        if (img) img.style.cursor = "grabbing";
+
+        // ACTIVACIÓN: Añadimos listeners globales temporalmente
+        window.addEventListener("mousemove", doDrag);
+        window.addEventListener("mouseup", endDrag);
+      }
+    };
+
+    // Solo escuchamos el inicio en el contenedor
+    modalContainer.addEventListener("mousedown", startDrag);
     modalContainer.addEventListener("touchstart", startDrag, {
       passive: false,
     });
-    window.addEventListener("touchmove", doDrag, { passive: false });
-    window.addEventListener("touchend", endDrag);
   }
 
-  // Inicializadores de comportamientos globales
+  // 3. Inits Globales
   initThemeToggle();
   initServiceWorkerRegistration();
 });
@@ -4426,7 +4473,6 @@ let gasUserMarker = null;
 
 // Variables de Navegación
 let gasRouteControl = null;
-let gasWatchId = null;
 
 // Estado de filtros especiales
 let specialFilterMode = "none";
@@ -4469,43 +4515,35 @@ const DEFAULT_GAS_KEY = "NINGUNO";
 
 window.initGasolinerasMap = function () {
   if (!mapGasolineras) {
-    mapGasolineras = createBaseMap("map-gasolineras", [37.1773, -3.5986], 13);
-    gasolinerasLayerGroup = L.layerGroup().addTo(mapGasolineras);
-
-    // Control manual de ubicación
-    addLocationControl(mapGasolineras, () => {
-      actualizarUbicacionGasolineras();
+    // --- NUEVO: USANDO initGenericMap ---
+    mapGasolineras = initGenericMap("map-gasolineras", {
+      center: [37.1773, -3.5986],
+      zoom: 13,
+      onLocationClick: () => {
+        actualizarUbicacionGasolineras();
+      },
     });
 
-    // Cargar datos
+    gasolinerasLayerGroup = L.layerGroup().addTo(mapGasolineras);
     fetchGasolineras();
 
-    // --- CAMBIO AQUÍ: AUTO-ZOOM AL INICIAR ---
+    // Auto-zoom al iniciar (MANTENER)
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           userGasLat = pos.coords.latitude;
           userGasLon = pos.coords.longitude;
-
-          // 1. Pintar el punto azul
           updateUserGasMarker();
-
-          // 2. Hacer zoom suave hacia el usuario (Nivel 15)
           if (mapGasolineras) {
             mapGasolineras.flyTo([userGasLat, userGasLon], 15, {
-              duration: 1.5, // Animación suave de 1.5 segundos
+              duration: 1.5,
             });
           }
         },
-        () => {
-          console.log(
-            "Ubicación no disponible o denegada, manteniendo vista por defecto."
-          );
-        }
+        () => console.log("Ubicación no disponible para gasolineras.")
       );
     }
   } else {
-    // Si ya existía el mapa (vuelves a la pestaña), solo reajustamos el tamaño
     setTimeout(() => mapGasolineras.invalidateSize(), 200);
   }
 };
@@ -4597,45 +4635,32 @@ function dibujarRutaCoche(startLat, startLon, endLat, endLon) {
 }
 
 function monitorizarLlegadaGasolinera(destLat, destLon) {
-  if (gasWatchId) navigator.geolocation.clearWatch(gasWatchId);
-
-  gasWatchId = navigator.geolocation.watchPosition(
+  // Usamos el Manager
+  GeoManager.startWatching(
     (pos) => {
       userGasLat = pos.coords.latitude;
       userGasLon = pos.coords.longitude;
 
-      // 1. Actualizar el icono del usuario
       updateUserGasMarker();
-
-      // 2. NUEVO: Mover la cámara del mapa siguiendo al usuario
       mapGasolineras.panTo([userGasLat, userGasLon]);
 
-      // 3. NUEVO: Actualizar la línea de ruta desde la nueva posición
-      // (Esto hace que la línea azul se redibuje desde donde estás ahora)
       if (gasRouteControl) {
         gasRouteControl.setWaypoints([
-          L.latLng(userGasLat, userGasLon), // Inicio: Tu posición actual
-          L.latLng(destLat, destLon), // Fin: Gasolinera
+          L.latLng(userGasLat, userGasLon),
+          L.latLng(destLat, destLon),
         ]);
       }
 
-      // 4. Comprobar si has llegado
       const dist = mapGasolineras.distance(
         [userGasLat, userGasLon],
         [destLat, destLon]
       );
-
       if (dist < 40) {
-        // Si estás a menos de 40 metros
         ejecutarLlegada();
         detenerRutaGasolinera();
       }
     },
-    (err) => console.warn(err),
-    {
-      enableHighAccuracy: true,
-      maximumAge: 1000,
-    }
+    (err) => console.warn("Error GPS Gasolinera:", err)
   );
 }
 
@@ -4644,10 +4669,10 @@ window.detenerRutaGasolinera = function () {
     mapGasolineras.removeControl(gasRouteControl);
     gasRouteControl = null;
   }
-  if (gasWatchId) {
-    navigator.geolocation.clearWatch(gasWatchId);
-    gasWatchId = null;
-  }
+
+  // Detener GPS usando el Manager
+  GeoManager.stop();
+
   const btnCancel = document.getElementById("btn-cancel-gas-route");
   if (btnCancel) btnCancel.classList.add("hidden");
 };
@@ -5033,29 +5058,28 @@ const PARKING_LOCATIONS = [
 // Inicialización del Mapa
 window.initParkingsMap = function () {
   if (!mapParkings) {
-    mapParkings = createBaseMap("map-parkings", [37.175, -3.6], 14);
-    parkingLayerGroup = L.layerGroup().addTo(mapParkings);
-
-    // Botón mi ubicación
-    addLocationControl(mapParkings, () => {
-      mapParkings.locate({ setView: true, maxZoom: 15 });
+    // --- NUEVO: USANDO initGenericMap ---
+    mapParkings = initGenericMap("map-parkings", {
+      center: [37.175, -3.6],
+      zoom: 14,
+      onLocationClick: () => {
+        mapParkings.locate({ setView: true, maxZoom: 15 });
+      },
     });
 
-    fetchParkingData(); // Cargar datos al iniciar
+    parkingLayerGroup = L.layerGroup().addTo(mapParkings);
+    fetchParkingData();
 
-    // 💡 NUEVO: INICIAR ACTUALIZACIÓN AUTOMÁTICA CADA 60 SEGUNDOS
+    // Intervalo de actualización (MANTENER)
     if (parkingUpdateInterval === null) {
-      parkingUpdateInterval = setInterval(fetchParkingData, 60000); // 60000ms = 1 minuto
+      parkingUpdateInterval = setInterval(fetchParkingData, 60000);
       console.log("Actualización de Parkings iniciada (60s).");
     }
   } else {
-    // Si ya existía el mapa (vuelves a la pestaña), solo reajustamos el tamaño
     setTimeout(() => mapParkings.invalidateSize(), 200);
-
-    // 💡 NUEVO: Si volvemos a la vista, aseguramos que el intervalo esté activo
+    // Reactivar intervalo si se detuvo
     if (parkingUpdateInterval === null) {
       parkingUpdateInterval = setInterval(fetchParkingData, 60000);
-      console.log("Actualización de Parkings reactivada (60s).");
     }
   }
 };

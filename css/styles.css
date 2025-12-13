@@ -645,33 +645,6 @@ body.dark-mode .popup-footer {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
 }
 
-/* Botones Deprecados (Mantenidos por seguridad) */
-.leaflet-popup-content .btn-ver-tiempos {
-  font-weight: bold;
-  padding: 6px 12px;
-  border-radius: 9999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  margin-top: 8px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-}
-.leaflet-popup-content .btn-bus {
-  background-color: #ef4444;
-  color: white;
-}
-.leaflet-popup-content .btn-metro {
-  background-color: #10b981;
-  color: white;
-}
-.leaflet-popup-content .btn-bus:hover {
-  background-color: #dc2626;
-}
-.leaflet-popup-content .btn-metro:hover {
-  background-color: #059669;
-}
-
 /* ==========================================================================
    8. VISTAS ESPECÍFICAS
    ========================================================================== */
@@ -964,17 +937,6 @@ body.dark-mode #zbe-modal {
 /* La imagen del mapa ZBE no debe invertirse nunca */
 body.dark-mode #zbe-modal img {
   filter: none !important;
-}
-
-/* --- Modal de Confirmación --- */
-#custom-confirm-modal {
-  display: none;
-}
-/* Se activa vía JS quitando la clase 'hidden' */
-#custom-confirm-modal:not(.hidden) {
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
 }
 
 /* --- Modal Readme (Markdown Styling) --- */
