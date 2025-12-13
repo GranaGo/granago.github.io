@@ -2595,6 +2595,12 @@ window.initPuntosMap = function () {
     });
     GeoManager.trackMapLocate(mapPuntos);
   }
+
+  const btnCancel = document.getElementById("btn-cancel-navigation");
+    if (btnCancel) {
+        // Eliminamos el onclick del HTML para evitar conflictos y usamos JS directo
+        btnCancel.onclick = window.detenerNavegacion;
+    }
 };
 
 // 12.3. LÓGICA DE FILTRADO (BÚSQUEDA Y BOTONES)
@@ -2925,21 +2931,30 @@ function ejecutarLlegada() {
   }, 3000);
 }
 
-window.detenerNavegacion = function () {
-  // Quitar línea del mapa
+window.detenerNavegacion = function() {
+  console.log("🛑 Cancelando ruta..."); // Para depuración
+
+  // 1. Quitar línea del mapa (Visual)
   if (puntosRouteControl) {
-    mapPuntos.removeControl(puntosRouteControl);
+    if (mapPuntos) mapPuntos.removeControl(puntosRouteControl);
     puntosRouteControl = null;
   }
 
-  // Detener GPS usando el Manager
-  GeoManager.stop();
+  // 2. Detener GPS (Batería)
+  if (typeof GeoManager !== 'undefined') {
+      GeoManager.stop();
+  }
 
-  // Ocultar botón de cancelar
+  // 3. Ocultar el botón rojo
   const btnCancel = document.getElementById("btn-cancel-navigation");
-  if (btnCancel) btnCancel.classList.add("hidden");
+  if (btnCancel) {
+      btnCancel.classList.add("hidden");
+  }
+  
+  // 4. FEEDBACK AL USUARIO (¡Lo nuevo!)
+  showAppAlert("Ruta cancelada correctamente", "success");
 
-  // Opcional: Centrar mapa de nuevo para ver contexto
+  // 5. Refrescar mapa por si acaso
   if (mapPuntos) mapPuntos.invalidateSize();
 };
 
