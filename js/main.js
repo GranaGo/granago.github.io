@@ -3556,6 +3556,22 @@ window.showInfoFares = function () {
 window.showInfoSchedule = function () {
   const area = document.getElementById("info-result-area");
 
+  // --- FUNCIÓN AUXILIAR PARA CORREGIR LA HORA (25:xx -> 01:xx) ---
+  const normalizeTime = (t) => {
+    if (!t) return "--:--";
+    // Asumimos formato "HH:MM" o "HH:MM:SS"
+    const parts = t.split(":");
+    let hora = parseInt(parts[0], 10);
+    const minutos = parts[1]; // Mantenemos los minutos tal cual
+
+    // Operación clave: Módulo 24
+    // 24 % 24 = 0, 25 % 24 = 1, 26 % 24 = 2, etc.
+    hora = hora % 24;
+
+    // Reconstruimos asegurando 2 dígitos en la hora (ej: 1 -> 01)
+    return `${hora.toString().padStart(2, "0")}:${minutos}`;
+  };
+
   // 1. BUSCAR CANDIDATOS EN LA BASE DE DATOS
   // Buscamos todas las líneas que coincidan con el nombre (ej: "111")
   let candidates = ALL_SCHEDULES.filter((s) => s.name === currentInfoLine.name);
@@ -3620,7 +3636,6 @@ window.showInfoSchedule = function () {
   }
 
   // 4. CONFIGURACIÓN DE PESTAÑAS (Mapeo de tus claves en transporte.js)
-  // Se adapta a tus claves: "semana", "viernes", "sabado" (singular), "festivo"
   const dias = [
     { label: "Lunes a Jueves", key: "lunes_jueves", fallback: "semana" },
     { label: "Viernes", key: "viernes", fallback: "semana" },
@@ -3653,35 +3668,34 @@ window.showInfoSchedule = function () {
       // --- FORMATO LISTA COMPLETA (Para Interurbanos) ---
       if (h.ida && h.ida.length)
         html += `<p class="text-xs font-bold text-blue-600 mb-1">IDA (Salidas):</p><p class="text-sm mb-3 leading-relaxed opacity-80 font-mono text-gray-600">${h.ida
-          .map((t) => t.substring(0, 5))
+          .map((t) => normalizeTime(t)) // USO DE LA FUNCIÓN CORRECTORA
           .join(", ")}</p>`;
       if (h.vuelta && h.vuelta.length)
         html += `<p class="text-xs font-bold text-red-600 mb-1">VUELTA (Salidas):</p><p class="text-sm leading-relaxed opacity-80 font-mono text-gray-600">${h.vuelta
-          .map((t) => t.substring(0, 5))
+          .map((t) => normalizeTime(t)) // USO DE LA FUNCIÓN CORRECTORA
           .join(", ")}</p>`;
     } else {
       // --- FORMATO PRIMERO / ÚLTIMO (Para Urbanos y Búhos) ---
-      // Si es un Búho y tiene muchos horarios, podrías querer verlos todos.
-      // Por defecto los urbanos muestran Primero/Último.
 
-      const idaFirst = h.ida[0] ? h.ida[0].substring(0, 5) : "--:--";
+      // Aplicamos normalizeTime a las variables de primero y último
+      const idaFirst = h.ida[0] ? normalizeTime(h.ida[0]) : "--:--";
       const idaLast = h.ida.length
-        ? h.ida[h.ida.length - 1].substring(0, 5)
+        ? normalizeTime(h.ida[h.ida.length - 1])
         : "--:--";
-      const vueltaFirst = h.vuelta[0] ? h.vuelta[0].substring(0, 5) : "--:--";
+      const vueltaFirst = h.vuelta[0] ? normalizeTime(h.vuelta[0]) : "--:--";
       const vueltaLast = h.vuelta.length
-        ? h.vuelta[h.vuelta.length - 1].substring(0, 5)
+        ? normalizeTime(h.vuelta[h.vuelta.length - 1])
         : "--:--";
 
       // Si la lista es corta (ej: Búhos a veces tienen pocas salidas), mostramos lista. Si es larga, resumen.
       if (h.ida.length > 0 && h.ida.length <= 15) {
         // Muestra lista completa si son pocos horarios (útil para Búhos)
         html += `<div class="mb-3"><p class="text-xs font-bold text-blue-600 mb-1">IDA:</p><p class="text-sm opacity-80 font-mono">${h.ida
-          .map((t) => t.substring(0, 5))
+          .map((t) => normalizeTime(t)) // USO DE LA FUNCIÓN CORRECTORA
           .join(", ")}</p></div>`;
         if (h.vuelta.length)
           html += `<div><p class="text-xs font-bold text-red-600 mb-1">VUELTA:</p><p class="text-sm opacity-80 font-mono">${h.vuelta
-            .map((t) => t.substring(0, 5))
+            .map((t) => normalizeTime(t)) // USO DE LA FUNCIÓN CORRECTORA
             .join(", ")}</p></div>`;
       } else {
         // Formato Resumen
