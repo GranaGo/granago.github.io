@@ -28,7 +28,7 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <!-- Styles: Custom styles (order matters, tailwind then custom) -->
-    <link rel="stylesheet" href="css/styles.css?v=v5.3" />
+    <link rel="stylesheet" href="css/styles.css?v=v5.4" />
     <link rel="preload" as="image" href="imagenes/Fondo.webp" />
 
     <link rel="icon" type="image/x-icon" href="imagenes/Logo.ico" />
@@ -1314,10 +1314,92 @@
               <tbody id="parking-table-body"></tbody>
             </table>
             <p class="text-[10px] text-gray-400 mt-4 text-center">
-              Fuente: Movilidad Granada. Datos actualizados en tiempo real.
+              Datos actualizados en tiempo real.
             </p>
           </div>
         </div>
+      </div>
+      <div id="cultura-view" class="view-section">
+        <div class="flex items-center mb-6">
+          <button
+            onclick="navigateTo('home')"
+            class="mr-4 p-2 bg-white text-blue-600 rounded-full hover:bg-blue-50 transition shadow-sm border border-gray-200"
+          >
+            <svg
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+          </button>
+          <h2 class="text-2xl font-bold">Agenda Cultural Granada</h2>
+        </div>
+
+        <div
+          class="bg-white p-4 rounded-xl shadow-lg mb-6 flex flex-col md:flex-row gap-4 border border-gray-100"
+        >
+          <div class="flex-1 relative">
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+            >
+              <svg
+                class="h-5 w-5 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+            <input
+              type="text"
+              id="cultura-search-input"
+              onkeyup="filtrarEventosCultura()"
+              class="block w-full pl-10 p-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition text-sm"
+              placeholder="Buscar concierto, teatro..."
+            />
+          </div>
+          <div class="md:w-1/3">
+            <select
+              id="cultura-cat-select"
+              onchange="filtrarEventosCultura()"
+              class="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm notranslate"
+            >
+              <option value="TODOS">Todas las categorías</option>
+            </select>
+          </div>
+          <button
+            onclick="fetchCulturaData()"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-bold transition shadow-sm flex items-center justify-center gap-2"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              ></path>
+            </svg>
+          </button>
+        </div>
+        <div id="cultura-results-container" class="space-y-4 pb-10"></div>
       </div>
     </div>
     <div
@@ -1612,7 +1694,7 @@
       </div>
     </footer>
 
-    <script src="js/main.js?v=v5.3" type="module"></script>
+    <script src="js/main.js?v=v5.4" type="module"></script>
 
     <!-- Scripts: Theme, Service Worker and Google Translate logic moved to js/main.js for clarity. -->
     <!-- Google translate loader remains but its callback is defined in js/main.js -->
