@@ -4664,7 +4664,7 @@ if ("serviceWorker" in navigator) {
             ) {
               setTimeout(() => {
                 showUpdateNotification();
-              }, 7500);
+              }, 3750);
             }
           });
         });
@@ -5004,11 +5004,15 @@ window.flyToStopFromList = function (lat, lon) {
 
       if (clusterGroup) {
         clusterGroup.zoomToShowLayer(targetStop.marker, function () {
-          targetStop.marker.openPopup();
+          setTimeout(() => {
+            targetStop.marker.openPopup();
+          }, 200);
         });
       } else {
         mapInstance.flyTo([lat, lon], 18);
-        targetStop.marker.openPopup();
+        mapInstance.once("moveend", () => {
+          targetStop.marker.openPopup();
+        });
       }
     }
   }
