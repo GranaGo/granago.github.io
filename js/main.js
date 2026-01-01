@@ -16,6 +16,7 @@ let mapLayers = {
 };
 let isMapDataLoaded = false;
 let allSearchableStops = [];
+let isNearbyPanelOpen = false;
 
 let lineMapInstance = null;
 let currentLineTileLayer = null;
@@ -1297,7 +1298,13 @@ function processStops(
 
     marker.addTo(layerGroup);
 
+    let idParaGuardar = null;
+    if (layerKey === "urbano") idParaGuardar = stop.stop_code;
+    else if (layerKey === "metro") idParaGuardar = stop.stop_id;
+    else if (layerKey === "interurbano") idParaGuardar = stop.stop_id;
+
     allSearchableStops.push({
+      id: idParaGuardar,
       name: stop.n,
       lat: stop.lat,
       lon: stop.lon,
@@ -4670,3 +4677,183 @@ window.hardReload = async function () {
   }
   window.location.reload(true);
 };
+
+window.toggleNearbyPanel = function () {
+  const overlay = document.getElementById("nearby-overlay");
+  const content = document.getElementById("nearby-list-content");
+
+  if (isNearbyPanelOpen) {
+    overlay.classList.remove("visible");
+    isNearbyPanelOpen = false;
+  } else {
+    content.innerHTML =
+      '<div class="spinner" style="margin:30px auto;"></div><p style="text-align:center; font-size:0.8rem; color:var(--text-secondary);">Localizando paradas...</p>';
+    overlay.classList.add("visible");
+    isNearbyPanelOpen = true;
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) =>
+          calculateNearbyStops(pos.coords.latitude, pos.coords.longitude),
+        (err) => {
+          content.innerHTML =
+            '<div class="empty-state"><i class="ri-gps-line" style="font-size:2rem; margin-bottom:10px; display:block;"></i><p>Activa el GPS para ver paradas cercanas.</p></div>';
+        },
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    } else {
+      content.innerHTML =
+        '<div class="empty-state">Tu navegador no soporta geolocalización.</div>';
+    }
+  }
+};
+
+function calculateNearbyStops(lat, lng) {
+  const content = document.getElementById("nearby-list-content");
+
+  if (!allSearchableStops || allSearchableStops.length === 0) {
+    content.innerHTML =
+      '<p style="text-align:center;">No hay datos de paradas cargados aún.</p>';
+    return;
+  }
+
+  const withDistance = allSearchableStops.map((stop) => {
+    const dist = getDistanceFromLatLonInKm(lat, lng, stop.lat, stop.lon);
+    return { ...stop, distance: dist };
+  });
+
+  const urbanos = withDistance
+    .filter((s) => s.layerKey === "urbano")
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, 5);
+
+  const metros = withDistance
+    .filter((s) => s.layerKey === "metro")
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, 2);
+
+  const interurbanos = withDistance
+    .filter((s) => s.layerKey === "interurbano")
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, 2);
+
+  if (
+    urbanos.length === 0 &&
+    metros.length === 0 &&
+    interurbanos.length === 0
+  ) {
+    content.innerHTML = '<div class="empty-state">No hay paradas cerca.</div>';
+    return;
+  }
+
+  let html = "";
+
+  if (urbanos.length > 0) {
+    html += `<div style="font-size:0.75rem; font-weight:800; color:var(--text-secondary); margin:10px 0 5px 0; text-transform:uppercase;">Autobuses Urbanos</div>`;
+    urbanos.forEach((s) => (html += createNearbyItemHTML(s)));
+  }
+
+  if (metros.length > 0) {
+    html += `<div style="font-size:0.75rem; font-weight:800; color:var(--text-secondary); margin:15px 0 5px 0; text-transform:uppercase;">Metro</div>`;
+    metros.forEach((s) => (html += createNearbyItemHTML(s)));
+  }
+
+  if (interurbanos.length > 0) {
+    html += `<div style="font-size:0.75rem; font-weight:800; color:var(--text-secondary); margin:15px 0 5px 0; text-transform:uppercase;">Interurbanos</div>`;
+    interurbanos.forEach((s) => (html += createNearbyItemHTML(s)));
+  }
+
+  content.innerHTML = html;
+}
+
+function createNearbyItemHTML(stop) {
+  const isInter = stop.layerKey === "interurbano";
+  const distDisplay =
+    stop.distance < 1
+      ? Math.round(stop.distance * 1000) + " m"
+      : stop.distance.toFixed(1) + " km";
+
+  let color = "#64748b";
+  if (stop.layerKey === "urbano") color = "#D9281C";
+  if (stop.layerKey === "metro") color = "#009a44";
+  if (stop.layerKey === "interurbano") color = "#2757f5";
+
+  let actionsHtml = "";
+  if (!isInter) {
+    const safeName = stop.name.replace(/'/g, "\\'");
+    const safeLines = (stop.lines || "").replace(/'/g, "\\'");
+
+    const favs = getFavorites();
+    const isFav = favs.some((f) => f.id == stop.id);
+    const starIcon = isFav ? "ri-star-fill" : "ri-star-line";
+    const starClass = isFav ? "active" : "";
+
+    actionsHtml = `
+            <button class="icon-btn-small" onclick="openRealTimeModal('${
+              stop.id
+            }', '${stop.layerKey}', '${safeName}')">
+                <i class="icon ri-search-line" style="font-size:1.2rem; color:var(--text-primary);"></i>
+            </button>
+            <button class="icon-btn-small ${starClass}" onclick="toggleFavorite('${
+      stop.id
+    }', '${stop.layerKey}', '${safeName}', '${safeLines}', this)">
+                <i class="icon ${starIcon}" style="font-size:1.2rem; color:${
+      isFav ? "#fbbf24" : "var(--text-secondary)"
+    };"></i>
+            </button>
+        `;
+  }
+
+  const mapBtn = `
+        <button class="icon-btn-small" onclick="flyToStopFromList(${stop.lat}, ${stop.lon})">
+            <i class="icon ri-map-pin-line" style="font-size:1.2rem;"></i>
+        </button>
+    `;
+
+  return `
+        <div class="nearby-item">
+            <div class="nearby-icon-box" style="background:${color}">
+                <i class="icon ${stop.typeIcon}"></i>
+            </div>
+            <div class="nearby-info">
+                <span class="nearby-name">${stop.name}</span>
+                <div class="nearby-meta">
+                    <span class="distance-badge">${distDisplay}</span>
+                    <span>${
+                      isInter ? stop.lines : "Líneas: " + stop.lines
+                    }</span>
+                </div>
+            </div>
+            <div class="nearby-actions">
+                ${actionsHtml}
+                ${mapBtn}
+            </div>
+        </div>
+    `;
+}
+
+window.flyToStopFromList = function (lat, lon) {
+  if (mapInstance) {
+    mapInstance.flyTo([lat, lon], 18);
+    toggleNearbyPanel();
+  }
+};
+
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+  var R = 6371;
+  var dLat = deg2rad(lat2 - lat1);
+  var dLon = deg2rad(lon2 - lon1);
+  var a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) *
+      Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  var d = R * c;
+  return d;
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI / 180);
+}

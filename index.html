@@ -590,6 +590,35 @@
             <div class="spinner"></div>
             <p>Cargando...</p>
           </div>
+          <button
+            id="btn-nearby-trigger"
+            onclick="toggleNearbyPanel()"
+            class="btn-nearby-float"
+          >
+            <i class="icon ri-map-pin-user-fill"></i> Paradas Cercanas
+          </button>
+
+          <div
+            id="nearby-overlay"
+            class="nearby-overlay"
+            onclick="toggleNearbyPanel()"
+          >
+            <div
+              class="nearby-card gpu-accelerated"
+              onclick="event.stopPropagation()"
+            >
+              <div class="modal-header">
+                <h3>Paradas más próximas</h3>
+                <button
+                  onclick="toggleNearbyPanel()"
+                  class="icon-btn close-modal-btn"
+                >
+                  <i class="icon ri-close-line"></i>
+                </button>
+              </div>
+              <div id="nearby-list-content" class="modal-body"></div>
+            </div>
+          </div>
           <div id="map-paradas"></div>
         </div>
       </div>
