@@ -976,17 +976,28 @@ async function initMapParadas() {
         enableHighAccuracy: true,
       });
 
-      mapInstance.on("locationfound", function (e) {
-        if (!userMarker) {
-          const gpsIcon = L.divIcon({
-            className: "gps-marker-container",
-            html: `<div class="gps-dot-animated"></div>`,
-            iconSize: [24, 24],
-            iconAnchor: [12, 12],
-          });
-          userMarker = L.marker(e.latlng, { icon: gpsIcon }).addTo(mapInstance);
-        }
-      });
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const latlng = [position.coords.latitude, position.coords.longitude];
+          mapInstance.flyTo(latlng, 16);
+
+          if (!userMarker) {
+            const gpsIcon = L.divIcon({
+              className: "gps-marker-container",
+              html: `<div class="gps-dot-animated"></div>`,
+              iconSize: [24, 24],
+              iconAnchor: [12, 12],
+            });
+            userMarker = L.marker(latlng, { icon: gpsIcon }).addTo(mapInstance);
+          } else {
+            userMarker.setLatLng(latlng);
+          }
+        },
+        (e) => {
+          console.log("Auto-gps no disponible o denegado");
+        },
+        { enableHighAccuracy: true, timeout: 3000 }
+      );
 
       mapInstance.on("popupopen", (e) => {
         const popupNode = e.popup.getElement();
@@ -1006,7 +1017,6 @@ async function initMapParadas() {
       });
 
       checkMapTheme();
-
       const createTransportCluster = (customClass) => {
         return L.markerClusterGroup({
           showCoverageOnHover: false,
@@ -2318,6 +2328,11 @@ async function initLugaresMap() {
       preferCanvas: true,
       maxZoom: 19,
     }).setView([37.1773, -3.5986], 14);
+    placesMapInstance.locate({
+      setView: true,
+      maxZoom: 16,
+      enableHighAccuracy: true,
+    });
 
     checkMapThemePlaces();
 
@@ -2339,25 +2354,23 @@ async function initLugaresMap() {
     });
 
     placesMapInstance.addLayer(placesClusterGroup);
-    placesMapInstance.locate({
-      setView: true,
-      maxZoom: 16,
-      enableHighAccuracy: true,
-    });
 
-    placesMapInstance.on("locationfound", function (e) {
-      const gpsIcon = L.divIcon({
-        className: "gps-marker-container",
-        html: `<div class="gps-dot-animated"></div>`,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
-      });
-      L.marker(e.latlng, { icon: gpsIcon }).addTo(placesMapInstance);
-    });
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const latlng = [pos.coords.latitude, pos.coords.longitude];
+        placesMapInstance.flyTo(latlng, 16);
 
-    if (placesDataLoaded && allSearchablePlaces.length > 0) {
-      placesDataLoaded = false;
-    }
+        const gpsIcon = L.divIcon({
+          className: "gps-marker-container",
+          html: `<div class="gps-dot-animated"></div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
+        });
+        L.marker(latlng, { icon: gpsIcon }).addTo(placesMapInstance);
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 3000 }
+    );
   }
 
   if (!placesDataLoaded) {
@@ -2974,6 +2987,11 @@ function initRepostarMap() {
       preferCanvas: true,
       maxZoom: 19,
     }).setView([GRANADA_COORDS.lat, GRANADA_COORDS.lon], 13);
+    repostarMap.locate({
+      setView: true,
+      maxZoom: 14,
+      enableHighAccuracy: true,
+    });
 
     checkMapTheme();
 
@@ -2988,25 +3006,27 @@ function initRepostarMap() {
       },
     }).addTo(repostarMap);
 
-    repostarMap.locate({
-      setView: true,
-      maxZoom: 14,
-      enableHighAccuracy: true,
-    });
-    repostarMap.on("locationfound", (e) => {
-      if (!repostarUserMarker) {
-        const gpsIcon = L.divIcon({
-          className: "gps-marker-container",
-          html: `<div class="gps-dot-animated"></div>`,
-          iconSize: [24, 24],
-        });
-        repostarUserMarker = L.marker(e.latlng, { icon: gpsIcon }).addTo(
-          repostarMap
-        );
-      } else {
-        repostarUserMarker.setLatLng(e.latlng);
-      }
-    });
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const latlng = [pos.coords.latitude, pos.coords.longitude];
+        repostarMap.flyTo(latlng, 15);
+
+        if (!repostarUserMarker) {
+          const gpsIcon = L.divIcon({
+            className: "gps-marker-container",
+            html: `<div class="gps-dot-animated"></div>`,
+            iconSize: [24, 24],
+          });
+          repostarUserMarker = L.marker(latlng, { icon: gpsIcon }).addTo(
+            repostarMap
+          );
+        } else {
+          repostarUserMarker.setLatLng(latlng);
+        }
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 3000 }
+    );
   } else {
     repostarMap.invalidateSize();
   }
@@ -3426,7 +3446,11 @@ async function initCamarasMap() {
       preferCanvas: true,
       maxZoom: 19,
     }).setView([GRANADA_COORDS.lat, GRANADA_COORDS.lon], 13);
-
+    camarasMapInstance.locate({
+      setView: true,
+      maxZoom: 14,
+      enableHighAccuracy: true,
+    });
     checkMapTheme();
 
     camarasClusterGroup = L.markerClusterGroup({
@@ -3442,21 +3466,22 @@ async function initCamarasMap() {
     });
 
     camarasMapInstance.addLayer(camarasClusterGroup);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const latlng = [pos.coords.latitude, pos.coords.longitude];
+        camarasMapInstance.flyTo(latlng, 15);
 
-    camarasMapInstance.locate({
-      setView: true,
-      maxZoom: 14,
-      enableHighAccuracy: true,
-    });
-    camarasMapInstance.on("locationfound", (e) => {
-      L.marker(e.latlng, {
-        icon: L.divIcon({
-          className: "gps-marker-container",
-          html: `<div class="gps-dot-animated"></div>`,
-          iconSize: [24, 24],
-        }),
-      }).addTo(camarasMapInstance);
-    });
+        L.marker(latlng, {
+          icon: L.divIcon({
+            className: "gps-marker-container",
+            html: `<div class="gps-dot-animated"></div>`,
+            iconSize: [24, 24],
+          }),
+        }).addTo(camarasMapInstance);
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 3000 }
+    );
   } else {
     camarasMapInstance.invalidateSize();
   }
