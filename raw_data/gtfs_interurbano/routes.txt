@@ -142,7 +142,9 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 2_20,CMTBC,"M-061","Cádiz-El Puerto De Santa María-Rota (Por Río San Pedro  Campus De Puerto Real Y Costa Oeste)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=20,00cccc,FFFFFF
 2_21,CMTBC,"M-062","Cádiz-El Puerto De Santa María-Rota",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=21,9999cc,FFFFFF
 2_22,CMTBC,"B-065","Cádiz-Rota",4,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=22,33ff00,FFFFFF
+2_23,CMTBC,"M-130","San Fernando-Campus Universitario",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=23,cc0000,FFFFFF
 2_26,CMTBC,"M-230","Chiclana De La Frontera-Hospital De Puerto Real (Por Marquesado)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=26,ff9999,FFFFFF
+2_27,CMTBC,"M-350","Jerez De La Frontera-Campus Universitario De Puerto Real",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=27,3333ff,FFFFFF
 2_28,CMTBC,"M-360","Rota-Costa Oeste-El Puerto De Santa María-Hospital De Puerto Real",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=28,ff6666,FFFFFF
 2_32,CMTBC,"M-560","Rota-Jerez De La Frontera",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=32,00ff33,FFFFFF
 2_36,CMTBC,"M-902","Cádiz-El Puerto De Santa María-Jerez De La Frontera-Arcos De La Frontera (Ronda)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=36,0000ff,FFFFFF
@@ -166,11 +168,18 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 2_167,CMTBC,"M-964","Chipiona-Sanlúcar De Barrameda-Jerez De La Frontera (Por Hospital)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=167,cc66cc,FFFFFF
 2_168,CMTBC,"M-970","Sanlúcar De Barrameda-Jerez De La Frontera",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=168,00ff99,FFFFFF
 2_169,CMTBC,"M-971","Sanlúcar De Barrameda-Jerez De La Frontera (Por Hospital)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=169,0066ff,FFFFFF
+2_170,CMTBC,"M-972","Sanlúcar De Barrameda-Campus De Jerez",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=170,ff33cc,FFFFFF
 2_172,CMTBC,"M-561","Costa Ballena-Chipiona-Sanlúcar-Jerez",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=172,ff0000,FFFFFF
 2_175,CMTBC,"M-953","Arcos De La Frontera-Jerez De La Frontera (Ubrique)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=175,ff0000,FFFFFF
 2_177,CMTBC,"M-053","Cádiz-Jerez De La Frontera (Por Hospital De Jerez)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=177,ff0000,FFFFFF
 2_219,CMTBC,"M-966","Chipiona-Costa Ballena-Rota",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=219,FF0000,FFFFFF
+2_220,CMTBC,"M-035","Cádiz-Escuela De Ingeniería",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=220,FF0000,FFFFFF
+2_221,CMTBC,"M-231","Chiclana De La Frontera-Campus Universitario De Puerto Real",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=221,FF00FF,FFFFFF
+2_222,CMTBC,"M-330","Puerto Real-Escuela De Ingeniería",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=222,0000FF,FFFFFF
+2_223,CMTBC,"M-351","Jerez De La Frontera-Campus Universitario De Puerto Real  (Por Cuatro Caminos)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=223,CC6666,FFFFFF
+2_224,CMTBC,"M-352","Jerez De La Frontera-Campus Universitario De Puerto Real (Por El Puerto De Santa María)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=224,00FF00,FFFFFF
 2_225,CMTBC,"M-967","Chipiona-Sanlúcar De Barrameda-Cádiz  (Por Campus De Puerto Real)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=225,FF0000,FFFFFF
+2_226,CMTBC,"M-340","El Puerto De Santa María-Campus Universitario De Puerto Real",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=226,0000FF,FFFFFF
 2_230,CMTBC,"M-965","Chipiona-Sanlúcar De Barrameda (Sevilla/Utrera)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=230,0000FF,FFFFFF
 2_231,CMTBC,"M-974","Costa Ballena-Chipiona-Sanlúcar De Barrameda (Sevilla)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=231,FF00FF,FFFFFF
 2_234,CMTBC,"M-911","Cádiz-Conil-Barbate (Por La Barca/Por Los Caños)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=234,FF0000,FFFFFF
@@ -179,6 +188,7 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 2_237,CMTBC,"M-914","Cádiz-Conil-Caños De Meca",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=237,FF0000,FFFFFF
 2_239,CMTBC,"M-036","Cádiz-Puerto Real (Por Ca-35)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=239,FF0000,FFFFFF
 2_240,CMTBC,"M-037","Cádiz-Campus De Puerto Real (Por Ca-35)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=240,0000FF,FFFFFF
+2_267,CMTBC,"M-038","Cádiz-Puerto Real (Por Av. Constitución De 1812 Y Ca-35)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=267,FF0000,FFFFFF
 3_644,CTAG,"0111","Granada - P.Asegra - Urbanización La Joya - Peligros",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=644,FF0000,FFFFFF
 3_701,CTAG,"0256","Granada - La Malahá - Escúzar - Ventas H.",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=701,FF0000,FFFFFF
 3_703,CTAG,"0300","Granada - El Fargue - H. Santillán - El Colmenar - Beas G.",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=703,FF0000,FFFFFF

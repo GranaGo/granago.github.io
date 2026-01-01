@@ -1233,12 +1233,19 @@ stop_id,stop_name,stop_lat,stop_lon
 2_159,"Cuatro Caminos",36.677662,-6.145020
 2_160,"Cuatro Caminos V",36.677576,-6.144948
 2_161,"Estación De Autobuses Jerez",36.679414,-6.126668
+2_162,"Avda. Ntra. Sra. De La Paz",36.681659,-6.128064
+2_163,"Avda.Cartuja-Estación Fc",36.680821,-6.127525
+2_164,"Parque Juan Carlos Durán (La Unión)",36.695612,-6.135986
+2_165,"Parque Juan Carlos Durán (La Unión) V",36.695488,-6.136216
 2_166,"Torres Blancas",36.68760813398017,-6.113221049308777
 2_167,"La Granja-Hogar Del Pensionista",36.69322461018721,-6.103653609752655
 2_168,"La Granja-Hogar Del Pensionista V",36.693075572792075,-6.103569120168686
+2_169,"Avda M Álvarez Beigbeder",36.697053,-6.143516
+2_170,"Avda M Álvarez Beigbeder V",36.696897,-6.143476
 2_171,"Campus De Jerez",36.686249,-6.119375
 2_172,"Campus De Jerez V",36.686025,-6.119362
 2_173,"Aeropuerto",36.75033683761318,-6.064587212548067
+2_174,"Avda.Cartuja-Estación Fc V",36.680550,-6.127447
 2_175,"Enlace A-381-Ctra. Paterna-V. El Pedroso",36.525130,-5.982413
 2_176,"Enlace A-381-Ctra. Paterna-V. El Pedroso V",36.525248,-5.982460
 2_177,"Baldío Gallardo",36.564217,-6.010452
@@ -1341,6 +1348,13 @@ stop_id,stop_name,stop_lat,stop_lon
 2_317,"General Lobo V",36.47490612630914,-6.19447153200973
 2_318,"Hospital S. Carlos",36.47931003858101,-6.195349549614012
 2_319,"Hospital S. Carlos V",36.4795343793609,-6.194936245040586
+2_320,"Puerta Tierra V",36.526362988126415,-6.289908753174425
+2_321,"Avda. Campo Del Sur-Catedral V",36.53169747747063,-6.3054697276509755
+2_322,"Avda. De Huelva V",36.52047729359471,-6.276453000667986
+2_345,"Avda. De Huelva",36.51935382183055,-6.278385040952424
+2_346,"Avda. Campo Del Sur-Mercado",36.52878168661495,-6.298829126284983
+2_347,"F. Ciencias Empresariales",36.53151436143342,-6.305470381012
+2_348,"F. Ciencias Empresariales V",36.53173008854554,-6.30545409268817
 2_349,"Av. De María Auxiliadora",36.62743140679498,-6.364939600449971
 2_350,"Av. De María Auxiliadora V",36.626545498314236,-6.364661617773433
 2_351,"Plaza Asdrúbal",36.51833347122721,-6.283853592528017
