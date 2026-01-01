@@ -2157,6 +2157,147 @@
           </div>
         </div>
       </div>
+      <div id="legal-view" class="view-section">
+        <div class="section-header with-back-btn">
+          <button
+            onclick="navigateTo('home')"
+            class="icon-btn back-btn"
+            aria-label="Volver atrás"
+          >
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div>
+            <h2>Información Legal</h2>
+            <p>Términos, Privacidad y Cookies</p>
+          </div>
+        </div>
+
+        <div class="fade-in-up" style="padding-bottom: 100px">
+          <div
+            class="manual-container"
+            style="display: flex; flex-direction: column; gap: 20px"
+          >
+            <div class="info-card">
+              <h3 class="info-title" style="margin-top: 0">
+                <i class="icon ri-government-fill"></i> 1. Aviso Legal
+              </h3>
+              <div
+                class="info-body-text"
+                style="
+                  background: transparent;
+                  border: none;
+                  padding: 0;
+                  font-size: 0.85rem;
+                "
+              >
+                <p>
+                  En cumplimiento de la Ley 34/2002 (LSSI-CE), se informa que
+                  esta aplicación "GranáGo" es un proyecto personal desarrollado
+                  por <strong>Javier Martín Herrera</strong>.
+                </p>
+                <p>
+                  <strong>Contacto:</strong> contacto.granago@gmail.com<br />
+                  <strong>Finalidad:</strong> Ofrecer información sobre
+                  movilidad en Granada de forma gratuita.
+                </p>
+                <p>
+                  El botón de donación redirige a PayPal. Esta aplicación no
+                  procesa pagos directamente ni almacena datos bancarios; la
+                  transacción se realiza íntegramente en la plataforma segura de
+                  PayPal.
+                </p>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <h3 class="info-title" style="margin-top: 0">
+                <i class="icon ri-shield-user-fill"></i> 2. Política de
+                Privacidad
+              </h3>
+              <div
+                class="info-body-text"
+                style="
+                  background: transparent;
+                  border: none;
+                  padding: 0;
+                  font-size: 0.85rem;
+                "
+              >
+                <p><strong>Geolocalización (GPS):</strong></p>
+                <p>
+                  GranáGo utiliza tu ubicación
+                  <strong>exclusivamente en tu dispositivo</strong> para
+                  mostrarte paradas cercanas, gasolineras o tu posición en el
+                  mapa.
+                  <strong>Esta información NO se envía a ningún servidor</strong
+                  >, no se almacena externamente ni se comparte con terceros. Tu
+                  ubicación nunca sale de tu teléfono.
+                </p>
+
+                <p><strong>Datos guardados (LocalStorage):</strong></p>
+                <p>
+                  La aplicación guarda en la memoria de tu navegador tus
+                  preferencias:
+                </p>
+                <ul>
+                  <li>Paradas y líneas favoritas.</li>
+                  <li>Preferencia de idioma y tema (oscuro/claro).</li>
+                  <li>Aceptación de cookies.</li>
+                </ul>
+                <p>
+                  Estos datos son locales y puedes borrarlos limpiando la caché
+                  de tu navegador.
+                </p>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <h3 class="info-title" style="margin-top: 0">
+                <i class="icon ri-cookie-2-fill"></i> 3. Política de Cookies
+              </h3>
+              <div
+                class="info-body-text"
+                style="
+                  background: transparent;
+                  border: none;
+                  padding: 0;
+                  font-size: 0.85rem;
+                "
+              >
+                <p>
+                  Utilizamos <strong>cookies técnicas</strong> (imprescindibles
+                  para que la app funcione) y de <strong>terceros</strong>:
+                </p>
+                <ul class="limits-list">
+                  <li>
+                    <strong>Google Translate:</strong> Si activas la traducción,
+                    Google puede instalar cookies para gestionar el idioma. Al
+                    ser un servicio de terceros, Google tiene su propia política
+                    de privacidad.
+                  </li>
+                </ul>
+                <p>
+                  Puedes aceptar o rechazar las cookies de traducción desde el
+                  aviso inferior o borrando los datos de navegación. Si las
+                  rechazas, la función de traducción no estará disponible.
+                </p>
+              </div>
+            </div>
+
+            <div class="highlight-box">
+              <strong
+                ><i class="icon ri-alert-fill"></i> Responsabilidad</strong
+              >
+              <p>
+                Los datos de tiempos de llegada y precios se obtienen de fuentes
+                públicas (Consorcio de Transporte, DGT, Ministerio). GranáGo no
+                se hace responsable de posibles errores en dichas fuentes
+                oficiales. Úsala como herramienta de ayuda.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
 
     <nav class="glass-dock">
@@ -2394,6 +2535,43 @@
               style="margin: 0; font-size: 0.8rem; color: var(--text-secondary)"
             >
               Invítame a un café ☕
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="setting-card"
+          onclick="toggleSidebar(); navigateTo('legal')"
+          style="
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: transform 0.2s;
+          "
+        >
+          <div
+            style="
+              background: var(--bg-app);
+              width: 40px;
+              height: 40px;
+              border-radius: 10px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: var(--text-secondary);
+            "
+          >
+            <i class="icon ri-scales-3-line" style="font-size: 20px"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 0.95rem; font-weight: 700">
+              Información Legal
+            </h3>
+            <p
+              style="margin: 0; font-size: 0.8rem; color: var(--text-secondary)"
+            >
+              Privacidad y Cookies
             </p>
           </div>
         </div>
