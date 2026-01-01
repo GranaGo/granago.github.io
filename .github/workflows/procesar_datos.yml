@@ -28,6 +28,9 @@ jobs:
       - name: ⚙️ Ejecutar script de conversión
         run: python scripts/convertir_gtfs.py
 
+      - name: 🔄 Sincronizar repositorio antes de subir
+        run: git pull origin main --rebase --autostash
+
       - name: 💾 Guardar y subir cambios (Commit & Push)
         uses: stefanzweifel/git-auto-commit-action@v5
         with:

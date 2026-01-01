@@ -1,27 +1,44 @@
 name: Auto Update Service Worker
+
 on:
+  workflow_run:
+    workflows: ["Procesar GTFS a JSON", "Normalize Granada POIs"]
+    types:
+      - completed
+
   push:
     branches:
       - main
     paths-ignore:
       - "sw.js"
+      - "raw_data/**"
+      - "data/**"
+      - "scripts/**"
+
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   update-sw-version:
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    
     runs-on: ubuntu-latest
     steps:
       - name: Checkout del código
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch || github.ref_name }}
+
+      - name: 🔄 Sincronizar repositorio
+        run: git pull origin main --rebase --autostash
 
       - name: Actualizar versión en sw.js
         run: |
           NEW_VERSION="granago-v$(date +%s)"
-
+          # Reemplaza la variable CACHE_NAME en sw.js
           sed -i "s/const CACHE_NAME = .*/const CACHE_NAME = '$NEW_VERSION';/" sw.js
-
           echo "✅ Versión actualizada a: $NEW_VERSION"
 
       - name: Guardar cambios (Commit & Push)
@@ -29,6 +46,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          # Solo hace commit si sed realmente cambió algo
           if [[ -n $(git status -s) ]]; then
             git add sw.js
             git commit -m "🤖 Auto-update SW version [skip ci]"

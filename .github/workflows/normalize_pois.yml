@@ -3,8 +3,8 @@ name: Normalize Granada POIs
 on:
   push:
     paths:
-      - raw_data/poi.geojson
-      - scripts/ajustar_pois.py
+      - "raw_data/poi.geojson"
+      - "scripts/ajustar_pois.py"
   workflow_dispatch:
 
 jobs:
@@ -24,7 +24,10 @@ jobs:
       - name: Normalize GeoJSON
         run: python scripts/ajustar_pois.py
 
-      - name: 💾 Guardar dy subir cambios (Commit & Push)
+      - name: 🔄 Sincronizar repositorio antes de subir
+        run: git pull origin main --rebase --autostash
+
+      - name: 💾 Guardar y subir cambios (Commit & Push)
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "🤖 Auto: GeoJSON POIs Granada actualizado"
