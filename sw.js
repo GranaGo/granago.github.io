@@ -1,7 +1,7 @@
 <<<<<<< HEAD
-const CACHE_NAME = 'granago-v1767281548';
+const CACHE_NAME = 'granago-v1767282154';
 =======
-const CACHE_NAME = 'granago-v1767281548';
+const CACHE_NAME = 'granago-v1767282154';
 >>>>>>> 791885e0e4fc263b7a061b67eb9e5fe49de0dc45
 
 const ASSETS_TO_CACHE = [
