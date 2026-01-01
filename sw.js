@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 const CACHE_NAME = 'granago-v1767282154';
-=======
-const CACHE_NAME = 'granago-v1767282154';
->>>>>>> 791885e0e4fc263b7a061b67eb9e5fe49de0dc45
 
 const ASSETS_TO_CACHE = [
   "./",
@@ -16,6 +12,7 @@ const ASSETS_TO_CACHE = [
   "./js/leaflet.markercluster.js",
   "./js/leaflet-omnivore.min.js",
   "./js/panzoom.min.js",
+  "./images/Logo.png",
   "./images/Logo192x192.png",
   "./images/Logo512x512.png",
   "./images/mapa_zbe.webp",
