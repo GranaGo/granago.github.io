@@ -4521,7 +4521,9 @@ if ("serviceWorker" in navigator) {
               newWorker.state === "installed" &&
               navigator.serviceWorker.controller
             ) {
-              showUpdateNotification();
+              setTimeout(() => {
+                showUpdateNotification();
+              }, 3000);
             }
           });
         });
