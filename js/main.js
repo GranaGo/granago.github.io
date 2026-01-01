@@ -4977,8 +4977,6 @@ window.flyToStopFromList = function (lat, lon) {
   if (mapInstance) {
     toggleNearbyPanel();
 
-    mapInstance.flyTo([lat, lon], 18);
-
     const targetStop = allSearchableStops.find(
       (s) =>
         Math.abs(s.lat - lat) < 0.000001 && Math.abs(s.lon - lon) < 0.000001
@@ -4986,6 +4984,7 @@ window.flyToStopFromList = function (lat, lon) {
 
     if (targetStop && targetStop.marker) {
       const layerKey = targetStop.layerKey;
+
       if (mapLayers[layerKey] && !mapInstance.hasLayer(mapLayers[layerKey])) {
         mapInstance.addLayer(mapLayers[layerKey]);
 
@@ -5001,12 +5000,16 @@ window.flyToStopFromList = function (lat, lon) {
         );
       }
 
-      setTimeout(() => {
-        if (targetStop.marker.__parent) {
-          targetStop.marker.__parent.spiderfy();
-        }
+      const clusterGroup = mapLayers[layerKey];
+
+      if (clusterGroup) {
+        clusterGroup.zoomToShowLayer(targetStop.marker, function () {
+          targetStop.marker.openPopup();
+        });
+      } else {
+        mapInstance.flyTo([lat, lon], 18);
         targetStop.marker.openPopup();
-      }, 600);
+      }
     }
   }
 };
