@@ -4523,7 +4523,7 @@ if ("serviceWorker" in navigator) {
             ) {
               setTimeout(() => {
                 showUpdateNotification();
-              }, 3000);
+              }, 7500);
             }
           });
         });
