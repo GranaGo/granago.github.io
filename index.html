@@ -186,7 +186,11 @@
           class="section-header with-back-btn"
           style="flex-shrink: 0; padding-bottom: 5px; margin-bottom: 10px"
         >
-          <button onclick="navigateTo('movilidad')" class="icon-btn back-btn">
+          <button
+            onclick="navigateTo('movilidad')"
+            class="icon-btn back-btn"
+            aria-label="Volver atrás"
+          >
             <i class="icon ri-arrow-left-line"></i>
           </button>
           <div>
@@ -302,6 +306,7 @@
                   border: 1px solid var(--border-subtle);
                   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
                 "
+                aria-label="Abrir filtros"
               >
                 <i class="icon ri-filter-3-line"></i>
               </button>
@@ -309,6 +314,7 @@
             <button
               onclick="locateUserPlaces()"
               class="icon-btn gps-btn-floating"
+              aria-label="Localizar mi posición"
             >
               <i class="icon ri-crosshair-2-line"></i>
             </button>
@@ -481,7 +487,11 @@
 
       <div id="publico-view" class="view-section">
         <div class="section-header with-back-btn">
-          <button onclick="navigateTo('transporte')" class="icon-btn back-btn">
+          <button
+            onclick="navigateTo('transporte')"
+            class="icon-btn back-btn"
+            aria-label="Volver atrás"
+          >
             <i class="icon ri-arrow-left-line"></i>
           </button>
           <div>
@@ -560,7 +570,11 @@
                 <i class="icon ri-bus-2-fill"></i> I
               </button>
             </div>
-            <button onclick="locateUser()" class="icon-btn gps-btn-floating">
+            <button
+              onclick="locateUser()"
+              class="icon-btn gps-btn-floating"
+              aria-label="Localizar mi posición"
+            >
               <i class="icon ri-crosshair-2-line"></i>
             </button>
           </div>
@@ -625,7 +639,11 @@
 
       <div id="lineas-view" class="view-section">
         <div class="section-header with-back-btn">
-          <button onclick="navigateTo('publico')" class="icon-btn back-btn">
+          <button
+            onclick="navigateTo('publico')"
+            class="icon-btn back-btn"
+            aria-label="Volver atrás"
+          >
             <i class="icon ri-arrow-left-line"></i>
           </button>
           <div>
@@ -649,7 +667,11 @@
 
       <div id="linea-detalle-view" class="view-section">
         <div class="section-header with-back-btn">
-          <button onclick="navigateTo('lineas')" class="icon-btn back-btn">
+          <button
+            onclick="navigateTo('lineas')"
+            class="icon-btn back-btn"
+            aria-label="Volver atrás"
+          >
             <i class="icon ri-arrow-left-line"></i>
           </button>
           <div style="flex: 1">
@@ -662,6 +684,7 @@
             class="icon-btn"
             style="margin-left: 10px"
             onclick="toggleCurrentLineFav()"
+            aria-label="Añadir a favoritos"
           >
             <i class="icon ri-star-line"></i>
           </button>
@@ -707,7 +730,11 @@
 
       <div id="tarifas-view" class="view-section">
         <div class="section-header with-back-btn">
-          <button onclick="navigateTo('publico')" class="icon-btn back-btn">
+          <button
+            onclick="navigateTo('publico')"
+            class="icon-btn back-btn"
+            aria-label="Volver atrás"
+          >
             <i class="icon ri-arrow-left-line"></i>
           </button>
           <div>
@@ -734,7 +761,11 @@
 
       <div id="favoritos-view" class="view-section">
         <div class="section-header with-back-btn">
-          <button onclick="navigateTo('publico')" class="icon-btn back-btn">
+          <button
+            onclick="navigateTo('publico')"
+            class="icon-btn back-btn"
+            aria-label="Volver atrás"
+          >
             <i class="icon ri-arrow-left-line"></i>
           </button>
           <div>
@@ -747,7 +778,11 @@
 
       <div id="personal-view" class="view-section">
         <div class="section-header with-back-btn">
-          <button onclick="navigateTo('transporte')" class="icon-btn back-btn">
+          <button
+            onclick="navigateTo('transporte')"
+            class="icon-btn back-btn"
+            aria-label="Volver atrás"
+          >
             <i class="icon ri-arrow-left-line"></i>
           </button>
           <div>
@@ -788,7 +823,11 @@
 
       <div id="repostar-view" class="view-section">
         <div class="section-header with-back-btn">
-          <button onclick="navigateTo('personal')" class="icon-btn back-btn">
+          <button
+            onclick="navigateTo('personal')"
+            class="icon-btn back-btn"
+            aria-label="Volver atrás"
+          >
             <i class="icon ri-arrow-left-line"></i>
           </button>
           <div>
@@ -861,6 +900,7 @@
             <button
               onclick="locateUserFuel()"
               class="icon-btn gps-btn-floating"
+              aria-label="Localizar mi posición"
             >
               <i class="icon ri-crosshair-2-line"></i>
             </button>
@@ -902,7 +942,11 @@
 
       <div id="acceso-selection-view" class="view-section">
         <div class="section-header with-back-btn">
-          <button onclick="navigateTo('personal')" class="icon-btn back-btn">
+          <button
+            onclick="navigateTo('personal')"
+            class="icon-btn back-btn"
+            aria-label="Volver atrás"
+          >
             <i class="icon ri-arrow-left-line"></i>
           </button>
           <div>
@@ -931,6 +975,7 @@
           <button
             onclick="navigateTo('acceso-selection')"
             class="icon-btn back-btn"
+            aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
           </button>
@@ -1091,6 +1136,7 @@
           <button
             onclick="navigateTo('acceso-selection')"
             class="icon-btn back-btn"
+            aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
           </button>
@@ -1232,7 +1278,11 @@
 
       <div id="aparcamiento-selection-view" class="view-section">
         <div class="section-header with-back-btn">
-          <button onclick="navigateTo('personal')" class="icon-btn back-btn">
+          <button
+            onclick="navigateTo('personal')"
+            class="icon-btn back-btn"
+            aria-label="Volver atrás"
+          >
             <i class="icon ri-arrow-left-line"></i>
           </button>
           <div>
@@ -1271,6 +1321,7 @@
           <button
             onclick="navigateTo('aparcamiento-selection')"
             class="icon-btn back-btn"
+            aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
           </button>
@@ -1329,6 +1380,7 @@
           <button
             onclick="navigateTo('aparcamiento-selection')"
             class="icon-btn back-btn"
+            aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
           </button>
@@ -1671,6 +1723,7 @@
             <button
               onclick="locateUserCamaras()"
               class="icon-btn gps-btn-floating"
+              aria-label="Localizar mi posición"
             >
               <i class="icon ri-crosshair-2-line"></i>
             </button>
@@ -1684,7 +1737,11 @@
       </div>
       <div id="manual-view" class="view-section">
         <div class="section-header with-back-btn">
-          <button onclick="navigateTo('home')" class="icon-btn back-btn">
+          <button
+            onclick="navigateTo('home')"
+            class="icon-btn back-btn"
+            aria-label="Volver atrás"
+          >
             <i class="icon ri-arrow-left-line"></i>
           </button>
           <div>
@@ -2115,6 +2172,7 @@
           onclick="navigateTo('home')"
           class="dock-item-home"
           data-target="home"
+          aria-label="Inicio"
         >
           <div class="home-circle">
             <i class="icon ri-home-5-fill"></i>
@@ -2134,7 +2192,12 @@
     <aside id="sidebar-panel" class="gpu-accelerated">
       <div class="sidebar-header">
         <h2 class="text-xl font-bold">Menú</h2>
-        <button onclick="toggleSidebar()" class="icon-btn" style="padding: 0">
+        <button
+          onclick="toggleSidebar()"
+          class="icon-btn"
+          style="padding: 0"
+          aria-label="Cerrar menú"
+        >
           <i class="icon ri-close-line"></i>
         </button>
       </div>
@@ -2346,6 +2409,7 @@
           <button
             onclick="closeRealTimeModal()"
             class="icon-btn close-modal-btn"
+            aria-label="Cerrar ventana"
           >
             <i class="icon ri-close-line"></i>
           </button>
@@ -2358,15 +2422,24 @@
 
     <div id="image-modal" class="image-modal-overlay">
       <div class="modal-controls">
-        <button class="icon-btn control-btn" id="zoom-out-btn">
+        <button
+          class="icon-btn control-btn"
+          id="zoom-out-btn"
+          aria-label="Alejar imagen"
+        >
           <i class="icon ri-subtract-line"></i>
         </button>
-        <button class="icon-btn control-btn" id="zoom-in-btn">
+        <button
+          class="icon-btn control-btn"
+          id="zoom-in-btn"
+          aria-label="Acercar imagen"
+        >
           <i class="icon ri-add-line"></i>
         </button>
         <button
           class="icon-btn control-btn close-btn"
           onclick="closeFullImage()"
+          aria-label="Cerrar imagen"
         >
           <i class="icon ri-close-line"></i>
         </button>
@@ -2386,9 +2459,9 @@
           <p>
             Utilizamos cookies de terceros (Google) para habilitar la
             traducción. Si las rechazas, esta función no estará disponible. El
-            resto de datos solo se guardan en la caché (LocalStorage) de tu
-            dispositivo, no van a ningun servidor externo, por lo que rechazar
-            estas cookies no influirá en ese apartado.
+            resto de datos solo se guardan en la caché de tu dispositivo
+            (LocalStorage), por lo que rechazar estas cookies no influirá en ese
+            apartado.
           </p>
         </div>
       </div>
