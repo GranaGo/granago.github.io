@@ -646,7 +646,7 @@ button,
 }
 
 .sidebar-header {
-  padding: 20px;
+  padding: 5px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -662,9 +662,9 @@ button,
 
 .setting-card {
   background: var(--bg-app);
-  padding: 16px;
+  padding: 15px;
   border-radius: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .nav-link {
