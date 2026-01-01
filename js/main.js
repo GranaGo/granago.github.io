@@ -4589,8 +4589,16 @@ function showUpdateNotification() {
     isManualUpdate = true;
     const toastElem = document.getElementById("pwa-update-toast");
     if (toastElem) toastElem.style.display = "none";
-    if (newWorker) {
-      newWorker.postMessage({ action: "skipWaiting" });
+    const worker =
+      newWorker ||
+      (navigator.serviceWorker.registration
+        ? navigator.serviceWorker.registration.waiting
+        : null);
+
+    if (worker) {
+      worker.postMessage({ action: "skipWaiting" });
+    } else {
+      window.location.reload();
     }
   });
 }
@@ -4821,9 +4829,6 @@ function createNearbyItemHTML(stop) {
                 <span class="nearby-name">${stop.name}</span>
                 <div class="nearby-meta">
                     <span class="distance-badge">${distDisplay}</span>
-                    <span>${
-                      isInter ? stop.lines : "Líneas: " + stop.lines
-                    }</span>
                 </div>
             </div>
             <div class="nearby-actions">
