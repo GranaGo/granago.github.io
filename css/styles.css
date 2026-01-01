@@ -413,12 +413,24 @@ button,
 
 .back-btn-floating {
   left: 20px;
-  width: 48px;
-  height: 48px;
-  background-color: var(--text-accent);
-  color: #ffffff;
-  border: 2px solid white;
-  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+
+  width: 44px;
+  height: 44px;
+  background: var(--bg-surface);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.back-btn-floating:active {
+  transform: scale(0.9);
 }
 
 .gps-btn-floating {

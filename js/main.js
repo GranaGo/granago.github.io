@@ -4852,8 +4852,39 @@ function createNearbyItemHTML(stop) {
 
 window.flyToStopFromList = function (lat, lon) {
   if (mapInstance) {
-    mapInstance.flyTo([lat, lon], 18);
     toggleNearbyPanel();
+
+    mapInstance.flyTo([lat, lon], 18);
+
+    const targetStop = allSearchableStops.find(
+      (s) =>
+        Math.abs(s.lat - lat) < 0.000001 && Math.abs(s.lon - lon) < 0.000001
+    );
+
+    if (targetStop && targetStop.marker) {
+      const layerKey = targetStop.layerKey;
+      if (mapLayers[layerKey] && !mapInstance.hasLayer(mapLayers[layerKey])) {
+        mapInstance.addLayer(mapLayers[layerKey]);
+
+        const filterBtn = document.querySelector(
+          `.filter-chip[data-layer="${layerKey}"]`
+        );
+        if (filterBtn) filterBtn.classList.add("active");
+
+        showNotification(
+          "Capa activada",
+          `Se activó ${layerKey} para ver la parada`,
+          "info"
+        );
+      }
+
+      setTimeout(() => {
+        if (targetStop.marker.__parent) {
+          targetStop.marker.__parent.spiderfy();
+        }
+        targetStop.marker.openPopup();
+      }, 600);
+    }
   }
 };
 
