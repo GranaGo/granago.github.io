@@ -2883,12 +2883,6 @@ body.dark-mode .map-loader {
   font-size: 0.95rem;
 }
 
-.time-line-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
 .time-display {
   font-weight: 800;
   font-size: 1.1rem;
@@ -3583,6 +3577,23 @@ body.dark-mode .map-loader {
 }
 
 #nearby-list-content .icon-btn-small.active i {
-    font-size: 1.2rem !important;
-    color: #fbbf24 !important;
+  font-size: 1.2rem !important;
+  color: #fbbf24 !important;
+}
+
+.gap-3 {
+  gap: 12px;
+}
+
+#nearby-list-content .icon-btn-small i {
+  font-size: 1.2rem !important;
+  color: var(--text-secondary);
+}
+
+#nearby-list-content .icon-btn-small.active i.ri-star-fill {
+  color: #fbbf24 !important;
+}
+
+#nearby-list-content .icon-btn-small i.ri-search-line {
+  color: var(--text-primary) !important;
 }
