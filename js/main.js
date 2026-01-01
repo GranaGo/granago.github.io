@@ -4520,6 +4520,17 @@ if ("serviceWorker" in navigator) {
       .then((reg) => {
         console.log("Service Worker registrado:", reg);
 
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible") {
+            reg.update();
+            console.log("Comprobando actualizaciones al volver...");
+          }
+        });
+
+        setInterval(() => {
+          reg.update();
+        }, 5 * 60 * 1000);
+
         reg.addEventListener("updatefound", () => {
           newWorker = reg.installing;
 
