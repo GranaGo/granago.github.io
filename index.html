@@ -1,0 +1,2377 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.5, viewport-fit=cover"
+    />
+    <title>GranáGo</title>
+    <meta name="description" content="Muévete con Sentido por Granada." />
+    <meta property="og:title" content="GranáGo" />
+    <meta
+      property="og:description"
+      content="Muévete con Sentido por Granada."
+    />
+    <meta property="og:image" content="./imagenes/Logo192x192.png" />
+    <meta
+      name="theme-color"
+      content="#f0f2f5"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      name="theme-color"
+      content="#0f172a"
+      media="(prefers-color-scheme: dark)"
+    />
+    <meta
+      name="google-site-verification"
+      content="WYhRzsesqTEFSgFBxUaCCt5zwCAkuyjUtUk9-QBTICA"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" type="image/png" href="./images/Logo192x192.png" />
+    <link rel="apple-touch-icon" href="./images/Logo192x192.png" />
+
+    <link rel="preconnect" href="https://movgr.apis.mianfg.me" />
+    <link rel="preconnect" href="https://basemaps.cartocdn.com" />
+    <link rel="preconnect" href="https://api.open-meteo.com" />
+    <link rel="preconnect" href="https://corsproxy.io" />
+
+    <link rel="stylesheet" href="css/leaflet.css" />
+    <link
+      rel="stylesheet"
+      href="css/remixicon.css"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript><link rel="stylesheet" href="css/remixicon.css" /></noscript>
+    <link rel="stylesheet" href="css/styles.css" />
+
+    <script src="js/main.js" defer></script>
+  </head>
+
+  <body>
+    <div class="app-background"></div>
+
+    <header class="app-header">
+      <button onclick="toggleSidebar()" class="icon-btn" aria-label="Menú">
+        <i class="icon ri-menu-line"></i>
+      </button>
+      <div class="logo-container notranslate" onclick="navigateTo('home')">
+        <span class="logo-text">Graná<span class="text-accent">Go</span></span>
+      </div>
+      <div style="width: 40px"></div>
+    </header>
+
+    <main id="app">
+      <div id="home-view" class="view-section active gpu-accelerated">
+        <div id="weather-section">
+          <div id="weather-widget-container">
+            <div class="skeleton-weather"></div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <h2>Resumen del Día</h2>
+          <p>Estado actual de Granada</p>
+        </div>
+
+        <div class="home-dashboard-grid fade-in-up">
+          <div class="summary-card widget-event" onclick="navigateTo('cortes')">
+            <div class="summary-header">
+              <div class="summary-icon">
+                <i class="ri-calendar-event-fill"></i>
+              </div>
+              <span class="summary-title">Eventos Hoy</span>
+            </div>
+            <div id="home-events-list" class="mini-list-container">
+              <div class="skeleton-text"></div>
+              <div class="skeleton-text"></div>
+            </div>
+          </div>
+
+          <div
+            class="summary-card widget-parking"
+            onclick="navigateTo('parkings')"
+          >
+            <div class="summary-header">
+              <div class="summary-icon">
+                <i class="ri-parking-box-fill"></i>
+              </div>
+              <span class="summary-title">Parkings</span>
+            </div>
+            <div id="home-parking-content">
+              <div class="skeleton-text"></div>
+              <div class="skeleton-text" style="width: 40%"></div>
+            </div>
+          </div>
+
+          <div class="summary-card widget-bus" onclick="navigateTo('paradas')">
+            <div class="summary-header">
+              <div class="summary-icon"><i class="ri-bus-fill"></i></div>
+              <span class="summary-title">Incidencias de Transporte</span>
+            </div>
+            <div
+              id="home-bus-content"
+              style="display: flex; flex-direction: column; gap: 5px"
+            >
+              <div class="skeleton-text"></div>
+            </div>
+          </div>
+
+          <div
+            class="summary-card widget-fuel"
+            onclick="navigateTo('repostar')"
+          >
+            <div class="summary-header">
+              <div class="summary-icon">
+                <i class="ri-gas-station-fill"></i>
+              </div>
+              <span class="summary-title" id="fuel-widget-title"
+                >Precios Medios</span
+              >
+            </div>
+            <div id="home-fuel-content">
+              <div class="skeleton-text"></div>
+              <div class="skeleton-text"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="movilidad-view" class="view-section gpu-accelerated">
+        <div class="section-header">
+          <h2>Movilidad</h2>
+          <p>Consulta el estado de la ciudad y ve donde desees</p>
+        </div>
+        <div class="transport-grid fade-in-up">
+          <div class="transport-card" onclick="navigateTo('cortes')">
+            <div class="card-icon-wrapper card-warning">
+              <i class="icon ri-barricade-fill"></i>
+            </div>
+            <div class="transport-info">
+              <h3>Cortes y Eventos</h3>
+              <p>Incidencias programadas</p>
+            </div>
+            <i class="icon arrow-icon ri-arrow-right-s-line"></i>
+          </div>
+          <div class="transport-card" onclick="navigateTo('lugares')">
+            <div class="card-icon-wrapper card-info">
+              <i class="icon ri-map-pin-range-fill"></i>
+            </div>
+            <div class="transport-info">
+              <h3>Lugares de Interés</h3>
+              <p>Puntos clave de la ciudad</p>
+            </div>
+            <i class="icon arrow-icon ri-arrow-right-s-line"></i>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="cortes-view"
+        class="view-section gpu-accelerated"
+        style="
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          position: relative;
+        "
+      >
+        <div
+          class="section-header with-back-btn"
+          style="flex-shrink: 0; padding-bottom: 5px; margin-bottom: 10px"
+        >
+          <button onclick="navigateTo('movilidad')" class="icon-btn back-btn">
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div>
+            <h2>Cortes y Eventos</h2>
+            <p>Agenda de movilidad</p>
+          </div>
+        </div>
+        <div class="cortes-toolbar" style="margin-bottom: 15px; padding: 0 4px">
+          <div
+            class="search-box"
+            style="
+              height: 48px;
+              background: var(--bg-card);
+              border: 1px solid var(--border-subtle);
+              box-shadow: var(--shadow-soft);
+            "
+          >
+            <i class="icon ri-search-line search-icon"></i>
+            <input
+              type="text"
+              id="cortes-search-input"
+              placeholder="Buscar calles, cortes..."
+              autocomplete="off"
+            />
+            <button
+              id="clear-cortes-search-btn"
+              class="icon-btn-small"
+              style="display: none"
+            >
+              <i class="icon ri-close-circle-fill"></i>
+            </button>
+          </div>
+        </div>
+        <div
+          style="
+            height: 65vh;
+            width: 100%;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid var(--border-subtle);
+            position: relative;
+            flex-shrink: 0;
+            margin-bottom: 15px;
+          "
+        >
+          <div id="map-cortes" style="width: 100%; height: 100%"></div>
+          <button
+            onclick="scrollToCortesList()"
+            class="btn-scroll-down"
+            aria-label="Ver lista"
+          >
+            <span>Ver en lista</span>
+            <i class="icon ri-arrow-down-line" style="font-size: 24px"></i>
+          </button>
+        </div>
+        <div
+          id="cortes-list-wrapper"
+          style="flex: 1; overflow-y: auto; padding: 15px 16px 120px 16px"
+        >
+          <div
+            id="cortes-loader"
+            class="spinner"
+            style="margin: 20px auto; display: none"
+          ></div>
+          <div id="cortes-list-container" class="fade-in-up"></div>
+        </div>
+      </div>
+
+      <div id="lugares-view" class="view-section" style="height: 100%">
+        <div
+          style="
+            position: relative;
+            height: 100%;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+          "
+        >
+          <div class="map-header-bar">
+            <button
+              onclick="navigateTo('movilidad')"
+              class="icon-btn back-btn-floating"
+            >
+              <i class="icon ri-arrow-left-line"></i>
+            </button>
+            <div class="center-content search-group">
+              <div class="search-box">
+                <i class="icon ri-search-line search-icon"></i>
+                <input
+                  type="text"
+                  id="places-search-input"
+                  placeholder="Buscar lugar..."
+                  autocomplete="off"
+                />
+                <button
+                  id="clear-places-btn"
+                  class="icon-btn-small"
+                  style="display: none"
+                >
+                  <i class="icon ri-close-circle-fill"></i>
+                </button>
+              </div>
+              <button
+                onclick="togglePlacesFilters()"
+                class="icon-btn"
+                style="
+                  background: var(--bg-surface);
+                  backdrop-filter: blur(12px);
+                  border-radius: 16px;
+                  height: 44px;
+                  width: 44px;
+                  border: 1px solid var(--border-subtle);
+                  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                "
+              >
+                <i class="icon ri-filter-3-line"></i>
+              </button>
+            </div>
+            <button
+              onclick="locateUserPlaces()"
+              class="icon-btn gps-btn-floating"
+            >
+              <i class="icon ri-crosshair-2-line"></i>
+            </button>
+          </div>
+          <div
+            id="places-search-results"
+            class="search-dropdown"
+            style="
+              position: absolute;
+              top: calc(var(--header-height) + 65px);
+              left: 15px;
+              right: 15px;
+              z-index: 1001;
+            "
+          ></div>
+          <div
+            id="places-filters-overlay"
+            onclick="togglePlacesFilters()"
+            style="
+              position: absolute;
+              inset: 0;
+              background: rgba(0, 0, 0, 0.4);
+              z-index: 2000;
+              display: none;
+              opacity: 0;
+              transition: opacity 0.3s ease;
+              backdrop-filter: blur(4px);
+              -webkit-backdrop-filter: blur(4px);
+            "
+          >
+            <div
+              id="places-filters-panel"
+              onclick="event.stopPropagation()"
+              style="
+                position: absolute;
+                bottom: 120px;
+                left: 15px;
+                right: 15px;
+                background: var(--bg-card);
+                border-radius: 28px;
+                padding: 20px;
+                max-height: 60vh;
+                overflow-y: auto;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+                transform: translateY(calc(100% + 150px));
+                transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                border: 1px solid var(--border-subtle);
+              "
+            >
+              <div
+                style="
+                  width: 36px;
+                  height: 4px;
+                  background: var(--border-subtle);
+                  border-radius: 2px;
+                  margin: 0 auto 15px auto;
+                "
+              ></div>
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-bottom: 15px;
+                "
+              >
+                <h3
+                  style="
+                    margin: 0;
+                    font-weight: 800;
+                    font-size: 1.1rem;
+                    color: var(--text-primary);
+                  "
+                >
+                  Categorías
+                </h3>
+                <button
+                  onclick="togglePlacesFilters()"
+                  class="icon-btn-small"
+                  style="
+                    background: var(--bg-app);
+                    border-radius: 50%;
+                    width: 32px;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: none;
+                  "
+                >
+                  <i class="icon ri-close-line" style="font-size: 20px"></i>
+                </button>
+              </div>
+              <div style="display: flex; gap: 10px; margin-bottom: 20px">
+                <button
+                  onclick="setAllFilters(true)"
+                  style="
+                    flex: 1;
+                    padding: 8px;
+                    border-radius: 12px;
+                    border: none;
+                    background: var(--text-accent);
+                    color: white;
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                  "
+                >
+                  Activar Todas
+                </button>
+                <button
+                  onclick="setAllFilters(false)"
+                  style="
+                    flex: 1;
+                    padding: 8px;
+                    border-radius: 12px;
+                    border: 1px solid var(--border-subtle);
+                    background: var(--bg-app);
+                    color: var(--text-secondary);
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                  "
+                >
+                  Desactivar Todas
+                </button>
+              </div>
+              <div
+                id="filters-container-list"
+                style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
+              ></div>
+            </div>
+          </div>
+          <div id="map-loader-places" class="map-loader visible">
+            <div class="spinner"></div>
+            <p>Cargando lugares...</p>
+          </div>
+          <div id="map-lugares" style="width: 100%; height: 100%"></div>
+        </div>
+      </div>
+
+      <div id="transporte-view" class="view-section">
+        <div class="section-header">
+          <h2>Transporte</h2>
+          <p>Elige tu medio de desplazamiento</p>
+        </div>
+        <div class="transport-grid fade-in-up">
+          <div class="transport-card" onclick="navigateTo('publico')">
+            <div class="card-icon-wrapper card-public">
+              <i class="icon ri-bus-fill"></i>
+            </div>
+            <div class="transport-info">
+              <h3>Transporte Público</h3>
+              <p>Autobús y Metro</p>
+            </div>
+            <i class="icon arrow-icon ri-arrow-right-s-line"></i>
+          </div>
+          <div class="transport-card" onclick="navigateTo('personal')">
+            <div class="card-icon-wrapper card-personal">
+              <i class="icon ri-roadster-fill"></i>
+            </div>
+            <div class="transport-info">
+              <h3>Vehículo Personal</h3>
+              <p>Coche o Moto</p>
+            </div>
+            <i class="icon arrow-icon ri-arrow-right-s-line"></i>
+          </div>
+        </div>
+      </div>
+
+      <div id="publico-view" class="view-section">
+        <div class="section-header with-back-btn">
+          <button onclick="navigateTo('transporte')" class="icon-btn back-btn">
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div>
+            <h2>Transporte Público</h2>
+            <p>Selecciona una opción</p>
+          </div>
+        </div>
+        <div class="dashboard-grid fade-in-up">
+          <div class="square-card" onclick="navigateTo('paradas')">
+            <div class="square-icon icon-blue">
+              <i class="icon ri-map-pin-2-fill"></i>
+            </div>
+            <span>Paradas</span>
+          </div>
+          <div class="square-card" onclick="navigateTo('lineas')">
+            <div class="square-icon icon-green">
+              <i class="icon ri-route-fill"></i>
+            </div>
+            <span>Líneas</span>
+          </div>
+          <div class="square-card" onclick="navigateTo('tarifas')">
+            <div class="square-icon icon-purple">
+              <i class="icon ri-ticket-2-fill"></i>
+            </div>
+            <span>Tarifas</span>
+          </div>
+          <div class="square-card" onclick="navigateTo('favoritos')">
+            <div class="square-icon icon-red">
+              <i class="icon ri-heart-3-fill"></i>
+            </div>
+            <span>Favoritos</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="paradas-view" class="view-section" style="height: 100%">
+        <div
+          style="
+            position: relative;
+            height: 100%;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+          "
+        >
+          <div class="map-header-bar">
+            <button
+              onclick="navigateTo('publico')"
+              class="icon-btn back-btn-floating"
+            >
+              <i class="icon ri-arrow-left-line"></i>
+            </button>
+            <div class="center-content">
+              <button
+                class="filter-chip active"
+                data-layer="metro"
+                onclick="toggleMapLayer('metro', this)"
+                style="--chip-color: #009a44"
+              >
+                <i class="icon ri-train-fill"></i> Metro
+              </button>
+              <button
+                class="filter-chip active"
+                data-layer="urbano"
+                onclick="toggleMapLayer('urbano', this)"
+                style="--chip-color: #d9281c"
+              >
+                <i class="icon ri-bus-fill"></i> Urbano
+              </button>
+              <button
+                class="filter-chip active"
+                data-layer="interurbano"
+                onclick="toggleMapLayer('interurbano', this)"
+                style="--chip-color: #2757f5"
+              >
+                <i class="icon ri-bus-2-fill"></i> Inter
+              </button>
+            </div>
+            <button onclick="locateUser()" class="icon-btn gps-btn-floating">
+              <i class="icon ri-crosshair-2-line"></i>
+            </button>
+          </div>
+          <div
+            class="map-search-container"
+            style="top: calc(var(--header-height) + 65px)"
+          >
+            <div class="search-box">
+              <i class="icon ri-search-line search-icon"></i>
+              <input
+                type="text"
+                id="stop-search-input"
+                placeholder="Buscar parada..."
+                autocomplete="off"
+              />
+              <button
+                id="clear-search-btn"
+                class="icon-btn-small"
+                style="display: none"
+              >
+                <i class="icon ri-close-circle-fill"></i>
+              </button>
+            </div>
+            <div id="search-results-list" class="search-dropdown"></div>
+          </div>
+          <div id="map-loader" class="map-loader visible">
+            <div class="spinner"></div>
+            <p>Cargando...</p>
+          </div>
+          <div id="map-paradas"></div>
+        </div>
+      </div>
+
+      <div id="lineas-view" class="view-section">
+        <div class="section-header with-back-btn">
+          <button onclick="navigateTo('publico')" class="icon-btn back-btn">
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div>
+            <h2>Líneas</h2>
+            <p>Consulta recorridos y horarios</p>
+          </div>
+        </div>
+        <div class="tabs-pills fade-in-up">
+          <button class="tab-pill active" onclick="filterLines('urbano', this)">
+            Urbano
+          </button>
+          <button class="tab-pill" onclick="filterLines('metro', this)">
+            Metro
+          </button>
+          <button class="tab-pill" onclick="filterLines('interurbano', this)">
+            Interurbano
+          </button>
+        </div>
+        <div id="lines-list-container" class="lines-grid fade-in-up"></div>
+      </div>
+
+      <div id="linea-detalle-view" class="view-section">
+        <div class="section-header with-back-btn">
+          <button onclick="navigateTo('lineas')" class="icon-btn back-btn">
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div style="flex: 1">
+            <h2 id="detail-line-title">Línea X</h2>
+            <p id="detail-line-desc">Destino...</p>
+          </div>
+          <div id="detail-line-badge" class="big-line-badge">--</div>
+          <button
+            id="btn-fav-line"
+            class="icon-btn"
+            style="margin-left: 10px"
+            onclick="toggleCurrentLineFav()"
+          >
+            <i class="icon ri-star-line"></i>
+          </button>
+        </div>
+        <div class="detail-tabs">
+          <button class="detail-tab active" onclick="switchLineTab('map')">
+            <i class="icon ri-map-2-line"></i> Mapa
+          </button>
+          <button class="detail-tab" onclick="switchLineTab('list')">
+            <i class="icon ri-file-list-3-line"></i> Paradas
+          </button>
+          <button class="detail-tab" onclick="switchLineTab('schedule')">
+            <i class="icon ri-time-line"></i> Horarios
+          </button>
+        </div>
+        <div
+          id="tab-content-map"
+          class="tab-content active"
+          style="height: 50vh"
+        >
+          <div id="map-legend-container" class="map-legend fade-in-up">
+            <div class="legend-item">
+              <span id="legend-box-ida" class="legend-box"></span>
+              <span id="legend-text-ida">Ida</span>
+            </div>
+            <div class="legend-item">
+              <span id="legend-box-vuelta" class="legend-box"></span>
+              <span id="legend-text-vuelta">Vuelta</span>
+            </div>
+          </div>
+          <div
+            id="map-linea"
+            style="width: 100%; height: 100%; border-radius: 20px"
+          ></div>
+        </div>
+        <div id="tab-content-list" class="tab-content">
+          <div id="line-stops-list" class="stops-timeline"></div>
+        </div>
+        <div id="tab-content-schedule" class="tab-content">
+          <div id="schedule-container"></div>
+        </div>
+      </div>
+
+      <div id="tarifas-view" class="view-section">
+        <div class="section-header with-back-btn">
+          <button onclick="navigateTo('publico')" class="icon-btn back-btn">
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div>
+            <h2>Tarifas</h2>
+            <p>Precios y abonos disponibles</p>
+          </div>
+        </div>
+        <div class="tabs-pills fade-in-up" style="justify-content: center">
+          <button class="tab-pill active" onclick="renderFares('urbano', this)">
+            Urbano
+          </button>
+          <button class="tab-pill" onclick="renderFares('metro', this)">
+            Metro
+          </button>
+          <button class="tab-pill" onclick="renderFares('interurbano', this)">
+            Interurbano
+          </button>
+        </div>
+        <div id="fares-container" class="fares-grid fade-in-up"></div>
+        <p class="fares-legal-note fade-in-up">
+          * Tarifas sujetas a cambios por el operador.
+        </p>
+      </div>
+
+      <div id="favoritos-view" class="view-section">
+        <div class="section-header with-back-btn">
+          <button onclick="navigateTo('publico')" class="icon-btn back-btn">
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div>
+            <h2>Favoritos</h2>
+            <p>Tus paradas guardadas</p>
+          </div>
+        </div>
+        <div id="favorites-list" class="favorites-container fade-in-up"></div>
+      </div>
+
+      <div id="personal-view" class="view-section">
+        <div class="section-header with-back-btn">
+          <button onclick="navigateTo('transporte')" class="icon-btn back-btn">
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div>
+            <h2>Vehículo Personal</h2>
+            <p>Selecciona una opción</p>
+          </div>
+        </div>
+        <div class="dashboard-grid fade-in-up">
+          <div class="square-card" onclick="navigateTo('acceso-selection')">
+            <div class="square-icon icon-orange">
+              <i class="icon ri-traffic-light-fill"></i>
+            </div>
+            <span>Accesos</span>
+          </div>
+          <div
+            class="square-card"
+            onclick="navigateTo('aparcamiento-selection')"
+          >
+            <div class="square-icon icon-teal">
+              <i class="icon ri-parking-box-fill"></i>
+            </div>
+            <span>Aparcamiento</span>
+          </div>
+          <div class="square-card" onclick="navigateTo('camaras')">
+            <div class="square-icon icon-violet">
+              <i class="icon ri-camera-lens-fill"></i>
+            </div>
+            <span>Cámaras</span>
+          </div>
+          <div class="square-card" onclick="navigateTo('repostar')">
+            <div class="square-icon icon-yellow">
+              <i class="icon ri-gas-station-fill"></i>
+            </div>
+            <span>Repostar</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="repostar-view" class="view-section">
+        <div class="section-header with-back-btn">
+          <button onclick="navigateTo('personal')" class="icon-btn back-btn">
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div>
+            <h2>Elige Combustible</h2>
+            <p>Precios actualizados en tiempo real</p>
+          </div>
+        </div>
+        <div class="fuel-grid fade-in-up">
+          <button class="fuel-option-card" onclick="openFuelMap('gas95')">
+            <div class="fuel-badge" style="background: #009a44">E5</div>
+            <span>Gasolina 95</span>
+          </button>
+          <button class="fuel-option-card" onclick="openFuelMap('gas98')">
+            <div class="fuel-badge" style="background: #007030">E10</div>
+            <span>Gasolina 98</span>
+          </button>
+          <button class="fuel-option-card" onclick="openFuelMap('dieselA')">
+            <div class="fuel-badge" style="background: #1e293b">B7</div>
+            <span>Diésel A</span>
+          </button>
+          <button class="fuel-option-card" onclick="openFuelMap('dieselPlus')">
+            <div
+              class="fuel-badge"
+              style="
+                background: #0f172a;
+                border: 1px solid #fbbf24;
+                color: #fbbf24;
+              "
+            >
+              A+
+            </div>
+            <span>Diésel A+</span>
+          </button>
+          <button class="fuel-option-card" onclick="openFuelMap('glp')">
+            <div class="fuel-badge" style="background: #f59e0b">GLP</div>
+            <span>GLP / AutoGas</span>
+          </button>
+          <button class="fuel-option-card" onclick="openFuelMap('electrico')">
+            <div class="fuel-badge" style="background: #2563eb">
+              <i class="ri-flashlight-fill"></i>
+            </div>
+            <span>Eléctrico</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="repostar-map-view" class="view-section" style="height: 100%">
+        <div
+          style="
+            position: relative;
+            height: 100%;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+          "
+        >
+          <div class="map-header-bar">
+            <button
+              onclick="navigateTo('repostar')"
+              class="icon-btn back-btn-floating"
+            >
+              <i class="icon ri-arrow-left-line"></i>
+            </button>
+            <div class="center-content">
+              <div
+                id="fuel-map-filters"
+                style="display: flex; gap: 8px; justify-content: center"
+              ></div>
+            </div>
+            <button
+              onclick="locateUserFuel()"
+              class="icon-btn gps-btn-floating"
+            >
+              <i class="icon ri-crosshair-2-line"></i>
+            </button>
+          </div>
+          <div
+            id="fuel-search-wrapper"
+            class="map-search-container"
+            style="top: calc(var(--header-height) + 65px); display: none"
+          >
+            <div id="fuel-search-container" class="search-box">
+              <i class="icon ri-search-line search-icon"></i>
+              <input
+                type="text"
+                id="fuel-search-input"
+                placeholder="Buscar gasolinera..."
+                autocomplete="off"
+              />
+              <button
+                id="clear-fuel-search"
+                class="icon-btn-small"
+                style="display: none"
+              >
+                <i class="icon ri-close-circle-fill"></i>
+              </button>
+            </div>
+            <div id="fuel-search-results" class="search-dropdown"></div>
+          </div>
+          <div id="repostar-loader" class="map-loader">
+            <div class="spinner"></div>
+            <p>Consultando precios...</p>
+          </div>
+          <div
+            id="map-repostar"
+            class="gpu-accelerated"
+            style="width: 100%; height: 100%"
+          ></div>
+        </div>
+      </div>
+
+      <div id="acceso-selection-view" class="view-section">
+        <div class="section-header with-back-btn">
+          <button onclick="navigateTo('personal')" class="icon-btn back-btn">
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div>
+            <h2>Control de Accesos</h2>
+            <p>Selecciona el tipo de restricción</p>
+          </div>
+        </div>
+        <div class="dashboard-grid fade-in-up">
+          <div class="square-card" onclick="navigateTo('zonas-restringidas')">
+            <div class="square-icon icon-red">
+              <i class="icon ri-prohibited-line"></i>
+            </div>
+            <span>Zonas Restringidas</span>
+          </div>
+          <div class="square-card" onclick="navigateTo('zbe')">
+            <div class="square-icon icon-green">
+              <i class="icon ri-leaf-fill"></i>
+            </div>
+            <span>Zonas Bajas Emisiones</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="zonas-restringidas-view" class="view-section">
+        <div class="section-header with-back-btn">
+          <button
+            onclick="navigateTo('acceso-selection')"
+            class="icon-btn back-btn"
+          >
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div>
+            <h2>Zonas Restringidas</h2>
+            <p>Centro y Albaicín</p>
+          </div>
+        </div>
+        <div
+          style="
+            height: 50vh;
+            width: 100%;
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 20px;
+          "
+        >
+          <div
+            id="map-restricciones"
+            class="gpu-accelerated"
+            style="width: 100%; height: 100%"
+          ></div>
+        </div>
+        <div id="restricciones-content" class="fade-in-up">
+          <h3 class="info-title">Horarios y Normativa</h3>
+          <div id="horarios-list" class="info-card-container">
+            <div class="access-section-title">
+              <i class="ri-barricade-line"></i> Pilonas en Albaicín
+            </div>
+            <div class="access-card">
+              <div class="access-header">
+                <h4>C/ Pagés</h4>
+                <span class="location-chip"
+                  ><i class="ri-map-pin-line"></i> Nº 29 (Sentido Cuesta
+                  Chapiz)</span
+                >
+              </div>
+              <div class="time-table">
+                <div class="time-row weekend">
+                  <span class="day-label">Viernes, Sáb, Dom, Festivos</span>
+                  <span class="hours"
+                    >0:00-7:00 | 11:00-14:00 | 20:00-24:00</span
+                  >
+                </div>
+                <div class="time-row weekday">
+                  <span class="day-label">Lunes - Jueves (Laborables)</span>
+                  <span class="hours">11:00 - 14:00 | 20:00 - 24:00</span>
+                </div>
+              </div>
+              <div class="delivery-info">
+                <i class="ri-truck-line"></i>
+                <strong>Carga y Descarga:</strong> 7:00 - 12:00 y 15:00 - 18:00
+              </div>
+            </div>
+            <div class="access-card">
+              <div class="access-header">
+                <h4>C/ San Luis</h4>
+                <span class="location-chip"
+                  ><i class="ri-map-pin-line"></i> Nº 40</span
+                >
+              </div>
+              <div class="time-table">
+                <div class="time-row weekend">
+                  <span class="day-label">Viernes, Sáb, Dom, Festivos</span>
+                  <span class="hours">0:00-7:00 | 7:30-24:00</span>
+                </div>
+                <div class="time-row weekday">
+                  <span class="day-label">Lunes - Jueves (Laborables)</span>
+                  <span class="hours">0:00 - 02:00 | 07:30 - 24:00</span>
+                </div>
+              </div>
+              <div class="delivery-info">
+                <i class="ri-truck-line"></i>
+                <strong>Carga y Descarga:</strong> 7:00 - 12:00 y 15:00 - 18:00
+              </div>
+            </div>
+            <div class="access-card">
+              <div class="access-header">
+                <h4>C/ Elvira</h4>
+                <span class="location-chip"
+                  ><i class="ri-map-pin-line"></i> Nº 27</span
+                >
+              </div>
+              <div class="time-table">
+                <div class="time-row weekend">
+                  <span class="day-label">Viernes, Sáb, Dom, Festivos</span>
+                  <span class="hours">24 HORAS (Restringido)</span>
+                </div>
+                <div class="time-row weekday">
+                  <span class="day-label">Lunes - Jueves (Laborables)</span>
+                  <span class="hours">0:00 - 02:00 | 7:30 - 24:00</span>
+                </div>
+              </div>
+              <div class="delivery-info">
+                <i class="ri-truck-line"></i>
+                <strong>Carga y Descarga:</strong> 7:00 - 11:00 y 15:00 - 18:00
+              </div>
+            </div>
+            <div class="access-card">
+              <div class="access-header">
+                <h4>Reyes Católicos</h4>
+                <span class="location-chip"
+                  ><i class="ri-map-pin-line"></i> Acceso a Plaza Nueva</span
+                >
+              </div>
+              <div class="time-table">
+                <div class="time-row weekend">
+                  <span class="day-label">Viernes, Sáb, Dom, Festivos</span>
+                  <span class="hours">24 HORAS (Restringido)</span>
+                </div>
+                <div class="time-row weekday">
+                  <span class="day-label">Lunes - Jueves (Laborables)</span>
+                  <span class="hours">0:00 - 02:00 | 7:30 - 24:00</span>
+                </div>
+              </div>
+              <div class="delivery-info">
+                <i class="ri-truck-line"></i>
+                <strong>Carga y Descarga:</strong> 7:00 - 11:00 y 15:00 - 18:00
+              </div>
+            </div>
+            <div class="access-section-title" style="margin-top: 20px">
+              <i class="ri-camera-lens-line"></i> Cámaras de Matrículas
+            </div>
+            <div class="access-card">
+              <div class="access-header">
+                <h4>Recogidas y San Matías</h4>
+                <span class="location-chip">Subida a Puerta Real</span>
+              </div>
+              <div class="time-table">
+                <div class="time-row generic">
+                  <span class="day-label">Lunes a Domingo</span>
+                  <span class="hours">07:30 - 22:00 h</span>
+                </div>
+              </div>
+            </div>
+            <div class="access-card">
+              <div class="access-header">
+                <h4>C/ Tablas</h4>
+              </div>
+              <div class="time-table">
+                <div class="time-row weekday">
+                  <span class="day-label">Lunes a Viernes (No festivos)</span>
+                  <span class="hours">
+                    Mañana: 8:00 - 14:00<br />
+                    Tarde: 16:00 - 20:00
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="zbe-view" class="view-section">
+        <div class="section-header with-back-btn">
+          <button
+            onclick="navigateTo('acceso-selection')"
+            class="icon-btn back-btn"
+          >
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div>
+            <h2>Zona Bajas Emisiones</h2>
+            <p>Normativa medioambiental</p>
+          </div>
+        </div>
+        <div
+          class="zbe-image-container fade-in-up"
+          onclick="openFullImage('images/mapa_zbe.webp')"
+        >
+          <img
+            src="images/mapa_zbe.webp"
+            width="600"
+            height="400"
+            loading="lazy"
+            alt="Mapa ZBE Granada"
+            id="zbe-map-img"
+            onerror="this.src='https://placehold.co/600x400?text=Mapa+ZBE'"
+          />
+          <div class="expand-badge">
+            <i class="icon ri-fullscreen-line"></i> Ampliar
+          </div>
+        </div>
+        <div id="zbe-content" class="fade-in-up" style="padding-bottom: 40px">
+          <h3 class="info-title">Normativa de Acceso</h3>
+          <div class="info-body-text">
+            <div class="rules-grid">
+              <div class="rule-card allowed">
+                <div class="rule-icon">
+                  <i class="ri-checkbox-circle-fill"></i>
+                </div>
+                <div class="rule-content">
+                  <h4>Acceso PERMITIDO</h4>
+                  <ul>
+                    <li>
+                      <strong>Residentes:</strong> Cualquier vehículo con
+                      domicilio fiscal en Granada (aunque no tenga etiqueta).
+                    </li>
+                    <li>
+                      <strong>Etiquetas:</strong> Cualquier vehículo con
+                      distintivo <strong>B, C, ECO o CERO</strong> (sea de donde
+                      sea).
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <div class="rule-card forbidden">
+                <div class="rule-icon"><i class="ri-prohibited-fill"></i></div>
+                <div class="rule-content">
+                  <h4>Acceso DENEGADO</h4>
+                  <p>
+                    Vehículos
+                    <strong>sin domicilio fiscal en Granada</strong> que además
+                    <strong>NO tengan distintivo</strong>.
+                  </p>
+                  <small class="rule-note"
+                    >Sin distintivo: Gasolina anteriores a 2001 y Diésel
+                    anteriores a 2006.</small
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+          <h3 class="info-title">Delimitación Geográfica</h3>
+          <div class="info-body-text">
+            <p style="margin-bottom: 15px">
+              La ZBE abarca <strong>23.55 km²</strong>. A continuación se
+              detallan los límites por zonas:
+            </p>
+            <ul class="limits-list">
+              <li>
+                <strong><i class="ri-compass-3-fill"></i> ZONA ESTE:</strong>
+                Camino del Sacromonte hasta la Abadía incluido. Cruce del
+                Restaurante El Caldero. El resto queda delimitado por el
+                perímetro urbano edificado.
+              </li>
+              <li>
+                <strong
+                  ><i class="ri-compass-3-fill"></i> ZONA CARRETERA
+                  ALFACAR:</strong
+                >
+                Coincide con el perímetro urbano (Ciudad Deportiva incluida).
+              </li>
+              <li>
+                <strong><i class="ri-compass-3-fill"></i> ZONA NORTE:</strong>
+                Calles Pegaso y Merced Alta (NO incluidas). Borde de terreno de
+                Casería de los Cipreses.
+              </li>
+              <li>
+                <strong
+                  ><i class="ri-compass-3-fill"></i> ZONA NOROESTE:</strong
+                >
+                Avd. Blas de Otero, Calle Lepanto, C/Racimos, C/El Jau y borde
+                de Parque Cronista Juan Burgos.
+              </li>
+              <li>
+                <strong><i class="ri-compass-3-fill"></i> ZONA OESTE:</strong>
+                Borde de Parque de las Alquerias, vía servicio de la autovía.
+                Camino de Cañaveral incluido. María Moliner y C/Profesor Luis
+                Molina Gómez abiertos para servicio a Parking. Borde de Parque
+                F.G. Lorca y C/Eudoxia Pririz incluidos.
+              </li>
+              <li>
+                <strong
+                  ><i class="ri-compass-3-fill"></i> ZONA SUROESTE:</strong
+                >
+                Carretera de Vegas del Genil hasta cruce con Río Monachil y
+                Genil. Término municipal de Granada y Río Monachil.
+              </li>
+              <li>
+                <strong><i class="ri-compass-3-fill"></i> ZONA SUR:</strong>
+                Avd. de la Innovación (incluida). NO incluidas: Avd. Jesús
+                Candel, Avd. del Conocimiento, C/Torre Comares y C/Sultana (para
+                acceso a Parking Nuevo los Cármenes).
+              </li>
+              <li>
+                <strong><i class="ri-compass-3-fill"></i> ZONA SURESTE:</strong>
+                Vía de Servicio Autovía, Paseo de Cameros (no incluida), Camino
+                de Caidero. Cierre por Avd. Santa María de la Alhambra (no
+                incluida). Patronato de la Alhambra NO incluido. Acceso libre al
+                cementerio.
+              </li>
+            </ul>
+            <div class="highlight-box">
+              <strong
+                ><i class="ri-road-map-line"></i> Vías Excluidas (Libre
+                Circulación):</strong
+              >
+              <p>
+                La Circunvalación (GR30), la Ronda SUR (A-395), Merced Alta
+                (A-4006) y Avenida Santa María de la Alhambra.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="aparcamiento-selection-view" class="view-section">
+        <div class="section-header with-back-btn">
+          <button onclick="navigateTo('personal')" class="icon-btn back-btn">
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div>
+            <h2>Aparcamiento</h2>
+            <p>¿Dónde quieres aparcar?</p>
+          </div>
+        </div>
+        <div class="dashboard-grid fade-in-up">
+          <div class="square-card" onclick="navigateTo('parkings')">
+            <div
+              class="square-icon"
+              style="background: rgba(37, 99, 235, 0.1); color: #2563eb"
+            >
+              <i class="icon ri-parking-fill"></i>
+            </div>
+            <span>Parkings</span>
+          </div>
+          <div class="square-card" onclick="navigateTo('ora')">
+            <div
+              class="square-icon"
+              style="background: rgba(239, 68, 68, 0.1); color: #ef4444"
+            >
+              <i class="icon ri-road-map-fill"></i>
+            </div>
+            <span>Zonas Estacionamiento Limitado</span>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="parkings-view"
+        class="view-section"
+        style="display: flex; flex-direction: column; height: 100%"
+      >
+        <div class="section-header with-back-btn" style="flex-shrink: 0">
+          <button
+            onclick="navigateTo('aparcamiento-selection')"
+            class="icon-btn back-btn"
+          >
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div>
+            <h2>Parkings Públicos</h2>
+            <p>Disponibilidad en tiempo real</p>
+          </div>
+        </div>
+        <div
+          style="
+            height: 65vh;
+            width: 100%;
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 20px;
+            flex-shrink: 0;
+          "
+        >
+          <div
+            id="map-parkings"
+            class="gpu-accelerated"
+            style="width: 100%; height: 100%"
+          ></div>
+          <div id="parkings-loader" class="map-loader visible">
+            <div class="spinner"></div>
+            <p>Consultando plazas...</p>
+          </div>
+          <button
+            onclick="scrollToParkingsList()"
+            class="btn-scroll-down"
+            aria-label="Ver lista"
+          >
+            <span>Ver en lista</span>
+            <i class="icon ri-arrow-down-line" style="font-size: 24px"></i>
+          </button>
+        </div>
+        <div
+          style="flex: 1; overflow-y: auto; padding-bottom: 100px"
+          class="fade-in-up"
+        >
+          <h3 class="info-title" id="parkings-list-title">
+            Estado de ocupación
+          </h3>
+          <div id="parkings-table-container" class="info-card-container"></div>
+        </div>
+      </div>
+
+      <div
+        id="ora-view"
+        class="view-section"
+        style="display: flex; flex-direction: column; height: 100%"
+      >
+        <div class="section-header with-back-btn" style="flex-shrink: 0">
+          <button
+            onclick="navigateTo('aparcamiento-selection')"
+            class="icon-btn back-btn"
+          >
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div>
+            <h2>Zonas Estacionamiento Limitado</h2>
+            <p>Zonas ORA</p>
+          </div>
+        </div>
+        <div
+          style="
+            height: 65vh;
+            width: 100%;
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 20px;
+            flex-shrink: 0;
+          "
+        >
+          <div
+            id="map-ora"
+            class="gpu-accelerated"
+            style="width: 100%; height: 100%"
+          ></div>
+          <div class="map-legend-floating">
+            <div class="legend-item">
+              <span class="dot" style="background: #ef4444"></span> Roja
+            </div>
+            <div class="legend-item">
+              <span class="dot" style="background: #2563eb"></span> Azul
+            </div>
+            <div class="legend-item">
+              <span class="dot" style="background: #10b981"></span> Verde
+            </div>
+          </div>
+          <button
+            onclick="scrollToORAInfo()"
+            class="btn-scroll-down"
+            aria-label="Ver información"
+          >
+            <span>Ver en lista</span>
+            <i class="icon ri-arrow-down-line" style="font-size: 24px"></i>
+          </button>
+        </div>
+        <div
+          id="ora-info-container"
+          class="fade-in-up"
+          style="flex: 1; overflow-y: auto; padding-bottom: 100px"
+        >
+          <h3 class="info-title">Horario de Servicio</h3>
+          <div class="info-card-container">
+            <div class="access-card">
+              <div
+                style="
+                  font-size: 0.9rem;
+                  color: var(--text-secondary);
+                  margin-bottom: 12px;
+                "
+              >
+                El servicio estará en actividad en las calles indicadas en la
+                ordenanza con el siguiente horario:
+              </div>
+              <div class="time-table">
+                <div
+                  class="time-row generic"
+                  style="border-left-color: #3b82f6"
+                >
+                  <span class="day-label" style="color: #3b82f6">
+                    <i class="ri-temp-cold-line"></i> Invierno (15 Sep - 15 Jun)
+                  </span>
+                  <div style="margin-top: 4px">
+                    <div
+                      style="
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 2px;
+                      "
+                    >
+                      <span>Lunes - Viernes:</span>
+                      <strong>9:00-14:00 | 16:30-20:30</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between">
+                      <span>Sábados:</span>
+                      <strong>9:00 - 14:00</strong>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="time-row generic"
+                  style="border-left-color: #f59e0b"
+                >
+                  <span class="day-label" style="color: #f59e0b">
+                    <i class="ri-sun-line"></i> Verano (16 Jun - 14 Sep)
+                  </span>
+                  <div style="margin-top: 4px">
+                    <div
+                      style="
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 2px;
+                      "
+                    >
+                      <span>Lunes - Viernes:</span>
+                      <strong>9:00-14:00 | 17:00-21:00</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between">
+                      <span>Sábados:</span>
+                      <strong>9:00 - 14:00</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <h3 class="info-title">Tipos de vías y Tarifas</h3>
+          <div class="info-card-container">
+            <div class="ora-tariff-card blue-zone">
+              <div class="tariff-header">
+                <i class="ri-road-map-line"></i> Vías Azules
+                <span class="limit-badge">Máx 2 horas</span>
+              </div>
+              <div class="tariff-body">
+                <div class="tariff-section">
+                  <strong>No residentes:</strong>
+                  <div class="price-row">
+                    <span>30 min</span> <span>0.55 €</span>
+                  </div>
+                  <div class="price-row">
+                    <span>1 hora</span> <span>0.90 €</span>
+                  </div>
+                  <div class="price-row">
+                    <span>2 horas</span> <span>1.80 €</span>
+                  </div>
+                </div>
+                <div class="tariff-divider"></div>
+                <div class="tariff-section">
+                  <strong>Residentes:</strong>
+                  <div class="price-row">
+                    <span>1 día</span> <span>1.05 €</span>
+                  </div>
+                </div>
+                <div class="tariff-divider"></div>
+                <div class="tariff-section alert">
+                  <strong>Anulación Denuncia:</strong>
+                  <div class="price-row">
+                    <span>Exceso < 30min</span> <span>3.10 €</span>
+                  </div>
+                  <div class="price-row">
+                    <span>Sin ticket / > 30min</span> <span>6.30 €</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="ora-tariff-card green-zone">
+              <div class="tariff-header">
+                <i class="ri-road-map-line"></i> Vías Verdes
+                <span class="limit-badge">Máx 5 horas</span>
+              </div>
+              <div class="tariff-body">
+                <div class="tariff-section">
+                  <strong>No residentes:</strong>
+                  <div class="price-row">
+                    <span>1 hora</span> <span>0.70 €</span>
+                  </div>
+                  <div class="price-row">
+                    <span>5 horas</span> <span>1.45 €</span>
+                  </div>
+                </div>
+                <div class="tariff-divider"></div>
+                <div class="tariff-section">
+                  <strong>Residentes:</strong>
+                  <div class="price-row">
+                    <span>1 día</span> <span>1.05 €</span>
+                  </div>
+                </div>
+                <div class="tariff-divider"></div>
+                <div class="tariff-section alert">
+                  <strong>Anulación Denuncia:</strong>
+                  <div class="price-row">
+                    <span>Exceso < 30min</span> <span>3.15 €</span>
+                  </div>
+                  <div class="price-row">
+                    <span>Sin ticket / > 30min</span> <span>6.30 €</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="ora-tariff-card red-zone">
+              <div class="tariff-header">
+                <i class="ri-road-map-line"></i> Vías Rojas
+                <span class="limit-badge">Máx 1 hora</span>
+              </div>
+              <div class="tariff-body">
+                <div class="tariff-section">
+                  <strong>No residentes:</strong>
+                  <div class="price-row">
+                    <span>30 min</span> <span>0.55 €</span>
+                  </div>
+                  <div class="price-row">
+                    <span>1 hora</span> <span>0.90 €</span>
+                  </div>
+                </div>
+                <div class="tariff-divider"></div>
+                <div class="tariff-section">
+                  <strong>Residentes:</strong>
+                  <div class="price-row">
+                    <span>1 día</span> <span>1.05 €</span>
+                  </div>
+                </div>
+                <div class="tariff-divider"></div>
+                <div class="tariff-section alert">
+                  <strong>Anulación Denuncia:</strong>
+                  <div class="price-row">
+                    <span>Exceso < 30min</span> <span>3.10 €</span>
+                  </div>
+                  <div class="price-row">
+                    <span>Sin ticket / > 30min</span> <span>6.15 €</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <h3 class="info-title">Listado de Vías ORA</h3>
+          <div class="ora-streets-container notranslate">
+            <div class="streets-group red-border">
+              <div class="streets-header" style="color: #ef4444">
+                Zona Roja (Alta Rotación)
+              </div>
+              <ul class="streets-list">
+                <li>Carril del Picón</li>
+                <li>Gran Capitán</li>
+                <li>San Juan de Dios</li>
+                <li>Plaza de Gracia</li>
+                <li>Obispo Hurtado (1-17 / 2-14)</li>
+                <li>Seminario</li>
+                <li>Solarillo de Gracia</li>
+                <li>Casillas de Prats</li>
+              </ul>
+            </div>
+            <div class="streets-group blue-border">
+              <div class="streets-header" style="color: #2563eb">
+                Zona Azul (Rotación Media)
+              </div>
+              <ul class="streets-list">
+                <li>
+                  <strong>Zona 1:</strong> Manuel Gómez Moreno, María Luisa de
+                  Dios, Fray Leopoldo, Rector Marín Ocete, Santa Bárbara, Acera
+                  Canasteros, Almona S. Juan Dios, Gonzalo Gallas, Pérez Galdós,
+                  Julio Verne, Arabial, Faisán, Cisne, Mirlo, Ruiseñor, Tórtola,
+                  Halcón, Madre Ferroviarios.
+                </li>
+                <li>
+                  <strong>Zona 2:</strong> Ancha Capuchinos, Capitán Moreno,
+                  Avd. Hospicio, Isaac Albéniz, Avd. Madrid, Acera S. Ildefonso,
+                  Dr. Olóriz, Dr. Guirao Gea, Dr. Azpitarte, Dr. Marañón, Dr.
+                  Fermín Garrido, Real de Cartuja, Cristo de la Yedra.
+                </li>
+                <li>
+                  <strong>Zona 3:</strong> Emperatriz Eugenia, Martínez de la
+                  Rosa, Melchor Almagro, Pintor López Mezquita, P. Rodríguez
+                  Acosta, Pintor Velázquez, Sol, Trajano, San Jerónimo, Prof.
+                  Motos Guirao, Prof. Sainz Cantero, Trinidad Morcillo, Goya.
+                </li>
+                <li>
+                  <strong>Zona 4:</strong> Ancha de Gracia, Músico Vicente
+                  Zarzo, Pedro Antonio, Sócrates, General Narváez, Lope de Vega,
+                  Cristo de Medinaceli, Camino de Purchil, Marqués Don Gonzalo,
+                  Azorín, Ángel Barrios, José Recuerda.
+                </li>
+                <li>
+                  <strong>Zona 5:</strong> Alhamar, Luis Braille, Manuel de
+                  Falla, Martínez Campos, Pedro Antonio, Tejeiro, Dr. Martín
+                  Lagos, Arabial, Marqués de la Ensenada, Las Flores, Prof.
+                  García Gómez, Agustina de Aragón, Maestro Vives, Pintor
+                  Zuloaga, Mulhacén.
+                </li>
+                <li>
+                  <strong>Zona 6:</strong> Avda. Don Bosco, Avda. Dílar, Avda.
+                  Barcelona, Palencia.
+                </li>
+                <li>
+                  <strong>Zona 7:</strong> Paseo de la Bomba, Paseo del Salón,
+                  Paseo de los Basilios, Poeta Manuel de Góngora, Sos del Rey
+                  Católico, Pablo Picasso, Andrés Segovia, Agustín Lara, Ctra.
+                  de la Sierra.
+                </li>
+                <li>
+                  <strong>Zona 8:</strong> Avda. de la Ciencia, Paseo Jardín de
+                  la Reina, Dr. Alejandro Otero.
+                </li>
+                <li>
+                  <strong>Zona 9:</strong> Carmen de Burgos, Torre de la
+                  Pólvora, Torre de Comares, Paseo Emperador Carlos V, Avda. de
+                  la Ilustración.
+                </li>
+              </ul>
+            </div>
+            <div class="streets-group green-border">
+              <div class="streets-header" style="color: #10b981">
+                Zona Verde (Baja Rotación)
+              </div>
+              <ul class="streets-list">
+                <li>Callejón del Pretorio</li>
+                <li>Profesor Albareda</li>
+                <li>Los Juncos</li>
+                <li>Avenida del Conocimiento</li>
+              </ul>
+            </div>
+            <div class="streets-group" style="border-left: 4px solid #64748b">
+              <div class="streets-header" style="color: #64748b">
+                R. Especial
+              </div>
+              <ul class="streets-list">
+                <li>Paseo de los Mártires</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="camaras-view" class="view-section" style="height: 100%">
+        <div
+          style="
+            position: relative;
+            height: 100%;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+          "
+        >
+          <div class="map-header-bar">
+            <button
+              onclick="navigateTo('personal')"
+              class="icon-btn back-btn-floating"
+            >
+              <i class="icon ri-arrow-left-line"></i>
+            </button>
+            <div class="center-content"></div>
+            <button
+              onclick="locateUserCamaras()"
+              class="icon-btn gps-btn-floating"
+            >
+              <i class="icon ri-crosshair-2-line"></i>
+            </button>
+          </div>
+          <div id="camaras-loader" class="map-loader visible">
+            <div class="spinner"></div>
+            <p>Cargando cámaras...</p>
+          </div>
+          <div id="map-camaras" style="width: 100%; height: 100%"></div>
+        </div>
+      </div>
+      <div id="manual-view" class="view-section">
+        <div class="section-header with-back-btn">
+          <button onclick="navigateTo('home')" class="icon-btn back-btn">
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div>
+            <h2>Manual de Uso</h2>
+            <p>Guía de funcionalidades</p>
+          </div>
+        </div>
+
+        <div
+          id="manual-content"
+          class="fade-in-up"
+          style="padding-bottom: 100px"
+        >
+          <div
+            class="manual-container"
+            style="display: flex; flex-direction: column; gap: 20px"
+          >
+            <div
+              class="info-card"
+              style="border-left: 4px solid var(--text-accent)"
+            >
+              <h3 class="info-title" style="margin-top: 0">
+                👋 Bienvenido a GranáGo
+              </h3>
+              <div
+                class="info-body-text"
+                style="background: transparent; border: none; padding: 0"
+              >
+                <p>
+                  Esta aplicación es tu herramienta para moverte por Granada sin
+                  complicaciones. Ya sea en autobús, metro, coche o andando,
+                  aquí encontrarás todo lo que necesitas.
+                </p>
+                <p>
+                  <strong>¿Cómo se usa este manual?</strong> Lee la sección que
+                  te interese. Hemos explicado todo paso a paso para que no
+                  tengas miedo de tocar ningún botón.
+                </p>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <h3 class="info-title" style="margin-top: 0">
+                <i class="icon ri-home-5-fill"></i> La Pantalla de Inicio (La
+                Casa)
+              </h3>
+              <div
+                class="info-body-text"
+                style="background: transparent; border: none; padding: 0"
+              >
+                <p>
+                  Nada más entrar, verás un resumen rápido de lo que pasa hoy en
+                  la ciudad:
+                </p>
+                <ul class="limits-list">
+                  <li>
+                    <strong>🌤️ El Tiempo:</strong> La tarjeta de arriba te dice
+                    la temperatura y si va a llover. Se actualiza según dónde
+                    estés.
+                  </li>
+                  <li>
+                    <strong>📅 Resumen del Día:</strong> Debajo verás 4 tarjetas
+                    grandes. Son "atajos". Si tocas cualquiera de ellas, te
+                    llevará directamente a esa sección: <br />•
+                    <strong>Eventos:</strong> Si hay cortes de tráfico o
+                    procesiones. <br />• <strong>Parkings:</strong> Si están
+                    llenos o libres. <br />• <strong>Transporte:</strong> Si hay
+                    huelgas o desvíos de bus. <br />•
+                    <strong>Gasolina:</strong> El precio medio hoy.
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <h3 class="info-title" style="margin-top: 0">
+                <i class="icon ri-cursor-fill"></i> ¿Cómo me muevo por la App?
+              </h3>
+              <div
+                class="info-body-text"
+                style="background: transparent; border: none; padding: 0"
+              >
+                <p>
+                  Para cambiar de pantalla, mira la
+                  <strong>barra blanca flotante</strong> que hay en la parte de
+                  abajo de tu móvil. Tiene 3 botones:
+                </p>
+
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                    margin-bottom: 10px;
+                    background: var(--bg-app);
+                    padding: 10px;
+                    border-radius: 12px;
+                  "
+                >
+                  <i
+                    class="icon ri-map-pin-2-line"
+                    style="font-size: 24px; color: var(--text-secondary)"
+                  ></i>
+                  <div>
+                    <strong>1. Movilidad (Izquierda)</strong>
+                    <div style="font-size: 0.8rem">
+                      Turismo, zonas cortadas y lugares importantes.
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                    margin-bottom: 10px;
+                    background: var(--bg-app);
+                    padding: 10px;
+                    border-radius: 12px;
+                  "
+                >
+                  <div
+                    style="
+                      background: linear-gradient(
+                        135deg,
+                        #2563eb 0%,
+                        #1d4ed8 100%
+                      );
+                      color: white;
+                      width: 30px;
+                      height: 30px;
+                      border-radius: 50%;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                    "
+                  >
+                    <i class="icon ri-home-5-fill"></i>
+                  </div>
+                  <div>
+                    <strong>2. Inicio (Centro)</strong>
+                    <div style="font-size: 0.8rem">
+                      Para volver siempre a la pantalla principal.
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                    margin-bottom: 10px;
+                    background: var(--bg-app);
+                    padding: 10px;
+                    border-radius: 12px;
+                  "
+                >
+                  <i
+                    class="icon ri-e-bike-2-line"
+                    style="font-size: 24px; color: var(--text-secondary)"
+                  ></i>
+                  <div>
+                    <strong>3. Transporte (Derecha)</strong>
+                    <div style="font-size: 0.8rem">
+                      Lo más importante: Autobuses, Metro, Coche y Gasolina.
+                    </div>
+                  </div>
+                </div>
+
+                <p>
+                  <strong>⬅️ Botón Atrás:</strong> Si entras en un sitio y
+                  quieres salir, busca siempre arriba a la izquierda una
+                  flechita hacia atrás.
+                </p>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <h3 class="info-title" style="margin-top: 0">
+                <i class="icon ri-bus-fill"></i> Guía: Autobús y Metro
+              </h3>
+              <div
+                class="info-body-text"
+                style="background: transparent; border: none; padding: 0"
+              >
+                <p>Para ver cuándo llega tu autobús, sigue estos pasos:</p>
+
+                <ol class="limits-list" style="padding-left: 20px">
+                  <li>
+                    Pulsa el botón <strong>Transporte</strong> (abajo a la
+                    derecha).
+                  </li>
+                  <li>
+                    Elige la tarjeta azul que dice
+                    <strong>Transporte Público</strong>.
+                  </li>
+                  <li>
+                    Ahora verás 4 opciones. Pulsa
+                    <strong>Paradas</strong> (icono azul).
+                  </li>
+                  <li>
+                    Se abrirá un mapa. <br />• Los puntos
+                    <span style="color: #d9281c; font-weight: bold">ROJOS</span>
+                    son autobuses urbanos. <br />• Los puntos
+                    <span style="color: #009a44; font-weight: bold"
+                      >VERDES</span
+                    >
+                    son paradas de Metro. <br />• Los puntos
+                    <span style="color: #2757f5; font-weight: bold"
+                      >AZULES</span
+                    >
+                    son autobuses de los pueblos.
+                  </li>
+                  <li>Toca con el dedo encima de una parada en el mapa.</li>
+                  <li>
+                    Se abrirá un recuadro blanco con el nombre de la parada.
+                    <br />👉 <strong>Para ver el tiempo:</strong> Pulsa el icono
+                    de la <strong>LUPA <i class="ri-search-line"></i></strong>.
+                    <br />👉 <strong>Para guardarla:</strong> Pulsa la
+                    <strong>ESTRELLA <i class="ri-star-line"></i></strong>.
+                  </li>
+                </ol>
+
+                <div class="highlight-box">
+                  <strong>💡 Truco:</strong> Si pulsas el botón redondo con una
+                  mirilla <i class="ri-crosshair-2-line"></i> en el mapa, te
+                  llevará automáticamente a donde tú estás ahora mismo.
+                </div>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <h3 class="info-title" style="margin-top: 0">
+                <i class="icon ri-steering-2-fill"></i> Guía para Conductores
+              </h3>
+
+              <div class="rule-card" style="margin-bottom: 15px">
+                <div class="rule-icon">
+                  <i class="ri-gas-station-fill" style="color: #f59e0b"></i>
+                </div>
+                <div class="rule-content">
+                  <h4>Repostar Barato</h4>
+                  <p>
+                    Ve a
+                    <strong>Transporte > Vehículo Personal > Repostar</strong>.
+                    Elige tu tipo de gasolina (ej. Gasolina 95).
+                  </p>
+                  <p>En el mapa, usa los botones de arriba:</p>
+                  <ul>
+                    <li>
+                      <strong>Top 3:</strong> Te enseña solo las 3 gasolineras
+                      más baratas de toda Granada.
+                    </li>
+                    <li>
+                      <strong>Cerca:</strong> Te enseña las más baratas que
+                      están cerca de ti.
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="rule-card" style="margin-bottom: 15px">
+                <div class="rule-icon">
+                  <i class="ri-parking-box-fill" style="color: #2563eb"></i>
+                </div>
+                <div class="rule-content">
+                  <h4>Aparcar sin vueltas</h4>
+                  <p>
+                    Ve a
+                    <strong
+                      >Transporte > Vehículo Personal > Aparcamiento >
+                      Parkings</strong
+                    >.
+                  </p>
+                  <p>
+                    Verás los parkings en el mapa. El color te dice si cabe tu
+                    coche:
+                  </p>
+                  <ul>
+                    <li>
+                      <span style="color: #10b981; font-weight: 800"
+                        >VERDE:</span
+                      >
+                      Hay muchas plazas libres.
+                    </li>
+                    <li>
+                      <span style="color: #f59e0b; font-weight: 800"
+                        >NARANJA:</span
+                      >
+                      Quedan pocas, date prisa.
+                    </li>
+                    <li>
+                      <span style="color: #ef4444; font-weight: 800"
+                        >ROJO:</span
+                      >
+                      Está completo o cerrado. No vayas.
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="rule-card">
+                <div class="rule-icon">
+                  <i class="ri-alarm-warning-fill" style="color: #ef4444"></i>
+                </div>
+                <div class="rule-content">
+                  <h4>Multas y Cámaras</h4>
+                  <p>En <strong>Vehículo Personal > Accesos</strong> tienes:</p>
+                  <ul>
+                    <li>
+                      <strong>Zonas Restringidas:</strong> Horarios exactos de
+                      cuándo puedes pasar por calles como Recogidas o Elvira sin
+                      que te multen.
+                    </li>
+                    <li>
+                      <strong>ZBE:</strong> Un mapa para saber hasta dónde
+                      puedes entrar si tu coche es antiguo.
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <h3 class="info-title" style="margin-top: 0">
+                <i class="icon ri-tools-fill"></i> Ajustes y Ayuda
+              </h3>
+              <div
+                class="info-body-text"
+                style="background: transparent; border: none; padding: 0"
+              >
+                <p>
+                  Arriba a la izquierda de la pantalla principal hay un botón
+                  con tres rayitas <i class="ri-menu-line"></i>. Si lo tocas, se
+                  abre un menú secreto:
+                </p>
+                <ul class="limits-list">
+                  <li>
+                    <strong
+                      ><i class="ri-refresh-line"></i> Recargar App:</strong
+                    >
+                    Úsalo si ves que la información no carga o se queda
+                    "pillada". Es como apagar y encender.
+                  </li>
+                  <li>
+                    <strong
+                      ><i class="ri-contrast-2-line"></i> Modo Oscuro:</strong
+                    >
+                    Pone la pantalla en negro para que no te moleste la luz por
+                    la noche.
+                  </li>
+                  <li>
+                    <strong><i class="ri-translate"></i> Idioma:</strong> Puedes
+                    poner la app en Inglés (EN), Francés (FR) o Italiano (IT).
+                    Pulsa ES para volver al español.
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <h3 class="info-title" style="margin-top: 0">
+                <i class="icon ri-wifi-off-line"></i> ¿Funciona sin Internet?
+              </h3>
+              <div
+                class="info-body-text"
+                style="background: transparent; border: none; padding: 0"
+              >
+                <p>
+                  Sabemos que a veces los datos fallan. Esto es lo que puedes
+                  hacer si no tienes conexión:
+                </p>
+                <div class="rule-card allowed" style="margin-bottom: 10px">
+                  <div class="rule-icon"><i class="ri-check-line"></i></div>
+                  <div class="rule-content">
+                    <h4>SÍ FUNCIONA</h4>
+                    <p>
+                      Podrás ver el listado de líneas de autobús, sus recorridos
+                      pintados en el mapa y los horarios teóricos (a qué hora se
+                      supone que pasan).
+                    </p>
+                  </div>
+                </div>
+                <div class="rule-card forbidden">
+                  <div class="rule-icon"><i class="ri-close-line"></i></div>
+                  <div class="rule-content">
+                    <h4>NO FUNCIONA</h4>
+                    <p>
+                      No podrás ver cuánto falta exactamente para que llegue el
+                      bus (tiempo real), ni los precios de la gasolina, ni si el
+                      parking está lleno. Para eso hace falta internet.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="highlight-box">
+              <strong
+                ><i class="ri-heart-3-fill" style="color: red"></i> Consejo
+                Final</strong
+              >
+              <p>
+                ¡No tengas miedo de explorar! Si te pierdes dentro de la
+                aplicación, solo tienes que pulsar el
+                <strong>botón central de la casa</strong>
+                <i class="ri-home-5-fill"></i> en la barra de abajo y volverás
+                al principio.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <nav class="glass-dock">
+      <button
+        onclick="navigateTo('movilidad')"
+        class="dock-item"
+        data-target="movilidad"
+      >
+        <i class="icon ri-map-pin-2-line"></i> <span>Movilidad</span>
+      </button>
+      <div class="dock-center-wrapper">
+        <button
+          onclick="navigateTo('home')"
+          class="dock-item-home"
+          data-target="home"
+        >
+          <div class="home-circle">
+            <i class="icon ri-home-5-fill"></i>
+          </div>
+        </button>
+      </div>
+      <button
+        onclick="navigateTo('transporte')"
+        class="dock-item"
+        data-target="transporte"
+      >
+        <i class="icon ri-e-bike-2-line"></i> <span>Transporte</span>
+      </button>
+    </nav>
+
+    <div id="sidebar-backdrop" onclick="toggleSidebar()"></div>
+    <aside id="sidebar-panel" class="gpu-accelerated">
+      <div class="sidebar-header">
+        <h2 class="text-xl font-bold">Menú</h2>
+        <button onclick="toggleSidebar()" class="icon-btn" style="padding: 0">
+          <i class="icon ri-close-line"></i>
+        </button>
+      </div>
+      <div class="sidebar-content">
+        <div
+          class="setting-card"
+          onclick="hardReload()"
+          style="
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: transform 0.2s;
+          "
+        >
+          <div
+            style="
+              background: var(--bg-app);
+              width: 40px;
+              height: 40px;
+              border-radius: 10px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: var(--color-success);
+            "
+          >
+            <i class="icon ri-refresh-line" style="font-size: 20px"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 0.95rem; font-weight: 700">
+              Recargar App
+            </h3>
+            <p
+              style="margin: 0; font-size: 0.8rem; color: var(--text-secondary)"
+            >
+              Actualizar contenido
+            </p>
+          </div>
+        </div>
+        <div class="setting-card">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold">Modo Oscuro</span>
+            <button id="theme-toggle" class="theme-switch">
+              <div class="switch-handle"></div>
+            </button>
+          </div>
+        </div>
+        <div class="setting-card">
+          <span
+            class="font-semibold"
+            style="display: block; margin-bottom: 10px"
+            >Idioma</span
+          >
+          <div class="lang-grid-container">
+            <button
+              onclick="changeLanguage('es')"
+              class="notranslate lang-btn lang-es"
+            >
+              ES
+            </button>
+            <button
+              onclick="changeLanguage('en')"
+              class="notranslate lang-btn lang-en"
+            >
+              EN
+            </button>
+            <button
+              onclick="changeLanguage('fr')"
+              class="notranslate lang-btn lang-fr"
+            >
+              FR
+            </button>
+            <button
+              onclick="changeLanguage('it')"
+              class="notranslate lang-btn lang-it"
+            >
+              IT
+            </button>
+          </div>
+        </div>
+        <div
+          class="setting-card"
+          onclick="toggleSidebar(); navigateTo('manual')"
+          style="
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: transform 0.2s;
+          "
+        >
+          <div
+            style="
+              background: var(--bg-app);
+              width: 40px;
+              height: 40px;
+              border-radius: 10px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: var(--color-primary);
+            "
+          >
+            <i class="icon ri-book-read-fill" style="font-size: 20px"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 0.95rem; font-weight: 700">
+              Manual de Uso
+            </h3>
+            <p
+              style="margin: 0; font-size: 0.8rem; color: var(--text-secondary)"
+            >
+              Aprende a usar la App
+            </p>
+          </div>
+        </div>
+        <div
+          class="setting-card"
+          onclick="installPWA()"
+          style="
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: transform 0.2s;
+          "
+        >
+          <div
+            style="
+              background: var(--bg-app);
+              width: 40px;
+              height: 40px;
+              border-radius: 10px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: #db2777;
+            "
+          >
+            <i class="icon ri-download-2-line" style="font-size: 20px"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 0.95rem; font-weight: 700">
+              Instalar App
+            </h3>
+            <p
+              style="margin: 0; font-size: 0.8rem; color: var(--text-secondary)"
+            >
+              Añadir a pantalla de inicio
+            </p>
+          </div>
+        </div>
+        <div
+          class="setting-card"
+          onclick="toggleSidebar(); window.open('https://www.paypal.com/donate/?hosted_button_id=ELYXMJVZP5B8W', '_blank')"
+          style="
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: transform 0.2s;
+          "
+        >
+          <div
+            style="
+              background: rgba(0, 48, 135, 0.1);
+              width: 40px;
+              height: 40px;
+              border-radius: 10px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <i
+              class="icon ri-paypal-fill"
+              style="color: #004ad4; font-size: 24px"
+            ></i>
+          </div>
+
+          <div>
+            <h3
+              style="
+                margin: 0;
+                font-size: 0.95rem;
+                font-weight: 700;
+                color: #00a2ff;
+              "
+            >
+              ¡Dóname!
+            </h3>
+            <p
+              style="margin: 0; font-size: 0.8rem; color: var(--text-secondary)"
+            >
+              Invítame a un café ☕
+            </p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div id="notification-container"></div>
+
+    <div id="realtime-modal" class="modal-overlay">
+      <div class="modal-card gpu-accelerated">
+        <div class="modal-header">
+          <h3 id="realtime-stop-title">Parada...</h3>
+          <button
+            onclick="closeRealTimeModal()"
+            class="icon-btn close-modal-btn"
+          >
+            <i class="icon ri-close-line"></i>
+          </button>
+        </div>
+        <div id="realtime-content" class="modal-body">
+          <div class="spinner" style="margin: 20px auto"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="image-modal" class="image-modal-overlay">
+      <div class="modal-controls">
+        <button class="icon-btn control-btn" id="zoom-out-btn">
+          <i class="icon ri-subtract-line"></i>
+        </button>
+        <button class="icon-btn control-btn" id="zoom-in-btn">
+          <i class="icon ri-add-line"></i>
+        </button>
+        <button
+          class="icon-btn control-btn close-btn"
+          onclick="closeFullImage()"
+        >
+          <i class="icon ri-close-line"></i>
+        </button>
+      </div>
+      <div class="panzoom-container" id="panzoom-scene">
+        <img id="full-image-src" src="" alt="Mapa Completo" />
+      </div>
+    </div>
+
+    <div id="cookie-banner" class="cookie-banner">
+      <div class="cookie-content">
+        <div class="cookie-icon">
+          <i class="icon ri-shield-user-fill"></i>
+        </div>
+        <div class="cookie-text">
+          <h3>Uso de Cookies</h3>
+          <p>
+            Utilizamos cookies de terceros (Google) para habilitar la
+            traducción. Si las rechazas, esta función no estará disponible. El
+            resto de datos solo se guardan en la caché (LocalStorage) de tu
+            dispositivo, no van a ningun servidor externo, por lo que rechazar
+            estas cookies no influirá en ese apartado.
+          </p>
+        </div>
+      </div>
+      <div class="cookie-actions">
+        <button id="btn-reject-cookies" class="cookie-btn secondary">
+          Rechazar
+        </button>
+        <button id="btn-accept-cookies" class="cookie-btn primary">
+          Aceptar
+        </button>
+      </div>
+    </div>
+    <div id="google_translate_element" style="display: none"></div>
+  </body>
+</html>

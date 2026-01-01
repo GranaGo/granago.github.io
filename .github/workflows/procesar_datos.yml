@@ -1,0 +1,35 @@
+name: Procesar GTFS a JSON
+
+on:
+  push:
+    paths:
+      - "raw_data/**"
+      - "scripts/convertir_gtfs.py"
+  workflow_dispatch:
+
+jobs:
+  construir-datos:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: 📥 Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: 📦 Instalar dependencias
+        run: pip install pandas
+
+      - name: ⚙️ Ejecutar script de conversión
+        run: python scripts/convertir_gtfs.py
+
+      - name: 💾 Guardar y subir cambios (Commit & Push)
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🤖 Auto: Nuevos horarios y rutas generados"
+          file_pattern: "data/**"

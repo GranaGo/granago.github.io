@@ -1,0 +1,26 @@
+{
+  "name": "GranáGo",
+  "short_name": "GranáGo",
+  "id": "./",
+  "description": "Muévete con Sentido por Granada.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f0f2f5",
+  "theme_color": "#f0f2f5",
+  "orientation": "portrait-primary",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "images/Logo192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/Logo192x192.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+name: Normalize Granada POIs
+
+on:
+  push:
+    paths:
+      - raw_data/poi.geojson
+      - scripts/ajustar_pois.py
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Normalize GeoJSON
+        run: python scripts/ajustar_pois.py
+
+      - name: 💾 Guardar dy subir cambios (Commit & Push)
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🤖 Auto: GeoJSON POIs Granada actualizado"
+          file_pattern: "data/poi_final.geojson"

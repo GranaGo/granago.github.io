@@ -1,0 +1,38 @@
+name: Auto Update Service Worker
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "sw.js"
+
+permissions:
+  contents: write
+
+jobs:
+  update-sw-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Actualizar versión en sw.js
+        run: |
+          NEW_VERSION="granago-v$(date +%s)"
+
+          sed -i "s/const CACHE_NAME = .*/const CACHE_NAME = '$NEW_VERSION';/" sw.js
+
+          echo "✅ Versión actualizada a: $NEW_VERSION"
+
+      - name: Guardar cambios (Commit & Push)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [[ -n $(git status -s) ]]; then
+            git add sw.js
+            git commit -m "🤖 Auto-update SW version [skip ci]"
+            git push
+          else
+            echo "No hay cambios necesarios."
+          fi
