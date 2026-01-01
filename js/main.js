@@ -422,7 +422,14 @@ document.addEventListener("DOMContentLoaded", () => {
   initWeather();
   initHomeDashboard();
   initCookieConsent();
+  const savedLang = localStorage.getItem("granaGo_selected_lang");
+  const consent = localStorage.getItem("granaGo_cookie_consent");
 
+  if (consent === "accepted" && savedLang && savedLang !== "es") {
+    setTimeout(() => {
+      changeLanguage(savedLang);
+    }, 1000);
+  }
   const homeBtn = document.querySelector(".dock-item-home");
   if (homeBtn) homeBtn.classList.add("active");
 });
@@ -4124,6 +4131,62 @@ async function initHomeDashboard() {
   ]);
 }
 
+function isPointNearPolyline(pointLat, pointLng, polyline, thresholdMeters) {
+  for (let i = 0; i < polyline.length - 1; i++) {
+    const start = polyline[i];
+    const end = polyline[i + 1];
+    const dist = distancePointToSegment(
+      pointLat,
+      pointLng,
+      start[0],
+      start[1],
+      end[0],
+      end[1]
+    );
+    if (dist <= thresholdMeters) return true;
+  }
+  return false;
+}
+
+function distancePointToSegment(pLat, pLng, aLat, aLng, bLat, bLng) {
+  const R = 6371e3;
+
+  const x = (pLng - aLng) * Math.cos(((aLat + pLat) / 2) * (Math.PI / 180));
+  const y = pLat - aLat;
+
+  const degToM = 111319;
+  const x_m = x * degToM;
+  const y_m = y * degToM;
+
+  const dx =
+    (bLng - aLng) * Math.cos(((aLat + bLat) / 2) * (Math.PI / 180)) * degToM;
+  const dy = (bLat - aLat) * degToM;
+
+  const dot = x_m * dx + y_m * dy;
+  const len_sq = dx * dx + dy * dy;
+
+  let param = -1;
+  if (len_sq !== 0) param = dot / len_sq;
+
+  let xx, yy;
+
+  if (param < 0) {
+    xx = 0;
+    yy = 0;
+  } else if (param > 1) {
+    xx = dx;
+    yy = dy;
+  } else {
+    xx = param * dx;
+    yy = param * dy;
+  }
+
+  const d_x = x_m - xx;
+  const d_y = y_m - yy;
+
+  return Math.sqrt(d_x * d_x + d_y * d_y);
+}
+
 async function updateHomeEventsAndBus() {
   const eventsList = document.getElementById("home-events-list");
   const busContent = document.getElementById("home-bus-content");
@@ -4148,8 +4211,29 @@ async function updateHomeEventsAndBus() {
     let eventCount = 0;
     let affectedLines = new Set();
 
+    const LINES_CORTE_CENTRO = ["4", "8", "11", "21", "33"];
+
+    const KEYWORDS_CENTRO = [
+      "gran vía",
+      "gran via",
+      "reyes católicos",
+      "reyes catolicos",
+      "puerta real",
+      "acera del darro",
+    ];
+
+    const EJE_CENTRO_POLYLINE = [
+      [37.18437, -3.6006],
+      [37.17965, -3.5996],
+      [37.17635, -3.59795],
+      [37.1743, -3.5986],
+      [37.1705, -3.5976],
+    ];
+
     items.forEach((item) => {
       const description = item.querySelector("description").textContent;
+      const title = item.querySelector("title").textContent;
+
       const dateMatch = description.match(
         /Fin de la publicación:\s*([\d\-]+)/i
       );
@@ -4159,7 +4243,6 @@ async function updateHomeEventsAndBus() {
 
         if (eventEndDate === todayStr) {
           if (eventCount < 3) {
-            const title = item.querySelector("title").textContent;
             const cleanTitle = title
               .replace(/^Corte de tráfico en /i, "")
               .replace(/^Afección al tráfico /i, "")
@@ -4170,7 +4253,6 @@ async function updateHomeEventsAndBus() {
             div.className = "mini-event-title";
             div.textContent = cleanTitle;
             eventsFragment.appendChild(div);
-
             eventCount++;
           }
 
@@ -4184,13 +4266,40 @@ async function updateHomeEventsAndBus() {
               if (cleanLine.length > 0) affectedLines.add(cleanLine);
             });
           }
+
+          let affectsCentro = false;
+          const fullText = (title + " " + description).toLowerCase();
+
+          if (KEYWORDS_CENTRO.some((keyword) => fullText.includes(keyword))) {
+            affectsCentro = true;
+          }
+          if (!affectsCentro) {
+            const coordsMatch = description.match(
+              /Ubicación.*?\(([\d.-]+),\s*([\d.-]+)\)/i
+            );
+            if (coordsMatch) {
+              const lat = parseFloat(coordsMatch[1]);
+              const lng = parseFloat(coordsMatch[2]);
+              if (isPointNearPolyline(lat, lng, EJE_CENTRO_POLYLINE, 45)) {
+                affectsCentro = true;
+                console.log(
+                  "Evento detectado en Eje Centro por coordenadas:",
+                  title
+                );
+              }
+            }
+          }
+
+          if (affectsCentro) {
+            LINES_CORTE_CENTRO.forEach((l) => affectedLines.add(l));
+          }
         }
       }
     });
 
     eventsList.innerHTML = "";
     if (eventCount === 0) {
-      eventsList.innerHTML = `<div class="summary-sub">Ningún evento disponible hoy.</div>`;
+      eventsList.innerHTML = `<div class="summary-sub">Ningún evento relevante hoy.</div>`;
     } else {
       eventsList.appendChild(eventsFragment);
     }
@@ -4205,7 +4314,7 @@ async function updateHomeEventsAndBus() {
       const titleDiv = document.createElement("div");
       titleDiv.className = "bus-status-text";
       titleDiv.style.cssText = "color:#ef4444; font-weight:700;";
-      titleDiv.textContent = "Líneas afectadas:";
+      titleDiv.textContent = "Líneas afectadas hoy:";
 
       const wrapperDiv = document.createElement("div");
       wrapperDiv.className = "bus-lines-wrapper";
@@ -4224,7 +4333,7 @@ async function updateHomeEventsAndBus() {
     } else {
       busContent.innerHTML = `
         <div class="summary-value" style="color:#10b981; font-size:1.2rem">Normal</div>
-        <div class="summary-sub">Sin desvíos específicos.</div>
+        <div class="summary-sub">Sin desvíos específicos hoy.</div>
       `;
     }
   } catch (e) {
@@ -4436,10 +4545,8 @@ window.changeLanguage = async function (lang) {
 
   if (consent !== "accepted") {
     const banner = document.getElementById("cookie-banner");
-
     if (banner) {
       banner.classList.add("visible");
-
       showNotification(
         "Acción requerida",
         "Debes aceptar las cookies para habilitar la traducción.",
@@ -4453,6 +4560,7 @@ window.changeLanguage = async function (lang) {
     showNotification("Cargando idiomas", "Preparando traducción...", "info");
     try {
       await loadGoogleTranslateScript();
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     } catch (error) {
       console.error(error);
       showNotification("Error", "No se pudo cargar el traductor", "error");
@@ -4465,6 +4573,7 @@ window.changeLanguage = async function (lang) {
   if (googleSelect) {
     googleSelect.value = lang;
     googleSelect.dispatchEvent(new Event("change"));
+    localStorage.setItem("granaGo_selected_lang", lang);
 
     const langNames = {
       es: "Español",
@@ -4472,15 +4581,29 @@ window.changeLanguage = async function (lang) {
       fr: "Français",
       it: "Italiano",
     };
-    showNotification(
-      "Idioma cambiado",
-      `Traduciendo a ${langNames[lang] || lang}...`,
-      "success"
-    );
+
+    let msg = `Traduciendo a ${langNames[lang] || lang}...`;
+    if (lang === "es") msg = "Volviendo al idioma original...";
+
+    showNotification("Idioma cambiado", msg, "success");
+    updateLangButtonActiveState(lang);
   } else {
     console.warn("El widget de traducción no se inicializó correctamente.");
+    setTimeout(() => window.changeLanguage(lang), 500);
   }
 };
+
+function updateLangButtonActiveState(lang) {
+  document.querySelectorAll(".lang-btn").forEach((btn) => {
+    btn.style.filter = "brightness(1)";
+    btn.style.transform = "scale(1)";
+  });
+  const activeBtn = document.querySelector(`.lang-${lang}`);
+  if (activeBtn) {
+    activeBtn.style.filter = "brightness(1.2)";
+    activeBtn.style.transform = "scale(1.05)";
+  }
+}
 
 function initCookieConsent() {
   const consent = localStorage.getItem("granaGo_cookie_consent");
