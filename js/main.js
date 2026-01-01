@@ -970,7 +970,11 @@ async function initMapParadas() {
         maxZoom: 19,
       }).setView([GRANADA_COORDS.lat, GRANADA_COORDS.lon], 13);
 
-      mapInstance.locate({ setView: true, maxZoom: 16 });
+      mapInstance.locate({
+        setView: true,
+        maxZoom: 16,
+        enableHighAccuracy: true,
+      });
 
       mapInstance.on("locationfound", function (e) {
         if (!userMarker) {
@@ -1072,34 +1076,43 @@ window.locateUser = function () {
   if (!mapInstance) return;
   showNotification("Buscando GPS", "Obteniendo tu ubicación...", "info");
 
-  mapInstance.locate({ setView: true, maxZoom: 16 });
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      const latlng = [lat, lng];
 
-  mapInstance.once("locationfound", function (e) {
-    if (userMarker) {
-      userMarker.setLatLng(e.latlng);
-    } else {
-      const gpsIcon = L.divIcon({
-        className: "gps-marker-container",
-        html: `<div class="gps-dot-animated"></div>`,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
-      });
-      userMarker = L.marker(e.latlng, { icon: gpsIcon }).addTo(mapInstance);
-    }
-    showNotification(
-      "Ubicación encontrada",
-      "Te hemos localizado en el mapa",
-      "success"
-    );
-  });
+      mapInstance.flyTo(latlng, 16);
 
-  mapInstance.once("locationerror", function (e) {
-    showNotification(
-      "Error GPS",
-      "No pudimos acceder a tu ubicación. Revisa los permisos.",
-      "error"
-    );
-  });
+      if (userMarker) {
+        userMarker.setLatLng(latlng);
+      } else {
+        const gpsIcon = L.divIcon({
+          className: "gps-marker-container",
+          html: `<div class="gps-dot-animated"></div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
+        });
+        userMarker = L.marker(latlng, { icon: gpsIcon }).addTo(mapInstance);
+      }
+
+      showNotification(
+        "Ubicación encontrada",
+        "Te hemos localizado",
+        "success"
+      );
+    },
+    (error) => {
+      console.warn("Error GPS:", error);
+      let msg = "No pudimos acceder a tu ubicación.";
+      if (error.code === 1) msg = "Permiso denegado. Activa el GPS.";
+      if (error.code === 2) msg = "Señal GPS no disponible.";
+      if (error.code === 3) msg = "Tiempo de espera agotado.";
+
+      showNotification("Error GPS", msg, "error");
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  );
 };
 
 async function loadAndProcessStops() {
@@ -2326,7 +2339,11 @@ async function initLugaresMap() {
     });
 
     placesMapInstance.addLayer(placesClusterGroup);
-    placesMapInstance.locate({ setView: true, maxZoom: 16 });
+    placesMapInstance.locate({
+      setView: true,
+      maxZoom: 16,
+      enableHighAccuracy: true,
+    });
 
     placesMapInstance.on("locationfound", function (e) {
       const gpsIcon = L.divIcon({
@@ -2555,17 +2572,31 @@ window.focusPlace = function (lat, lng, category) {
 window.locateUserPlaces = function () {
   if (!placesMapInstance) return;
   showNotification("GPS", "Obteniendo ubicación...", "info");
-  placesMapInstance.locate({ setView: true, maxZoom: 16 });
 
-  placesMapInstance.once("locationfound", (e) => {
-    const gpsIcon = L.divIcon({
-      className: "gps-marker-container",
-      html: `<div class="gps-dot-animated"></div>`,
-      iconSize: [24, 24],
-      iconAnchor: [12, 12],
-    });
-    L.marker(e.latlng, { icon: gpsIcon }).addTo(placesMapInstance);
-  });
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const latlng = [position.coords.latitude, position.coords.longitude];
+      placesMapInstance.flyTo(latlng, 16);
+
+      const gpsIcon = L.divIcon({
+        className: "gps-marker-container",
+        html: `<div class="gps-dot-animated"></div>`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+      });
+      L.marker(latlng, { icon: gpsIcon }).addTo(placesMapInstance);
+
+      showNotification("Ubicación encontrada", "", "success");
+    },
+    (error) => {
+      showNotification(
+        "Error GPS",
+        "Revisa los permisos de ubicación",
+        "error"
+      );
+    },
+    { enableHighAccuracy: true, timeout: 5000 }
+  );
 };
 
 window.openMapsApp = function (lat, lng) {
@@ -2957,7 +2988,11 @@ function initRepostarMap() {
       },
     }).addTo(repostarMap);
 
-    repostarMap.locate({ setView: true, maxZoom: 14 });
+    repostarMap.locate({
+      setView: true,
+      maxZoom: 14,
+      enableHighAccuracy: true,
+    });
     repostarMap.on("locationfound", (e) => {
       if (!repostarUserMarker) {
         const gpsIcon = L.divIcon({
@@ -3348,8 +3383,32 @@ window.filterEVMap = function (mode, btn) {
 
 window.locateUserFuel = function () {
   if (!repostarMap) return;
-  repostarMap.locate({ setView: true, maxZoom: 15 });
   showNotification("GPS", "Localizando...", "info");
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const latlng = [position.coords.latitude, position.coords.longitude];
+      repostarMap.flyTo(latlng, 15);
+
+      if (!repostarUserMarker) {
+        const gpsIcon = L.divIcon({
+          className: "gps-marker-container",
+          html: `<div class="gps-dot-animated"></div>`,
+          iconSize: [24, 24],
+        });
+        repostarUserMarker = L.marker(latlng, { icon: gpsIcon }).addTo(
+          repostarMap
+        );
+      } else {
+        repostarUserMarker.setLatLng(latlng);
+      }
+      showNotification("Localizado", "Ubicación actualizada", "success");
+    },
+    (error) => {
+      showNotification("Error", "No se pudo obtener la ubicación", "error");
+    },
+    { enableHighAccuracy: true, timeout: 5000 }
+  );
 };
 
 async function initCamarasMap() {
@@ -3384,7 +3443,11 @@ async function initCamarasMap() {
 
     camarasMapInstance.addLayer(camarasClusterGroup);
 
-    camarasMapInstance.locate({ setView: true, maxZoom: 14 });
+    camarasMapInstance.locate({
+      setView: true,
+      maxZoom: 14,
+      enableHighAccuracy: true,
+    });
     camarasMapInstance.on("locationfound", (e) => {
       L.marker(e.latlng, {
         icon: L.divIcon({
@@ -3567,10 +3630,25 @@ function createCameraMarker(latlng, type) {
 }
 
 window.locateUserCamaras = function () {
-  if (camarasMapInstance) {
-    showNotification("GPS", "Localizando...", "info");
-    camarasMapInstance.locate({ setView: true, maxZoom: 15 });
-  }
+  if (!camarasMapInstance) return;
+  showNotification("GPS", "Localizando...", "info");
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const latlng = [position.coords.latitude, position.coords.longitude];
+      camarasMapInstance.flyTo(latlng, 15);
+
+      L.marker(latlng, {
+        icon: L.divIcon({
+          className: "gps-marker-container",
+          html: `<div class="gps-dot-animated"></div>`,
+          iconSize: [24, 24],
+        }),
+      }).addTo(camarasMapInstance);
+    },
+    () => showNotification("Error", "Fallo al localizar", "error"),
+    { enableHighAccuracy: true }
+  );
 };
 
 async function initParkingsMap() {
