@@ -4,6 +4,7 @@ const UNAVAILABLE_MESSAGE = "Sin llegadas próximas...";
 
 let newWorker;
 let deferredPrompt;
+let isManualUpdate = false;
 
 let mapInstance = null;
 let currentTileLayer = null;
@@ -4533,8 +4534,10 @@ if ("serviceWorker" in navigator) {
   let refreshing;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if (refreshing) return;
-    window.location.reload();
-    refreshing = true;
+    if (isManualUpdate) {
+      window.location.reload();
+      refreshing = true;
+    }
   });
 }
 
@@ -4573,7 +4576,8 @@ function showUpdateNotification() {
 
   container.appendChild(toast);
 
-  document.getElementById("update-btn").addEventListener("click", () => {
+  ddocument.getElementById("update-btn").addEventListener("click", () => {
+    isManualUpdate = true;
     if (newWorker) {
       newWorker.postMessage({ action: "skipWaiting" });
     }
