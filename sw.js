@@ -1,4 +1,4 @@
-const CACHE_NAME = 'granago-v1767300518';
+const CACHE_NAME = 'granago-v1767301171';
 
 const ASSETS_TO_CACHE = [
   "./",
