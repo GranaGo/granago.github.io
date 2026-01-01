@@ -4585,8 +4585,10 @@ function showUpdateNotification() {
 
   container.appendChild(toast);
 
-  ddocument.getElementById("update-btn").addEventListener("click", () => {
+  document.getElementById("update-btn").addEventListener("click", () => {
     isManualUpdate = true;
+    const toastElem = document.getElementById("pwa-update-toast");
+    if (toastElem) toastElem.style.display = "none";
     if (newWorker) {
       newWorker.postMessage({ action: "skipWaiting" });
     }
