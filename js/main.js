@@ -2702,7 +2702,7 @@ async function renderMobilityEvents() {
 
   try {
     const RSS_URL = "http://www.movilidadgranada.com/app/noticias/rss.php";
-    const PROXY_URL = "https://corsproxy.io/?" + encodeURIComponent(RSS_URL);
+    const PROXY_URL = "https://proxy.contacto-granago.workers.dev/?url=" + encodeURIComponent(RSS_URL);
 
     const response = await fetch(PROXY_URL);
     const strXML = await response.text();
@@ -3071,7 +3071,7 @@ function dismissRepostarLoader() {
 
 async function fetchFuelDataForMap(type) {
   try {
-    const PROXY = "https://corsproxy.io/?";
+    const PROXY = "https://proxy.contacto-granago.workers.dev/?url=";
     const TARGET = encodeURIComponent(
       "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroProvincia/18"
     );
@@ -3556,7 +3556,7 @@ function loadLocalKMLCameras() {
 }
 
 async function loadDGTXMLCameras() {
-  const PROXY_URL = "https://corsproxy.io/?";
+  const PROXY_URL = "https://proxy.contacto-granago.workers.dev/?url=";
   const DGT_URL =
     "https://nap.dgt.es/datex2/v3/dgt/DevicePublication/camaras_datex2_v36.xml";
 
@@ -3743,7 +3743,7 @@ async function initParkingsMap() {
 }
 
 async function fetchParkingsData() {
-  const PROXY = "https://corsproxy.io/?";
+  const PROXY = "https://proxy.contacto-granago.workers.dev/?url=";
   const TABLE_URL =
     "http://www.movilidadgranada.com/aparcamientos/par_tabla.php";
 
@@ -4195,153 +4195,491 @@ async function updateHomeEventsAndBus() {
   const eventsList = document.getElementById("home-events-list");
   const busContent = document.getElementById("home-bus-content");
 
-  try {
-    const RSS_URL = "http://www.movilidadgranada.com/app/noticias/rss.php";
-    const PROXY_URL = "https://corsproxy.io/?" + encodeURIComponent(RSS_URL);
+  const PROXY_URL = "https://proxy.contacto-granago.workers.dev/?url=";
+  const URLS = {
+    rss:
+      PROXY_URL +
+      encodeURIComponent(
+        "http://www.movilidadgranada.com/app/noticias/rss.php"
+      ),
+    centro:
+      PROXY_URL +
+      encodeURIComponent("http://www.movilidadgranada.com/bus_cortecentro.php"),
+    novedades:
+      PROXY_URL +
+      encodeURIComponent("http://www.movilidadgranada.com/bus_novedades.php"),
+  };
 
-    const response = await fetch(PROXY_URL);
-    const strXML = await response.text();
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(strXML, "text/xml");
-    const items = xmlDoc.querySelectorAll("item");
+  const VALID_LINES = new Set([
+    "4",
+    "5",
+    "7",
+    "8",
+    "9",
+    "11",
+    "13",
+    "21",
+    "33",
+    "N1",
+    "N3",
+    "N5",
+    "N6",
+    "N9",
+    "S0",
+    "S2",
+    "C5",
+    "C30",
+    "C31",
+    "C32",
+    "C34",
+    "C35",
+    "U1",
+    "U2",
+    "U3",
+    "111",
+    "121",
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+  ]);
 
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-    const todayStr = `${year}-${month}-${day}`;
+  const EJE_CENTRO_POLYLINE = [
+    [37.18437, -3.6006],
+    [37.17965, -3.5996],
+    [37.17635, -3.59795],
+    [37.1743, -3.5986],
+    [37.1705, -3.5976],
+  ];
 
-    const eventsFragment = document.createDocumentFragment();
-    let eventCount = 0;
-    let affectedLines = new Set();
+  let affectedLines = new Set();
+  let eventsFound = [];
 
-    const LINES_CORTE_CENTRO = ["4", "8", "11", "21", "33"];
+  const distancePointToSegment = (pLat, pLng, aLat, aLng, bLat, bLng) => {
+    const degToM = 111319;
+    const x =
+      (pLng - aLng) * Math.cos(((aLat + pLat) / 2) * (Math.PI / 180)) * degToM;
+    const y = (pLat - aLat) * degToM;
+    const dx =
+      (bLng - aLng) * Math.cos(((aLat + bLat) / 2) * (Math.PI / 180)) * degToM;
+    const dy = (bLat - aLat) * degToM;
+    const dot = x * dx + y * dy;
+    const len_sq = dx * dx + dy * dy;
+    let param = -1;
+    if (len_sq !== 0) param = dot / len_sq;
+    let xx, yy;
+    if (param < 0) {
+      xx = 0;
+      yy = 0;
+    } else if (param > 1) {
+      xx = dx;
+      yy = dy;
+    } else {
+      xx = param * dx;
+      yy = param * dy;
+    }
+    const d_x = x - xx;
+    const d_y = y - yy;
+    return Math.sqrt(d_x * d_x + d_y * d_y);
+  };
 
-    const KEYWORDS_CENTRO = [
-      "gran vía",
-      "gran via",
-      "reyes católicos",
-      "reyes catolicos",
-      "puerta real",
-      "acera del darro",
-    ];
-
-    const EJE_CENTRO_POLYLINE = [
-      [37.18437, -3.6006],
-      [37.17965, -3.5996],
-      [37.17635, -3.59795],
-      [37.1743, -3.5986],
-      [37.1705, -3.5976],
-    ];
-
-    items.forEach((item) => {
-      const description = item.querySelector("description").textContent;
-      const title = item.querySelector("title").textContent;
-
-      const dateMatch = description.match(
-        /Fin de la publicación:\s*([\d\-]+)/i
+  const isPointNearPolyline = (
+    pointLat,
+    pointLng,
+    polyline,
+    thresholdMeters
+  ) => {
+    for (let i = 0; i < polyline.length - 1; i++) {
+      const start = polyline[i];
+      const end = polyline[i + 1];
+      const dist = distancePointToSegment(
+        pointLat,
+        pointLng,
+        start[0],
+        start[1],
+        end[0],
+        end[1]
       );
+      if (dist <= thresholdMeters) return true;
+    }
+    return false;
+  };
 
-      if (dateMatch) {
-        const eventEndDate = dateMatch[1].trim();
+  const parseSpanishDate = (dayStr, monthName, currentYear) => {
+    const MONTHS = {
+      enero: 0,
+      febrero: 1,
+      marzo: 2,
+      abril: 3,
+      mayo: 4,
+      junio: 5,
+      julio: 6,
+      agosto: 7,
+      septiembre: 8,
+      octubre: 9,
+      noviembre: 10,
+      diciembre: 11,
+    };
+    let m = MONTHS[monthName.toLowerCase()];
+    let d = parseInt(dayStr);
+    let y = currentYear;
+    const now = new Date();
+    if (now.getMonth() > 9 && m < 3) y = y + 1;
+    return new Date(y, m, d);
+  };
 
-        if (eventEndDate === todayStr) {
-          if (eventCount < 3) {
-            const cleanTitle = title
-              .replace(/^Corte de tráfico en /i, "")
-              .replace(/^Afección al tráfico /i, "")
-              .replace(/^Corte parcial en /i, "")
-              .trim();
+  const isDateActive = (text) => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const lowerText = text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+    const rangeRegex =
+      /(?:del?|desde el?)\s+(\d{1,2})\s+de\s+([a-z]+).*?(?:al?|hasta el?)\s+(\d{1,2})\s+de\s+([a-z]+)/i;
+    const rangeMatch = lowerText.match(rangeRegex);
+    if (rangeMatch) {
+      try {
+        const start = parseSpanishDate(
+          rangeMatch[1],
+          rangeMatch[2],
+          now.getFullYear()
+        );
+        const end = parseSpanishDate(
+          rangeMatch[3],
+          rangeMatch[4],
+          now.getFullYear()
+        );
+        if (start > end) end.setFullYear(end.getFullYear() + 1);
+        if (now >= start && now <= end) return true;
+        return false;
+      } catch (e) {
+        return false;
+      }
+    }
 
-            const div = document.createElement("div");
-            div.className = "mini-event-title";
-            div.textContent = cleanTitle;
-            eventsFragment.appendChild(div);
-            eventCount++;
+    const singleDateRegex = /(?:el|día)\s+(\d{1,2})\s+de\s+([a-z]+)/i;
+    const singleMatch = lowerText.match(singleDateRegex);
+    if (singleMatch) {
+      const targetDate = parseSpanishDate(
+        singleMatch[1],
+        singleMatch[2],
+        now.getFullYear()
+      );
+      if (now.getTime() === targetDate.getTime()) return true;
+      return false;
+    }
+
+    if (
+      lowerText.includes("hoy") ||
+      lowerText.includes("ahora") ||
+      lowerText.includes("actualmente")
+    )
+      return true;
+    return false;
+  };
+
+  const isDayTimeActive = (text) => {
+    const clean = text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+    const now = new Date();
+    const currentDay = now.getDay();
+    const currentHour = now.getHours();
+    const dayMap = {
+      domingo: 0,
+      lunes: 1,
+      martes: 2,
+      miercoles: 3,
+      jueves: 4,
+      viernes: 5,
+      sabado: 6,
+    };
+
+    let daysMentioned = [];
+    Object.keys(dayMap).forEach((dayName) => {
+      if (new RegExp(`\\b${dayName}s?\\b`, "i").test(clean))
+        daysMentioned.push(dayMap[dayName]);
+    });
+    if (clean.includes("fin de semana")) daysMentioned.push(5, 6, 0);
+
+    if (daysMentioned.length > 0 && !daysMentioned.includes(currentDay))
+      return false;
+
+    const timeRegex =
+      /(\d{1,2})(?::\d{2})?\s*(?:h|horas)?\s*(?:a|hasta)\s*(\d{1,2})(?::\d{2})?/i;
+    const timeMatch = clean.match(timeRegex);
+    if (timeMatch) {
+      const startH = parseInt(timeMatch[1]);
+      const endH = parseInt(timeMatch[2]);
+      if (currentHour < startH || currentHour >= endH) return false;
+    }
+    return true;
+  };
+
+  const extractLines = (text, forceCentro = false) => {
+    const cleanText = text.toUpperCase();
+    let specificLinesFound = false;
+    const regex =
+      /(?:L[IÍ]NEAS?|BUS(?:ES)?)(?:\s*[:])?\s+((?:(?:[NCSU]?\d+|[A-Z])(?:[,\sYEO]|AND)*)+)/gi;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      const numbers = match[1].split(/[^A-Z0-9]+/i);
+      numbers.forEach((n) => {
+        const cleanN = n.trim().toUpperCase();
+        if (VALID_LINES.has(cleanN)) {
+          affectedLines.add(cleanN);
+          specificLinesFound = true;
+        }
+      });
+    }
+
+    const isEjeCentralText = /GRAN V[IÍ]A|REYES CAT[OÓ]LICOS|PUERTA REAL/i.test(
+      cleanText
+    );
+
+    if (forceCentro || (isEjeCentralText && !specificLinesFound)) {
+      ["4", "8", "11", "21", "33"].forEach((l) => affectedLines.add(l));
+      ["C31", "C32", "C34"].forEach((l) => affectedLines.add(l));
+    }
+
+    if (/CALLE ELVIRA|CARRERA DEL DARRO|SEMANA SANTA/i.test(cleanText)) {
+      ["C31", "C34"].forEach((l) => affectedLines.add(l));
+    }
+  };
+
+  const cleanHTML = (htmlString) => {
+    const doc = new DOMParser().parseFromString(htmlString, "text/html");
+    doc
+      .querySelectorAll(
+        "script, style, nav, footer, header, .menu, #menu, .footer"
+      )
+      .forEach((e) => e.remove());
+    return doc.body.innerText.replace(/\s+/g, " ").trim();
+  };
+
+  try {
+    const [rssRes, centroRes, novedadesRes] = await Promise.allSettled([
+      fetch(URLS.rss).then((r) => r.text()),
+      fetch(URLS.centro).then((r) => r.text()),
+      fetch(URLS.novedades).then((r) => r.text()),
+    ]);
+
+    if (rssRes.status === "fulfilled") {
+      const parser = new DOMParser();
+      const items = parser
+        .parseFromString(rssRes.value, "text/xml")
+        .querySelectorAll("item");
+      items.forEach((item) => {
+        const desc = item.querySelector("description").textContent;
+        const title = item.querySelector("title").textContent;
+        const fullText = title + " " + desc;
+        const cleanText = fullText
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
+
+        let isGpsCentro = false;
+        const coordsMatch = desc.match(
+          /Ubicación.*?\(([\d.-]+),\s*([\d.-]+)\)/i
+        );
+        if (coordsMatch) {
+          const lat = parseFloat(coordsMatch[1]);
+          const lng = parseFloat(coordsMatch[2]);
+          if (isPointNearPolyline(lat, lng, EJE_CENTRO_POLYLINE, 50)) {
+            isGpsCentro = true;
           }
+        }
 
-          const busMatch = description.match(
-            /Posible afección a líneas:\s*([A-Z0-9,\s]+)/i
+        if (
+          (isDateActive(fullText) && isDayTimeActive(fullText)) ||
+          isGpsCentro
+        ) {
+          extractLines(fullText, isGpsCentro);
+        }
+
+        const now = new Date();
+        const todayDay = now.getDate();
+        const todayMonth = now.getMonth();
+
+        const MONTHS = {
+          enero: 0,
+          febrero: 1,
+          marzo: 2,
+          abril: 3,
+          mayo: 4,
+          junio: 5,
+          julio: 6,
+          agosto: 7,
+          septiembre: 8,
+          octubre: 9,
+          noviembre: 10,
+          diciembre: 11,
+        };
+
+        let endsToday = false;
+
+        const rangeEndMatch = cleanText.match(
+          /(?:al?|hasta el?|fin.*?|concluy.*?)\s+(\d{1,2})\s+de\s+([a-z]+)/i
+        );
+
+        if (rangeEndMatch) {
+          const d = parseInt(rangeEndMatch[1]);
+          const mName = rangeEndMatch[2];
+          if (MONTHS[mName] === todayMonth && d === todayDay) {
+            endsToday = true;
+          }
+        } else {
+          const singleDateMatch = cleanText.match(
+            /(?:el|día)\s+(\d{1,2})\s+de\s+([a-z]+)/i
           );
-          if (busMatch) {
-            const rawLines = busMatch[1].split(",");
-            rawLines.forEach((line) => {
-              const cleanLine = line.trim();
-              if (cleanLine.length > 0) affectedLines.add(cleanLine);
-            });
+          if (
+            singleDateMatch &&
+            !cleanText.includes("desde") &&
+            !cleanText.includes("inicio")
+          ) {
+            const d = parseInt(singleDateMatch[1]);
+            const mName = singleDateMatch[2];
+            if (MONTHS[mName] === todayMonth && d === todayDay) {
+              endsToday = true;
+            }
           }
+        }
+        if (
+          cleanText.includes("finaliza hoy") ||
+          cleanText.includes("termina hoy") ||
+          cleanText.includes("solo hoy")
+        ) {
+          endsToday = true;
+        }
 
-          let affectsCentro = false;
-          const fullText = (title + " " + description).toLowerCase();
+        if (
+          !endsToday &&
+          cleanText.includes("hoy") &&
+          !cleanText.includes("hasta")
+        ) {
+          endsToday = true;
+        }
 
-          if (KEYWORDS_CENTRO.some((keyword) => fullText.includes(keyword))) {
-            affectsCentro = true;
+        if (endsToday) {
+          const cleanTitle = title
+            .replace(/^Corte de tráfico en |^Afección al tráfico /i, "")
+            .trim();
+
+          if (!eventsFound.some((e) => e.title === cleanTitle)) {
+            eventsFound.push({ title: cleanTitle, desc: "Finaliza hoy" });
           }
-          if (!affectsCentro) {
-            const coordsMatch = description.match(
-              /Ubicación.*?\(([\d.-]+),\s*([\d.-]+)\)/i
-            );
-            if (coordsMatch) {
-              const lat = parseFloat(coordsMatch[1]);
-              const lng = parseFloat(coordsMatch[2]);
-              if (isPointNearPolyline(lat, lng, EJE_CENTRO_POLYLINE, 45)) {
-                affectsCentro = true;
-                console.log(
-                  "Evento detectado en Eje Centro por coordenadas:",
-                  title
-                );
+        }
+      });
+    }
+
+    if (centroRes.status === "fulfilled") {
+      const cleanText = cleanHTML(centroRes.value);
+      const upper = cleanText.toUpperCase();
+
+      const isCut =
+        (upper.includes("CORTADO") ||
+          upper.includes("CERRADO") ||
+          upper.includes("DESVÍO")) &&
+        !upper.includes("ABIERTO AL TRÁFICO") &&
+        !upper.includes("NORMALIDAD");
+
+      if (isCut && isDateActive(cleanText) && isDayTimeActive(cleanText)) {
+        extractLines(cleanText, true);
+        eventsFound.push({
+          title: "Eje Centro Cortado",
+          desc: "Desvío activo",
+        });
+      }
+    }
+
+    if (novedadesRes.status === "fulfilled") {
+      const doc = new DOMParser().parseFromString(
+        novedadesRes.value,
+        "text/html"
+      );
+      const content =
+        doc.querySelector("#contenido, .content, main") || doc.body;
+      const items = content.querySelectorAll("li, p, td");
+
+      items.forEach((el) => {
+        const text = el.innerText.trim();
+        if (text.length > 20 && text.length < 500) {
+          if (
+            isDateActive(text) &&
+            isDayTimeActive(text) &&
+            /CORT|DESV|AFEC/i.test(text)
+          ) {
+            const countBefore = affectedLines.size;
+            extractLines(text);
+            if (affectedLines.size > countBefore) {
+              let cleanTitle = text.split(".")[0].replace(/^- /, "");
+              if (cleanTitle.length > 40)
+                cleanTitle = cleanTitle.substring(0, 40) + "...";
+              if (
+                !eventsFound.some((e) =>
+                  e.title.includes(cleanTitle.substring(0, 10))
+                )
+              ) {
+                eventsFound.push({
+                  title: "Aviso Movilidad",
+                  desc: cleanTitle,
+                });
               }
             }
           }
-
-          if (affectsCentro) {
-            LINES_CORTE_CENTRO.forEach((l) => affectedLines.add(l));
-          }
         }
-      }
-    });
-
-    eventsList.innerHTML = "";
-    if (eventCount === 0) {
-      eventsList.innerHTML = `<div class="summary-sub">Ningún evento relevante hoy.</div>`;
-    } else {
-      eventsList.appendChild(eventsFragment);
+      });
     }
 
-    const linesArray = Array.from(affectedLines).sort((a, b) =>
+    eventsList.innerHTML = "";
+    const uniqueEvents = eventsFound.slice(0, 3);
+    if (uniqueEvents.length === 0)
+      eventsList.innerHTML = `<div class="summary-sub">Sin eventos relevantes ahora.</div>`;
+    else
+      uniqueEvents.forEach((evt) => {
+        const div = document.createElement("div");
+        div.className = "mini-event-title";
+        div.textContent = evt.title;
+        eventsList.appendChild(div);
+      });
+
+    busContent.innerHTML = "";
+    const sortedLines = Array.from(affectedLines).sort((a, b) =>
       a.localeCompare(b, undefined, { numeric: true })
     );
 
-    busContent.innerHTML = "";
-
-    if (linesArray.length > 0) {
+    if (sortedLines.length > 0) {
       const titleDiv = document.createElement("div");
       titleDiv.className = "bus-status-text";
       titleDiv.style.cssText = "color:#ef4444; font-weight:700;";
-      titleDiv.textContent = "Líneas afectadas hoy:";
-
+      titleDiv.textContent =
+        sortedLines.length > 1 ? "Líneas afectadas:" : "Línea afectada:";
       const wrapperDiv = document.createElement("div");
       wrapperDiv.className = "bus-lines-wrapper";
-
-      const linesFragment = document.createDocumentFragment();
-      linesArray.forEach((l) => {
+      sortedLines.forEach((l) => {
         const span = document.createElement("span");
         span.className = "bus-line-pill";
         span.textContent = l;
-        linesFragment.appendChild(span);
+        if (["4", "8", "11", "21", "33"].includes(l))
+          span.style.backgroundColor = "#d9281c";
+        else if (l.startsWith("C")) span.style.backgroundColor = "#059669";
+        else if (l.startsWith("N") || l.startsWith("S") || l.startsWith("U"))
+          span.style.backgroundColor = "#2757f5";
+        else if (l.startsWith("F")) span.style.backgroundColor = "#db2777";
+        else span.style.backgroundColor = "#64748b";
+        wrapperDiv.appendChild(span);
       });
-
-      wrapperDiv.appendChild(linesFragment);
       busContent.appendChild(titleDiv);
       busContent.appendChild(wrapperDiv);
     } else {
-      busContent.innerHTML = `
-        <div class="summary-value" style="color:#10b981; font-size:1.2rem">Normal</div>
-        <div class="summary-sub">Sin desvíos específicos hoy.</div>
-      `;
+      busContent.innerHTML = `<div class="summary-value" style="color:#10b981; font-size:1.2rem">Normal</div><div class="summary-sub">Servicio habitual.</div>`;
     }
   } catch (e) {
-    console.error("Error Home RSS:", e);
+    console.error("Error Dashboard Buses:", e);
     eventsList.innerHTML = `<div class="summary-sub">No disponible</div>`;
     busContent.innerHTML = `<div class="summary-sub">No disponible</div>`;
   }
@@ -4350,7 +4688,7 @@ async function updateHomeEventsAndBus() {
 async function updateHomeParking() {
   const container = document.getElementById("home-parking-content");
   try {
-    const PROXY = "https://corsproxy.io/?";
+    const PROXY = "https://proxy.contacto-granago.workers.dev/?url=";
     const TABLE_URL =
       "http://www.movilidadgranada.com/aparcamientos/par_tabla.php";
 
@@ -4414,8 +4752,10 @@ async function updateHomeFuel() {
   const container = document.getElementById("home-fuel-content");
   const title = document.getElementById("fuel-widget-title");
 
+  if (!container || !title) return;
+
   try {
-    const PROXY = "https://corsproxy.io/?";
+    const PROXY = "https://proxy.contacto-granago.workers.dev/?url=";
     const TARGET = encodeURIComponent(
       "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroProvincia/18"
     );
@@ -4433,12 +4773,12 @@ async function updateHomeFuel() {
 
     let pricesToShow = {};
     let isNearestMode = false;
+    let nearestStationName = "";
 
     if (
       typeof window.currentLat !== "undefined" &&
       typeof window.currentLng !== "undefined"
     ) {
-      isNearestMode = true;
       let minDistance = Infinity;
       let nearestStation = null;
 
@@ -4460,23 +4800,21 @@ async function updateHomeFuel() {
         }
       });
 
-      if (nearestStation) {
+      if (nearestStation && minDistance < 10) {
+        isNearestMode = true;
+        nearestStationName = nearestStation["Rótulo"];
+
         title.innerHTML = `Más Cercana <i class="ri-map-pin-user-fill" style="font-size:0.8em; color:var(--color-primary);"></i>`;
 
         types.forEach((t) => {
           const val = nearestStation[t.key];
           pricesToShow[t.label] = val && val !== "" ? val : "-";
         });
-
-        container.innerHTML = `<div class="notranslate" style="font-size:0.75rem; font-weight:700; color:var(--color-primary); margin-bottom:5px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${nearestStation["Rótulo"]}</div>`;
-      } else {
-        isNearestMode = false;
       }
     }
 
     if (!isNearestMode) {
       title.innerText = "Precios Medios";
-      container.innerHTML = "";
 
       types.forEach((t) => {
         let sum = 0;
@@ -4495,26 +4833,35 @@ async function updateHomeFuel() {
       });
     }
 
+    container.innerHTML = "";
+
+    if (isNearestMode) {
+      container.innerHTML += `
+            <div class="notranslate" style="font-size:0.75rem; font-weight:700; color:var(--color-primary); margin-bottom:8px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:rgba(37,99,235,0.1); padding:4px 8px; border-radius:8px;">
+                ${nearestStationName}
+            </div>`;
+    }
+
     let gridHtml = '<div class="fuel-price-grid">';
     types.forEach((t) => {
+      let priceDisplay = pricesToShow[t.label];
+      if (priceDisplay !== "-") priceDisplay += " €";
+
       gridHtml += `
-                <div class="fuel-price-item">
-                    <span class="fuel-type-label">${t.label}</span>
-                    <span class="fuel-price-val">${
-                      pricesToShow[t.label]
-                    } €</span>
-                </div>
-            `;
+            <div class="fuel-price-item">
+                <span class="fuel-type-label">${t.label}</span>
+                <span class="fuel-price-val">${priceDisplay}</span>
+            </div>
+        `;
     });
     gridHtml += "</div>";
 
     container.innerHTML += gridHtml;
   } catch (e) {
-    console.error("Error Fuel:", e);
+    console.error("Error Fuel Widget:", e);
     container.innerHTML = `<div class="summary-sub">Datos no disponibles</div>`;
   }
 }
-
 window.googleTranslateElementInit = function () {
   new google.translate.TranslateElement(
     {
