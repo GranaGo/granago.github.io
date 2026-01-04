@@ -5,8 +5,8 @@
   "description": "Muévete con Sentido por Granada.",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f0f2f5",
-  "theme_color": "#f0f2f5",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
   "orientation": "portrait-primary",
   "scope": "./",
   "icons": [
