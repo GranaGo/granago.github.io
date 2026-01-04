@@ -691,10 +691,10 @@ function initWeather() {
         );
       },
       (error) => {
-        console.warn("GPS clima no disponible o denegado, usando defecto.");
+        console.warn("GPS clima no disponible, usando defecto.");
         fetchWeatherData(GRANADA_COORDS.lat, GRANADA_COORDS.lon, "Granada");
       },
-      { timeout: 1000, maximumAge: 30000 }
+      { timeout: 5000, maximumAge: 600000 }
     );
   } else {
     fetchWeatherData(GRANADA_COORDS.lat, GRANADA_COORDS.lon, "Granada");
@@ -843,6 +843,7 @@ function destroyUnusedMaps() {
     mapInstance = null;
     isMapDataLoaded = false;
     currentTileLayer = null;
+    userMarker = null;
   }
   const cParadas = document.getElementById("map-paradas");
   if (cParadas) {
@@ -878,7 +879,6 @@ function destroyUnusedMaps() {
     cLugares._leaflet_id = null;
     cLugares.innerHTML = "";
   }
-
   if (lineMapInstance) {
     lineMapInstance.off();
     lineMapInstance.remove();
@@ -941,6 +941,7 @@ function destroyUnusedMaps() {
     repostarMap = null;
     repostarLayerGroup = null;
     repostarTileLayer = null;
+    repostarUserMarker = null;
   }
   const cRepostar = document.getElementById("map-repostar");
   if (cRepostar) {
@@ -2902,7 +2903,11 @@ window.focusEventInList = function (elementId) {
 
 window.locateEventOnMap = function (lat, lng) {
   if (!cortesMapInstance) return;
-  window.scrollTo({ top: 0, behavior: "smooth" });
+
+  const mapContainer = document.getElementById("map-cortes");
+  if (mapContainer) {
+    mapContainer.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 
   let targetLayer = null;
   if (cortesLayersGroup) {
@@ -2918,11 +2923,13 @@ window.locateEventOnMap = function (lat, lng) {
   }
 
   if (!targetLayer) return;
+
   cortesMapInstance.setView([lat, lng], 16, {
     animate: true,
     duration: 1.0,
     easeLinearity: 0.25,
   });
+
   cortesMapInstance.once("moveend", () => {
     targetLayer.openPopup();
   });
@@ -4109,21 +4116,18 @@ async function initHomeDashboard() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
+        window.currentLat = pos.coords.latitude;
+        window.currentLng = pos.coords.longitude;
 
-        if (!window.userMarker && typeof L !== "undefined") {
-          window.userMarker = {
-            getLatLng: () => L.latLng(lat, lng),
-          };
-        }
         updateHomeFuel();
       },
       () => {
-        console.log("GPS no permitido en Home");
-      }
+        console.log("GPS no permitido en Home o error");
+      },
+      { timeout: 5000 }
     );
   }
+
   Promise.allSettled([
     updateHomeEventsAndBus(),
     updateHomeParking(),
@@ -4405,6 +4409,7 @@ async function updateHomeParking() {
     container.innerHTML = `<div class="summary-sub">Error de conexión</div>`;
   }
 }
+
 async function updateHomeFuel() {
   const container = document.getElementById("home-fuel-content");
   const title = document.getElementById("fuel-widget-title");
@@ -4426,16 +4431,13 @@ async function updateHomeFuel() {
       { key: "Precio Gasoleo Premium", label: "Diésel +" },
     ];
 
-    let userLoc = null;
-    if (typeof userMarker !== "undefined" && userMarker) {
-      userLoc = userMarker.getLatLng();
-    } else if (typeof mapInstance !== "undefined") {
-    }
-
     let pricesToShow = {};
     let isNearestMode = false;
 
-    if (userLoc) {
+    if (
+      typeof window.currentLat !== "undefined" &&
+      typeof window.currentLng !== "undefined"
+    ) {
       isNearestMode = true;
       let minDistance = Infinity;
       let nearestStation = null;
@@ -4443,27 +4445,38 @@ async function updateHomeFuel() {
       rawList.forEach((s) => {
         const lat = parseFloat(s["Latitud"].replace(",", "."));
         const lng = parseFloat(s["Longitud (WGS84)"].replace(",", "."));
-        const dist = userLoc.distanceTo([lat, lng]);
 
-        if (dist < minDistance) {
-          minDistance = dist;
-          nearestStation = s;
+        if (!isNaN(lat) && !isNaN(lng)) {
+          const dist = getDistanceFromLatLonInKm(
+            window.currentLat,
+            window.currentLng,
+            lat,
+            lng
+          );
+          if (dist < minDistance) {
+            minDistance = dist;
+            nearestStation = s;
+          }
         }
       });
 
       if (nearestStation) {
-        title.innerHTML = `Más Cercana <i class="ri-map-pin-user-fill" style="font-size:0.8em"></i>`;
+        title.innerHTML = `Más Cercana <i class="ri-map-pin-user-fill" style="font-size:0.8em; color:var(--color-primary);"></i>`;
+
         types.forEach((t) => {
           const val = nearestStation[t.key];
           pricesToShow[t.label] = val && val !== "" ? val : "-";
         });
 
-        container.innerHTML = `<div style="font-size:0.75rem; font-weight:700; color:var(--color-primary); margin-bottom:5px; text-align:center;">${nearestStation["Rótulo"]}</div>`;
+        container.innerHTML = `<div class="notranslate" style="font-size:0.75rem; font-weight:700; color:var(--color-primary); margin-bottom:5px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${nearestStation["Rótulo"]}</div>`;
+      } else {
+        isNearestMode = false;
       }
     }
 
     if (!isNearestMode) {
       title.innerText = "Precios Medios";
+      container.innerHTML = "";
 
       types.forEach((t) => {
         let sum = 0;
@@ -4480,7 +4493,6 @@ async function updateHomeFuel() {
         });
         pricesToShow[t.label] = count > 0 ? (sum / count).toFixed(3) : "-";
       });
-      container.innerHTML = "";
     }
 
     let gridHtml = '<div class="fuel-price-grid">';
