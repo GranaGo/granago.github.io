@@ -2702,7 +2702,9 @@ async function renderMobilityEvents() {
 
   try {
     const RSS_URL = "http://www.movilidadgranada.com/app/noticias/rss.php";
-    const PROXY_URL = "https://proxy.contacto-granago.workers.dev/?url=" + encodeURIComponent(RSS_URL);
+    const PROXY_URL =
+      "https://proxy.contacto-granago.workers.dev/?url=" +
+      encodeURIComponent(RSS_URL);
 
     const response = await fetch(PROXY_URL);
     const strXML = await response.text();
