@@ -681,9 +681,25 @@ function initTheme() {
 }
 
 function initWeather() {
+  const savedLat = localStorage.getItem("granaGo_last_lat");
+  const savedLng = localStorage.getItem("granaGo_last_lng");
+
+  if (savedLat && savedLng) {
+    fetchWeatherData(
+      parseFloat(savedLat),
+      parseFloat(savedLng),
+      "Tu Ubicación"
+    );
+  } else {
+    fetchWeatherData(GRANADA_COORDS.lat, GRANADA_COORDS.lon, "Granada");
+  }
+
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        localStorage.setItem("granaGo_last_lat", position.coords.latitude);
+        localStorage.setItem("granaGo_last_lng", position.coords.longitude);
+
         fetchWeatherData(
           position.coords.latitude,
           position.coords.longitude,
@@ -691,13 +707,10 @@ function initWeather() {
         );
       },
       (error) => {
-        console.warn("GPS clima no disponible, usando defecto.");
-        fetchWeatherData(GRANADA_COORDS.lat, GRANADA_COORDS.lon, "Granada");
+        console.warn("GPS clima no disponible, manteniendo datos anteriores.");
       },
       { timeout: 5000, maximumAge: 600000 }
     );
-  } else {
-    fetchWeatherData(GRANADA_COORDS.lat, GRANADA_COORDS.lon, "Granada");
   }
 }
 
@@ -4115,18 +4128,37 @@ window.closeFullImage = function () {
 };
 
 async function initHomeDashboard() {
+  const savedLat = localStorage.getItem("granaGo_last_lat");
+  const savedLng = localStorage.getItem("granaGo_last_lng");
+
+  if (savedLat && savedLng) {
+    window.currentLat = parseFloat(savedLat);
+    window.currentLng = parseFloat(savedLng);
+    console.log(
+      "Usando ubicación guardada:",
+      window.currentLat,
+      window.currentLng
+    );
+  }
+
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        window.currentLat = pos.coords.latitude;
-        window.currentLng = pos.coords.longitude;
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        window.currentLat = lat;
+        window.currentLng = lng;
+        localStorage.setItem("granaGo_last_lat", lat);
+        localStorage.setItem("granaGo_last_lng", lng);
 
         updateHomeFuel();
+        fetchWeatherData(lat, lng, "Tu Ubicación");
       },
-      () => {
-        console.log("GPS no permitido en Home o error");
+      (err) => {
+        console.log("GPS no permitido o error, usando caché o defecto");
       },
-      { timeout: 5000 }
+      { timeout: 10000, maximumAge: 60000 }
     );
   }
 
