@@ -4163,7 +4163,8 @@ async function initHomeDashboard() {
   }
 
   Promise.allSettled([
-    updateHomeEventsAndBus(),
+    updateHomeEventsWidget(),
+    updateHomeBusWidget(),
     updateHomeParking(),
     updateHomeFuel(),
   ]);
@@ -4225,281 +4226,319 @@ function distancePointToSegment(pLat, pLng, aLat, aLng, bLat, bLng) {
   return Math.sqrt(d_x * d_x + d_y * d_y);
 }
 
-async function updateHomeEventsAndBus() {
-  const eventsList = document.getElementById("home-events-list");
-  const busContent = document.getElementById("home-bus-content");
+const PROXY_URL = "https://proxy.contacto-granago.workers.dev/?url=";
+const URLS = {
+  rss:
+    PROXY_URL +
+    encodeURIComponent("http://www.movilidadgranada.com/app/noticias/rss.php"),
+  centro:
+    PROXY_URL +
+    encodeURIComponent("http://www.movilidadgranada.com/bus_cortecentro.php"),
+  novedades:
+    PROXY_URL +
+    encodeURIComponent("http://www.movilidadgranada.com/bus_novedades.php"),
+};
 
-  const PROXY_URL = "https://proxy.contacto-granago.workers.dev/?url=";
-  const URLS = {
-    rss:
-      PROXY_URL +
-      encodeURIComponent(
-        "http://www.movilidadgranada.com/app/noticias/rss.php"
-      ),
-    centro:
-      PROXY_URL +
-      encodeURIComponent("http://www.movilidadgranada.com/bus_cortecentro.php"),
-    novedades:
-      PROXY_URL +
-      encodeURIComponent("http://www.movilidadgranada.com/bus_novedades.php"),
+const VALID_LINES = new Set([
+  "4",
+  "5",
+  "7",
+  "8",
+  "9",
+  "11",
+  "13",
+  "21",
+  "33",
+  "N1",
+  "N3",
+  "N5",
+  "N6",
+  "N9",
+  "S0",
+  "S2",
+  "C5",
+  "C30",
+  "C31",
+  "C32",
+  "C34",
+  "C35",
+  "U1",
+  "U2",
+  "U3",
+  "111",
+  "121",
+  "F1",
+  "F2",
+  "F3",
+  "F4",
+  "F5",
+  "F6",
+]);
+
+const EJE_CENTRO_POLYLINE = [
+  [37.18437, -3.6006],
+  [37.17965, -3.5996],
+  [37.17635, -3.59795],
+  [37.1743, -3.5986],
+  [37.1705, -3.5976],
+];
+
+function cleanHTML(htmlString) {
+  const doc = new DOMParser().parseFromString(htmlString, "text/html");
+  doc
+    .querySelectorAll(
+      "script, style, nav, footer, header, .menu, #menu, .footer"
+    )
+    .forEach((e) => e.remove());
+  return doc.body.innerText.replace(/\s+/g, " ").trim();
+}
+
+function parseSpanishDate(dayStr, monthName, currentYear) {
+  const MONTHS = {
+    enero: 0,
+    febrero: 1,
+    marzo: 2,
+    abril: 3,
+    mayo: 4,
+    junio: 5,
+    julio: 6,
+    agosto: 7,
+    septiembre: 8,
+    octubre: 9,
+    noviembre: 10,
+    diciembre: 11,
+  };
+  let m = MONTHS[monthName.toLowerCase()];
+  let d = parseInt(dayStr);
+  let y = currentYear;
+  const now = new Date();
+  if (now.getMonth() > 9 && m < 3) y = y + 1;
+  return new Date(y, m, d);
+}
+
+function isDateActive(text) {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const lowerText = text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  const rangeRegex =
+    /(?:del?|desde el?)\s+(\d{1,2})\s+de\s+([a-z]+).*?(?:al?|hasta el?)\s+(\d{1,2})\s+de\s+([a-z]+)/i;
+  const rangeMatch = lowerText.match(rangeRegex);
+  if (rangeMatch) {
+    try {
+      const start = parseSpanishDate(
+        rangeMatch[1],
+        rangeMatch[2],
+        now.getFullYear()
+      );
+      const end = parseSpanishDate(
+        rangeMatch[3],
+        rangeMatch[4],
+        now.getFullYear()
+      );
+      if (start > end) end.setFullYear(end.getFullYear() + 1);
+      if (now >= start && now <= end) return true;
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  const singleDateRegex = /(?:el|día)\s+(\d{1,2})\s+de\s+([a-z]+)/i;
+  const singleMatch = lowerText.match(singleDateRegex);
+  if (singleMatch) {
+    const targetDate = parseSpanishDate(
+      singleMatch[1],
+      singleMatch[2],
+      now.getFullYear()
+    );
+    if (now.getTime() === targetDate.getTime()) return true;
+    return false;
+  }
+
+  if (
+    lowerText.includes("hoy") ||
+    lowerText.includes("ahora") ||
+    lowerText.includes("actualmente")
+  )
+    return true;
+  return false;
+}
+
+function isDayTimeActive(text) {
+  const clean = text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  const now = new Date();
+  const currentDay = now.getDay();
+  const currentHour = now.getHours();
+
+  const dayMap = {
+    domingo: 0,
+    lunes: 1,
+    martes: 2,
+    miercoles: 3,
+    jueves: 4,
+    viernes: 5,
+    sabado: 6,
   };
 
-  const VALID_LINES = new Set([
+  let daysMentioned = [];
+  Object.keys(dayMap).forEach((dayName) => {
+    if (new RegExp(`\\b${dayName}s?\\b`, "i").test(clean))
+      daysMentioned.push(dayMap[dayName]);
+  });
+  if (clean.includes("fin de semana")) daysMentioned.push(5, 6, 0);
+
+  if (daysMentioned.length > 0 && !daysMentioned.includes(currentDay))
+    return false;
+
+  const timeRegex =
+    /(\d{1,2})(?::\d{2})?\s*(?:h|horas)?\s*(?:a|hasta)\s*(\d{1,2})(?::\d{2})?/i;
+  const timeMatch = clean.match(timeRegex);
+  if (timeMatch) {
+    const startH = parseInt(timeMatch[1]);
+    const endH = parseInt(timeMatch[2]);
+    if (currentHour < startH || currentHour >= endH) return false;
+  }
+  return true;
+}
+
+function extractLinesToSet(text, setObj) {
+  const cleanText = text.replace(/<[^>]*>?/gm, " ").toUpperCase();
+  const regex =
+    /(?:L[IÍ]NEAS?|BUS(?:ES)?|AFECCI[ÓO]N)(?:[^:0-9]{0,30}[:])?\s*((?:(?:[NCSUFV]?\d+|[A-Z])(?:[,\sYEO./-]|AND)*)+)/gi;
+
+  let match;
+  while ((match = regex.exec(cleanText)) !== null) {
+    const rawLines = match[1].split(/[^A-Z0-9]+/i);
+
+    rawLines.forEach((n) => {
+      const cleanN = n.trim().toUpperCase();
+      if (VALID_LINES.has(cleanN)) {
+        setObj.add(cleanN);
+      }
+    });
+  }
+}
+
+async function updateHomeEventsWidget() {
+  const eventsList = document.getElementById("home-events-list");
+  if (!eventsList) return;
+
+  eventsList.innerHTML = "";
+
+  const getLocalTodayString = () => {
+    const d = new Date();
+    const offsetMs = d.getTimezoneOffset() * 60 * 1000;
+    const localISOTime = new Date(d.getTime() - offsetMs)
+      .toISOString()
+      .slice(0, 10);
+    return localISOTime;
+  };
+
+  const todayStr = getLocalTodayString();
+  let eventsFound = [];
+  const processedTitles = new Set();
+
+  try {
+    const rssRes = await fetch(URLS.rss);
+    const rssText = await rssRes.text();
+    const parser = new DOMParser();
+    const items = parser
+      .parseFromString(rssText, "text/xml")
+      .querySelectorAll("item");
+
+    items.forEach((item) => {
+      const title = item.querySelector("title").textContent;
+      const descriptionHTML = item.querySelector("description").textContent;
+      const cleanTitle = title
+        .replace(/^Corte de tráfico en |^Afección al tráfico /i, "")
+        .trim();
+      const cleanDesc = descriptionHTML.replace(/<[^>]*>?/gm, " ").trim();
+      const fullSearchText = title + " " + cleanDesc;
+
+      let matchType = null;
+
+      const finPubMatch = descriptionHTML.match(
+        /Fin de la publicación:\s*(\d{4}-\d{2}-\d{2})/i
+      );
+
+      if (finPubMatch && finPubMatch[1] === todayStr) {
+        matchType = "fin_hoy";
+      } else if (isDateActive(fullSearchText)) {
+        matchType = "activo";
+      }
+
+      if (matchType && !processedTitles.has(cleanTitle)) {
+        processedTitles.add(cleanTitle);
+
+        let displayTitle = cleanTitle;
+
+        if (matchType === "fin_hoy") {
+          displayTitle += " (Fin Hoy)";
+        }
+
+        eventsFound.push({
+          title: displayTitle,
+          priority: matchType === "fin_hoy" ? 1 : 2,
+        });
+      }
+    });
+
+    eventsFound.sort((a, b) => a.priority - b.priority);
+
+    const uniqueEvents = eventsFound.slice(0, 4);
+
+    if (uniqueEvents.length === 0) {
+      eventsList.innerHTML = `<div class="summary-sub">Sin eventos relevantes hoy.</div>`;
+    } else {
+      uniqueEvents.forEach((evt) => {
+        const div = document.createElement("div");
+        div.className = "mini-event-title";
+
+        if (evt.title.includes("(Fin Hoy)")) {
+          div.style.fontWeight = "800";
+          div.style.color = "var(--text-primary)";
+        }
+
+        div.textContent = evt.title;
+        eventsList.appendChild(div);
+      });
+    }
+  } catch (e) {
+    console.error("Error Widget Eventos:", e);
+    eventsList.innerHTML = `<div class="summary-sub">No disponible</div>`;
+  }
+}
+
+async function updateHomeBusWidget() {
+  const busContent = document.getElementById("home-bus-content");
+  if (!busContent) return;
+
+  busContent.innerHTML = "";
+
+  let affectedLines = new Set();
+
+  const DEFAULT_CENTER_LINES = [
     "4",
-    "5",
-    "7",
     "8",
-    "9",
     "11",
-    "13",
     "21",
     "33",
-    "N1",
-    "N3",
-    "N5",
-    "N6",
-    "N9",
-    "S0",
-    "S2",
-    "C5",
-    "C30",
     "C31",
     "C32",
     "C34",
-    "C35",
-    "U1",
-    "U2",
-    "U3",
-    "111",
-    "121",
-    "F1",
-    "F2",
-    "F3",
-    "F4",
-    "F5",
-    "F6",
-  ]);
-
-  const EJE_CENTRO_POLYLINE = [
-    [37.18437, -3.6006],
-    [37.17965, -3.5996],
-    [37.17635, -3.59795],
-    [37.1743, -3.5986],
-    [37.1705, -3.5976],
   ];
 
-  let affectedLines = new Set();
-  let eventsFound = [];
-
-  const distancePointToSegment = (pLat, pLng, aLat, aLng, bLat, bLng) => {
-    const degToM = 111319;
-    const x =
-      (pLng - aLng) * Math.cos(((aLat + pLat) / 2) * (Math.PI / 180)) * degToM;
-    const y = (pLat - aLat) * degToM;
-    const dx =
-      (bLng - aLng) * Math.cos(((aLat + bLat) / 2) * (Math.PI / 180)) * degToM;
-    const dy = (bLat - aLat) * degToM;
-    const dot = x * dx + y * dy;
-    const len_sq = dx * dx + dy * dy;
-    let param = -1;
-    if (len_sq !== 0) param = dot / len_sq;
-    let xx, yy;
-    if (param < 0) {
-      xx = 0;
-      yy = 0;
-    } else if (param > 1) {
-      xx = dx;
-      yy = dy;
-    } else {
-      xx = param * dx;
-      yy = param * dy;
-    }
-    const d_x = x - xx;
-    const d_y = y - yy;
-    return Math.sqrt(d_x * d_x + d_y * d_y);
-  };
-
-  const isPointNearPolyline = (
-    pointLat,
-    pointLng,
-    polyline,
-    thresholdMeters
-  ) => {
-    for (let i = 0; i < polyline.length - 1; i++) {
-      const start = polyline[i];
-      const end = polyline[i + 1];
-      const dist = distancePointToSegment(
-        pointLat,
-        pointLng,
-        start[0],
-        start[1],
-        end[0],
-        end[1]
-      );
-      if (dist <= thresholdMeters) return true;
-    }
-    return false;
-  };
-
-  const parseSpanishDate = (dayStr, monthName, currentYear) => {
-    const MONTHS = {
-      enero: 0,
-      febrero: 1,
-      marzo: 2,
-      abril: 3,
-      mayo: 4,
-      junio: 5,
-      julio: 6,
-      agosto: 7,
-      septiembre: 8,
-      octubre: 9,
-      noviembre: 10,
-      diciembre: 11,
-    };
-    let m = MONTHS[monthName.toLowerCase()];
-    let d = parseInt(dayStr);
-    let y = currentYear;
-    const now = new Date();
-    if (now.getMonth() > 9 && m < 3) y = y + 1;
-    return new Date(y, m, d);
-  };
-
-  const isDateActive = (text) => {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    const lowerText = text
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
-    const rangeRegex =
-      /(?:del?|desde el?)\s+(\d{1,2})\s+de\s+([a-z]+).*?(?:al?|hasta el?)\s+(\d{1,2})\s+de\s+([a-z]+)/i;
-    const rangeMatch = lowerText.match(rangeRegex);
-    if (rangeMatch) {
-      try {
-        const start = parseSpanishDate(
-          rangeMatch[1],
-          rangeMatch[2],
-          now.getFullYear()
-        );
-        const end = parseSpanishDate(
-          rangeMatch[3],
-          rangeMatch[4],
-          now.getFullYear()
-        );
-        if (start > end) end.setFullYear(end.getFullYear() + 1);
-        if (now >= start && now <= end) return true;
-        return false;
-      } catch (e) {
-        return false;
-      }
-    }
-
-    const singleDateRegex = /(?:el|día)\s+(\d{1,2})\s+de\s+([a-z]+)/i;
-    const singleMatch = lowerText.match(singleDateRegex);
-    if (singleMatch) {
-      const targetDate = parseSpanishDate(
-        singleMatch[1],
-        singleMatch[2],
-        now.getFullYear()
-      );
-      if (now.getTime() === targetDate.getTime()) return true;
-      return false;
-    }
-
-    if (
-      lowerText.includes("hoy") ||
-      lowerText.includes("ahora") ||
-      lowerText.includes("actualmente")
-    )
-      return true;
-    return false;
-  };
-
-  const isDayTimeActive = (text) => {
-    const clean = text
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
-    const now = new Date();
-    const currentDay = now.getDay();
-    const currentHour = now.getHours();
-    const dayMap = {
-      domingo: 0,
-      lunes: 1,
-      martes: 2,
-      miercoles: 3,
-      jueves: 4,
-      viernes: 5,
-      sabado: 6,
-    };
-
-    let daysMentioned = [];
-    Object.keys(dayMap).forEach((dayName) => {
-      if (new RegExp(`\\b${dayName}s?\\b`, "i").test(clean))
-        daysMentioned.push(dayMap[dayName]);
-    });
-    if (clean.includes("fin de semana")) daysMentioned.push(5, 6, 0);
-
-    if (daysMentioned.length > 0 && !daysMentioned.includes(currentDay))
-      return false;
-
-    const timeRegex =
-      /(\d{1,2})(?::\d{2})?\s*(?:h|horas)?\s*(?:a|hasta)\s*(\d{1,2})(?::\d{2})?/i;
-    const timeMatch = clean.match(timeRegex);
-    if (timeMatch) {
-      const startH = parseInt(timeMatch[1]);
-      const endH = parseInt(timeMatch[2]);
-      if (currentHour < startH || currentHour >= endH) return false;
-    }
-    return true;
-  };
-
-  const extractLines = (text, forceCentro = false) => {
-    const cleanText = text.toUpperCase();
-    let specificLinesFound = false;
-    const regex =
-      /(?:L[IÍ]NEAS?|BUS(?:ES)?)(?:\s*[:])?\s+((?:(?:[NCSU]?\d+|[A-Z])(?:[,\sYEO]|AND)*)+)/gi;
-    let match;
-    while ((match = regex.exec(text)) !== null) {
-      const numbers = match[1].split(/[^A-Z0-9]+/i);
-      numbers.forEach((n) => {
-        const cleanN = n.trim().toUpperCase();
-        if (VALID_LINES.has(cleanN)) {
-          affectedLines.add(cleanN);
-          specificLinesFound = true;
-        }
-      });
-    }
-
-    const isEjeCentralText = /GRAN V[IÍ]A|REYES CAT[OÓ]LICOS|PUERTA REAL/i.test(
-      cleanText
-    );
-
-    if (forceCentro || (isEjeCentralText && !specificLinesFound)) {
-      ["4", "8", "11", "21", "33"].forEach((l) => affectedLines.add(l));
-      ["C31", "C32", "C34"].forEach((l) => affectedLines.add(l));
-    }
-
-    if (/CALLE ELVIRA|CARRERA DEL DARRO|SEMANA SANTA/i.test(cleanText)) {
-      ["C31", "C34"].forEach((l) => affectedLines.add(l));
-    }
-  };
-
-  const cleanHTML = (htmlString) => {
-    const doc = new DOMParser().parseFromString(htmlString, "text/html");
-    doc
-      .querySelectorAll(
-        "script, style, nav, footer, header, .menu, #menu, .footer"
-      )
-      .forEach((e) => e.remove());
-    return doc.body.innerText.replace(/\s+/g, " ").trim();
-  };
-
   try {
-    const [rssRes, centroRes, novedadesRes] = await Promise.allSettled([
+    const [rssRes, centroRes] = await Promise.allSettled([
       fetch(URLS.rss).then((r) => r.text()),
       fetch(URLS.centro).then((r) => r.text()),
-      fetch(URLS.novedades).then((r) => r.text()),
     ]);
 
     if (rssRes.status === "fulfilled") {
@@ -4507,105 +4546,14 @@ async function updateHomeEventsAndBus() {
       const items = parser
         .parseFromString(rssRes.value, "text/xml")
         .querySelectorAll("item");
+
       items.forEach((item) => {
-        const desc = item.querySelector("description").textContent;
         const title = item.querySelector("title").textContent;
-        const fullText = title + " " + desc;
-        const cleanText = fullText
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "");
+        const desc = item.querySelector("description").textContent;
+        const fullText = (title + " " + desc).replace(/<[^>]*>?/gm, " ");
 
-        let isGpsCentro = false;
-        const coordsMatch = desc.match(
-          /Ubicación.*?\(([\d.-]+),\s*([\d.-]+)\)/i
-        );
-        if (coordsMatch) {
-          const lat = parseFloat(coordsMatch[1]);
-          const lng = parseFloat(coordsMatch[2]);
-          if (isPointNearPolyline(lat, lng, EJE_CENTRO_POLYLINE, 50)) {
-            isGpsCentro = true;
-          }
-        }
-
-        if (
-          (isDateActive(fullText) && isDayTimeActive(fullText)) ||
-          isGpsCentro
-        ) {
-          extractLines(fullText, isGpsCentro);
-        }
-
-        const now = new Date();
-        const todayDay = now.getDate();
-        const todayMonth = now.getMonth();
-
-        const MONTHS = {
-          enero: 0,
-          febrero: 1,
-          marzo: 2,
-          abril: 3,
-          mayo: 4,
-          junio: 5,
-          julio: 6,
-          agosto: 7,
-          septiembre: 8,
-          octubre: 9,
-          noviembre: 10,
-          diciembre: 11,
-        };
-
-        let endsToday = false;
-
-        const rangeEndMatch = cleanText.match(
-          /(?:al?|hasta el?|fin.*?|concluy.*?)\s+(\d{1,2})\s+de\s+([a-z]+)/i
-        );
-
-        if (rangeEndMatch) {
-          const d = parseInt(rangeEndMatch[1]);
-          const mName = rangeEndMatch[2];
-          if (MONTHS[mName] === todayMonth && d === todayDay) {
-            endsToday = true;
-          }
-        } else {
-          const singleDateMatch = cleanText.match(
-            /(?:el|día)\s+(\d{1,2})\s+de\s+([a-z]+)/i
-          );
-          if (
-            singleDateMatch &&
-            !cleanText.includes("desde") &&
-            !cleanText.includes("inicio")
-          ) {
-            const d = parseInt(singleDateMatch[1]);
-            const mName = singleDateMatch[2];
-            if (MONTHS[mName] === todayMonth && d === todayDay) {
-              endsToday = true;
-            }
-          }
-        }
-        if (
-          cleanText.includes("finaliza hoy") ||
-          cleanText.includes("termina hoy") ||
-          cleanText.includes("solo hoy")
-        ) {
-          endsToday = true;
-        }
-
-        if (
-          !endsToday &&
-          cleanText.includes("hoy") &&
-          !cleanText.includes("hasta")
-        ) {
-          endsToday = true;
-        }
-
-        if (endsToday) {
-          const cleanTitle = title
-            .replace(/^Corte de tráfico en |^Afección al tráfico /i, "")
-            .trim();
-
-          if (!eventsFound.some((e) => e.title === cleanTitle)) {
-            eventsFound.push({ title: cleanTitle, desc: "Finaliza hoy" });
-          }
+        if (isDateActive(fullText) && isDayTimeActive(fullText)) {
+          extractLinesToSet(fullText, affectedLines);
         }
       });
     }
@@ -4613,7 +4561,6 @@ async function updateHomeEventsAndBus() {
     if (centroRes.status === "fulfilled") {
       const cleanText = cleanHTML(centroRes.value);
       const upper = cleanText.toUpperCase();
-
       const isCut =
         (upper.includes("CORTADO") ||
           upper.includes("CERRADO") ||
@@ -4622,66 +4569,15 @@ async function updateHomeEventsAndBus() {
         !upper.includes("NORMALIDAD");
 
       if (isCut && isDateActive(cleanText) && isDayTimeActive(cleanText)) {
-        extractLines(cleanText, true);
-        eventsFound.push({
-          title: "Eje Centro Cortado",
-          desc: "Desvío activo",
-        });
+        const initialSize = affectedLines.size;
+        extractLinesToSet(cleanText, affectedLines);
+
+        if (affectedLines.size === initialSize) {
+          DEFAULT_CENTER_LINES.forEach((l) => affectedLines.add(l));
+        }
       }
     }
 
-    if (novedadesRes.status === "fulfilled") {
-      const doc = new DOMParser().parseFromString(
-        novedadesRes.value,
-        "text/html"
-      );
-      const content =
-        doc.querySelector("#contenido, .content, main") || doc.body;
-      const items = content.querySelectorAll("li, p, td");
-
-      items.forEach((el) => {
-        const text = el.innerText.trim();
-        if (text.length > 20 && text.length < 500) {
-          if (
-            isDateActive(text) &&
-            isDayTimeActive(text) &&
-            /CORT|DESV|AFEC/i.test(text)
-          ) {
-            const countBefore = affectedLines.size;
-            extractLines(text);
-            if (affectedLines.size > countBefore) {
-              let cleanTitle = text.split(".")[0].replace(/^- /, "");
-              if (cleanTitle.length > 40)
-                cleanTitle = cleanTitle.substring(0, 40) + "...";
-              if (
-                !eventsFound.some((e) =>
-                  e.title.includes(cleanTitle.substring(0, 10))
-                )
-              ) {
-                eventsFound.push({
-                  title: "Aviso Movilidad",
-                  desc: cleanTitle,
-                });
-              }
-            }
-          }
-        }
-      });
-    }
-
-    eventsList.innerHTML = "";
-    const uniqueEvents = eventsFound.slice(0, 3);
-    if (uniqueEvents.length === 0)
-      eventsList.innerHTML = `<div class="summary-sub">Sin eventos relevantes ahora.</div>`;
-    else
-      uniqueEvents.forEach((evt) => {
-        const div = document.createElement("div");
-        div.className = "mini-event-title";
-        div.textContent = evt.title;
-        eventsList.appendChild(div);
-      });
-
-    busContent.innerHTML = "";
     const sortedLines = Array.from(affectedLines).sort((a, b) =>
       a.localeCompare(b, undefined, { numeric: true })
     );
@@ -4692,29 +4588,33 @@ async function updateHomeEventsAndBus() {
       titleDiv.style.cssText = "color:#ef4444; font-weight:700;";
       titleDiv.textContent =
         sortedLines.length > 1 ? "Líneas afectadas:" : "Línea afectada:";
+
       const wrapperDiv = document.createElement("div");
       wrapperDiv.className = "bus-lines-wrapper";
+
       sortedLines.forEach((l) => {
         const span = document.createElement("span");
         span.className = "bus-line-pill";
         span.textContent = l;
-        if (["4", "8", "11", "21", "33"].includes(l))
+
+        if (["4", "8", "9", "11", "21", "33"].includes(l))
           span.style.backgroundColor = "#d9281c";
         else if (l.startsWith("C")) span.style.backgroundColor = "#059669";
         else if (l.startsWith("N") || l.startsWith("S") || l.startsWith("U"))
           span.style.backgroundColor = "#2757f5";
         else if (l.startsWith("F")) span.style.backgroundColor = "#db2777";
         else span.style.backgroundColor = "#64748b";
+
         wrapperDiv.appendChild(span);
       });
+
       busContent.appendChild(titleDiv);
       busContent.appendChild(wrapperDiv);
     } else {
       busContent.innerHTML = `<div class="summary-value" style="color:#10b981; font-size:1.2rem">Normal</div><div class="summary-sub">Servicio habitual.</div>`;
     }
   } catch (e) {
-    console.error("Error Dashboard Buses:", e);
-    eventsList.innerHTML = `<div class="summary-sub">No disponible</div>`;
+    console.error("Error Widget Bus:", e);
     busContent.innerHTML = `<div class="summary-sub">No disponible</div>`;
   }
 }
