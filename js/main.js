@@ -38,6 +38,7 @@ let cortesTileLayer = null;
 let cortesDataLoaded = false;
 let placesClusterGroup = null;
 let allMobilityEvents = [];
+let currentCortesFilter = "all";
 
 let repostarMap = null;
 let repostarLayerGroup = null;
@@ -2684,6 +2685,35 @@ function getStyleForType(typeText) {
   };
 }
 
+window.setCortesFilter = function (mode, btn) {
+  currentCortesFilter = mode;
+
+  const container = btn.parentElement;
+  container
+    .querySelectorAll(".tab-pill")
+    .forEach((b) => b.classList.remove("active"));
+  btn.classList.add("active");
+
+  applyCortesFilters();
+
+  showNotification(
+    mode === "active" ? "Eventos Activos" : "Todos los Eventos",
+    mode === "active"
+      ? "Mostrando incidencias vigentes en este momento"
+      : "Mostrando agenda completa",
+    "info"
+  );
+};
+
+function getLocalTodayDate() {
+  const d = new Date();
+  const offsetMs = d.getTimezoneOffset() * 60 * 1000;
+  const localISOTime = new Date(d.getTime() - offsetMs)
+    .toISOString()
+    .slice(0, 10);
+  return localISOTime;
+}
+
 async function renderMobilityEvents() {
   ensureMapContainerIsClean("map-cortes");
   if (!cortesMapInstance) {
@@ -2810,21 +2840,33 @@ function applyCortesFilters() {
   const container = document.getElementById("cortes-list-container");
   const searchInput = document.getElementById("cortes-search-input");
   const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
+  const todayStr = getLocalTodayDate();
 
   cortesLayersGroup.clearLayers();
   container.innerHTML = "";
 
   const filtered = allMobilityEvents.filter((evt) => {
-    return (
+    const matchesSearch =
       evt.title.toLowerCase().includes(searchTerm) ||
       evt.desc.toLowerCase().includes(searchTerm) ||
-      evt.typeKey.toLowerCase().includes(searchTerm)
-    );
+      evt.typeKey.toLowerCase().includes(searchTerm);
+
+    if (!matchesSearch) return false;
+
+    if (currentCortesFilter === "active") {
+      const fullText = evt.title + " " + evt.desc;
+      if (!isDayTimeActive(fullText)) return false;
+      if (evt.endDate === todayStr) return true;
+      if (isDateActive(fullText)) return true;
+      return false;
+    }
+
+    return true;
   });
 
   if (filtered.length === 0) {
     container.innerHTML =
-      '<div class="empty-state">No se encontraron eventos.</div>';
+      '<div class="empty-state">No se encontraron eventos con este filtro.</div>';
     return;
   }
 
@@ -4293,118 +4335,257 @@ function cleanHTML(htmlString) {
   return doc.body.innerText.replace(/\s+/g, " ").trim();
 }
 
-function parseSpanishDate(dayStr, monthName, currentYear) {
-  const MONTHS = {
-    enero: 0,
-    febrero: 1,
-    marzo: 2,
-    abril: 3,
-    mayo: 4,
-    junio: 5,
-    julio: 6,
-    agosto: 7,
-    septiembre: 8,
-    octubre: 9,
-    noviembre: 10,
-    diciembre: 11,
-  };
-  let m = MONTHS[monthName.toLowerCase()];
-  let d = parseInt(dayStr);
-  let y = currentYear;
-  const now = new Date();
-  if (now.getMonth() > 9 && m < 3) y = y + 1;
-  return new Date(y, m, d);
-}
+const MONTHS_MAP = {
+  enero: 0,
+  febrero: 1,
+  marzo: 2,
+  abril: 3,
+  mayo: 4,
+  junio: 5,
+  julio: 6,
+  agosto: 7,
+  septiembre: 8,
+  octubre: 9,
+  noviembre: 10,
+  diciembre: 11,
+};
 
-function isDateActive(text) {
+const NUM_WORDS = {
+  un: 1,
+  una: 1,
+  dos: 2,
+  tres: 3,
+  cuatro: 4,
+  cinco: 5,
+  seis: 6,
+  siete: 7,
+  ocho: 8,
+  nueve: 9,
+  diez: 10,
+  once: 11,
+  doce: 12,
+};
+
+function parseSmartDate(str) {
+  if (!str) return null;
   const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  const lowerText = text
+  const currentYear = now.getFullYear();
+  const cleanStr = str
+    .trim()
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
-  const rangeRegex =
-    /(?:del?|desde el?)\s+(\d{1,2})\s+de\s+([a-z]+).*?(?:al?|hasta el?)\s+(\d{1,2})\s+de\s+([a-z]+)/i;
-  const rangeMatch = lowerText.match(rangeRegex);
+  const numericMatch = cleanStr.match(
+    /(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/
+  );
+  if (numericMatch) {
+    let d = parseInt(numericMatch[1]);
+    let m = parseInt(numericMatch[2]) - 1;
+    let y = parseInt(numericMatch[3]);
+    if (y < 100) y += 2000;
+    return new Date(y, m, d);
+  }
+
+  const textMatch = cleanStr.match(
+    /(\d{1,2})\s+(?:de\s+)?([a-z]+)(?:\s+de\s+(\d{4}))?/
+  );
+  if (textMatch) {
+    let d = parseInt(textMatch[1]);
+    let monthName = textMatch[2];
+    let m = MONTHS_MAP[monthName];
+    if (m === undefined) return null;
+    let y = textMatch[3] ? parseInt(textMatch[3]) : currentYear;
+    return new Date(y, m, d);
+  }
+  return null;
+}
+
+function addDuration(date, quantityStr, unitStr) {
+  const result = new Date(date);
+  let qty = parseInt(quantityStr);
+  if (isNaN(qty)) qty = NUM_WORDS[quantityStr.toLowerCase()] || 1;
+
+  const u = unitStr.toLowerCase();
+  if (u.includes("dia") || u.includes("día"))
+    result.setDate(result.getDate() + qty);
+  else if (u.includes("semana")) result.setDate(result.getDate() + qty * 7);
+  else if (u.includes("mes")) result.setMonth(result.getMonth() + qty);
+  else if (u.includes("año")) result.setFullYear(result.getFullYear() + qty);
+  return result;
+}
+
+function isDateActive(text) {
+  if (!text) return false;
+  const now = new Date();
+  const currentYear = now.getFullYear();
+
+  const clean = text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ");
+
+  const R_DATE =
+    "(?:\\d{1,2}\\s+(?:de\\s+)?[a-z]+(?:\\s+de\\s+\\d{4})?|\\d{1,2}[\\/\\-\\.]\\d{1,2}[\\/\\-\\.]\\d{2,4})";
+  const rangeRegex = new RegExp(
+    `(?:del?|desde(?:\\s+el)?|entre(?:\\s+el)?)\\s+(${R_DATE})\\s+(?:al?|a\\s+el|hasta(?:\\s+el)?|y(?:\\s+el)?)\\s+(${R_DATE})`,
+    "i"
+  );
+  const rangeMatch = clean.match(rangeRegex);
+
   if (rangeMatch) {
-    try {
-      const start = parseSpanishDate(
-        rangeMatch[1],
-        rangeMatch[2],
-        now.getFullYear()
-      );
-      const end = parseSpanishDate(
-        rangeMatch[3],
-        rangeMatch[4],
-        now.getFullYear()
-      );
-      if (start > end) end.setFullYear(end.getFullYear() + 1);
-      if (now >= start && now <= end) return true;
-      return false;
-    } catch (e) {
-      return false;
+    let start = parseSmartDate(rangeMatch[1]);
+    let end = parseSmartDate(rangeMatch[2]);
+
+    if (start && end) {
+      if (start > end) {
+        if (now.getMonth() <= 5) {
+          start.setFullYear(currentYear - 1);
+          end.setFullYear(currentYear);
+        } else {
+          start.setFullYear(currentYear);
+          end.setFullYear(currentYear + 1);
+        }
+      } else {
+        if (end < now && !rangeMatch[0].match(/\d{4}/)) {
+        }
+      }
+
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+
+      return now >= start && now <= end;
     }
   }
 
-  const singleDateRegex = /(?:el|día)\s+(\d{1,2})\s+de\s+([a-z]+)/i;
-  const singleMatch = lowerText.match(singleDateRegex);
-  if (singleMatch) {
-    const targetDate = parseSpanishDate(
-      singleMatch[1],
-      singleMatch[2],
-      now.getFullYear()
-    );
-    if (now.getTime() === targetDate.getTime()) return true;
-    return false;
+  const durationRegex = new RegExp(
+    `durante\\s+(\\d+|[a-z]+)\\s+(dias?|semanas?|meses|anos?)\\s+(?:a partir|desde|iniciando)(?:\\s+del?|\\s+el)?\\s+(${R_DATE})`,
+    "i"
+  );
+  const durMatch = clean.match(durationRegex);
+
+  if (durMatch) {
+    const start = parseSmartDate(durMatch[3]);
+    if (start) {
+      if (
+        start.getMonth() > now.getMonth() + 2 &&
+        start.getFullYear() === currentYear
+      ) {
+        start.setFullYear(currentYear - 1);
+      }
+
+      const end = addDuration(start, durMatch[1], durMatch[2]);
+      end.setHours(23, 59, 59, 999);
+      start.setHours(0, 0, 0, 0);
+      return now >= start && now <= end;
+    }
   }
 
+  const singleRegex = new RegExp(
+    `(?:el|dia|desde(?:\\s+el)?|a partir(?:\\s+del?)?)\\s+(${R_DATE})`,
+    "i"
+  );
+  const singleMatch = clean.match(singleRegex);
+
+  if (singleMatch) {
+    const date = parseSmartDate(singleMatch[1]);
+    if (date) {
+      if (
+        date.getMonth() > now.getMonth() + 2 &&
+        date.getFullYear() === currentYear
+      ) {
+        date.setFullYear(currentYear - 1);
+      }
+
+      if (clean.includes("desde") || clean.includes("a partir")) {
+        date.setHours(0, 0, 0, 0);
+        return now >= date;
+      }
+
+      const start = new Date(date);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(date);
+      end.setHours(23, 59, 59, 999);
+      return now >= start && now <= end;
+    }
+  }
   if (
-    lowerText.includes("hoy") ||
-    lowerText.includes("ahora") ||
-    lowerText.includes("actualmente")
-  )
+    clean.includes("hoy") ||
+    clean.includes("ahora") ||
+    clean.includes("actualmente") ||
+    clean.includes("vigente")
+  ) {
     return true;
+  }
+
   return false;
 }
 
 function isDayTimeActive(text) {
+  if (!text) return true;
   const clean = text
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
   const now = new Date();
-  const currentDay = now.getDay();
-  const currentHour = now.getHours();
+  const day = now.getDay();
+  const hour = now.getHours();
+  const minutes = now.getMinutes();
+  const currentTimeVal = hour + minutes / 60;
 
-  const dayMap = {
-    domingo: 0,
-    lunes: 1,
-    martes: 2,
-    miercoles: 3,
-    jueves: 4,
-    viernes: 5,
-    sabado: 6,
-  };
-
-  let daysMentioned = [];
-  Object.keys(dayMap).forEach((dayName) => {
-    if (new RegExp(`\\b${dayName}s?\\b`, "i").test(clean))
-      daysMentioned.push(dayMap[dayName]);
+  if (clean.includes("laborables") || clean.includes("lunes a viernes")) {
+    if (day === 0 || day === 6) return false;
+  }
+  if (clean.includes("fin de semana")) {
+    if (day >= 1 && day <= 5) return false;
+  }
+  const dias = [
+    "domingo",
+    "lunes",
+    "martes",
+    "miercoles",
+    "jueves",
+    "viernes",
+    "sabado",
+  ];
+  let mentionedDays = [];
+  dias.forEach((d, idx) => {
+    if (new RegExp(`\\b${d}s?\\b`).test(clean)) mentionedDays.push(idx);
   });
-  if (clean.includes("fin de semana")) daysMentioned.push(5, 6, 0);
 
-  if (daysMentioned.length > 0 && !daysMentioned.includes(currentDay))
+  if (
+    mentionedDays.length > 0 &&
+    !mentionedDays.includes(day) &&
+    !clean.includes("laborables")
+  ) {
     return false;
+  }
 
   const timeRegex =
-    /(\d{1,2})(?::\d{2})?\s*(?:h|horas)?\s*(?:a|hasta)\s*(\d{1,2})(?::\d{2})?/i;
-  const timeMatch = clean.match(timeRegex);
-  if (timeMatch) {
-    const startH = parseInt(timeMatch[1]);
-    const endH = parseInt(timeMatch[2]);
-    if (currentHour < startH || currentHour >= endH) return false;
+    /(\d{1,2})(?::(\d{2}))?\s*(?:h|horas)?\s*(?:y|a|hasta)\s*(\d{1,2})(?::(\d{2}))?/gi;
+  let match;
+  let hasTimeRestrictions = false;
+  let isInsideAnyRange = false;
+
+  while ((match = timeRegex.exec(clean)) !== null) {
+    hasTimeRestrictions = true;
+    const h1 = parseInt(match[1]);
+    const m1 = match[2] ? parseInt(match[2]) : 0;
+    const h2 = parseInt(match[3]);
+    const m2 = match[4] ? parseInt(match[4]) : 0;
+
+    const startVal = h1 + m1 / 60;
+    const endVal = h2 + m2 / 60;
+
+    if (currentTimeVal >= startVal && currentTimeVal <= endVal) {
+      isInsideAnyRange = true;
+    }
   }
+
+  if (hasTimeRestrictions && !isInsideAnyRange) return false;
+
   return true;
 }
 
@@ -4456,36 +4637,32 @@ async function updateHomeEventsWidget() {
     items.forEach((item) => {
       const title = item.querySelector("title").textContent;
       const descriptionHTML = item.querySelector("description").textContent;
-      const cleanTitle = title
-        .replace(/^Corte de tráfico en |^Afección al tráfico /i, "")
-        .trim();
+      const cleanTitle = title.trim();
       const cleanDesc = descriptionHTML.replace(/<[^>]*>?/gm, " ").trim();
       const fullSearchText = title + " " + cleanDesc;
 
       let matchType = null;
-
+      let isEndingToday = false;
       const finPubMatch = descriptionHTML.match(
         /Fin de la publicación:\s*(\d{4}-\d{2}-\d{2})/i
       );
 
       if (finPubMatch && finPubMatch[1] === todayStr) {
         matchType = "fin_hoy";
-      } else if (isDateActive(fullSearchText)) {
-        matchType = "activo";
+        isEndingToday = true;
+      } else {
+        if (isDateActive(fullSearchText) && isDayTimeActive(fullSearchText)) {
+          matchType = "activo";
+        }
       }
 
       if (matchType && !processedTitles.has(cleanTitle)) {
         processedTitles.add(cleanTitle);
 
-        let displayTitle = cleanTitle;
-
-        if (matchType === "fin_hoy") {
-          displayTitle += " (Fin Hoy)";
-        }
-
         eventsFound.push({
-          title: displayTitle,
+          title: cleanTitle,
           priority: matchType === "fin_hoy" ? 1 : 2,
+          isEndingToday: isEndingToday,
         });
       }
     });
@@ -4495,18 +4672,18 @@ async function updateHomeEventsWidget() {
     const uniqueEvents = eventsFound.slice(0, 4);
 
     if (uniqueEvents.length === 0) {
-      eventsList.innerHTML = `<div class="summary-sub">Sin eventos relevantes hoy.</div>`;
+      eventsList.innerHTML = `<div class="summary-sub">Sin eventos activos en este momento.</div>`;
     } else {
       uniqueEvents.forEach((evt) => {
         const div = document.createElement("div");
         div.className = "mini-event-title";
 
-        if (evt.title.includes("(Fin Hoy)")) {
-          div.style.fontWeight = "800";
-          div.style.color = "var(--text-primary)";
+        if (evt.isEndingToday) {
+          div.innerHTML = `${evt.title} <span style="color: #ef4444; font-weight: 700; font-size: 0.8em; white-space: nowrap;">(FIN HOY)</span>`;
+        } else {
+          div.textContent = evt.title;
         }
 
-        div.textContent = evt.title;
         eventsList.appendChild(div);
       });
     }
