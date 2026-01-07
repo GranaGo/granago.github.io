@@ -2934,9 +2934,16 @@ function applyCortesFilters() {
 }
 
 window.scrollToCortesList = function () {
+  const listContainer = document.getElementById("cortes-list-container");
   const wrapper = document.getElementById("cortes-list-wrapper");
-  if (wrapper) {
-    wrapper.scrollBy({ top: 300, behavior: "smooth" });
+
+  if (listContainer && listContainer.firstElementChild) {
+    listContainer.firstElementChild.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  } else if (wrapper) {
+    wrapper.scrollBy({ top: 250, behavior: "smooth" });
   }
 };
 
@@ -2952,11 +2959,16 @@ window.focusEventInList = function (elementId) {
   void targetCard.offsetWidth;
   targetCard.classList.add("highlight-flash");
 
-  showNotification("Detalle", "Evento localizado en la lista", "info");
+  showNotification("Localizado", "Evento resaltado en la lista", "info");
 };
 
 window.locateEventOnMap = function (lat, lng) {
   if (!cortesMapInstance) return;
+
+  const view = document.getElementById("cortes-view");
+  if (view) {
+    view.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   const wrapper = document.getElementById("cortes-list-wrapper");
   if (wrapper) {
