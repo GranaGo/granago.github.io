@@ -2934,9 +2934,9 @@ function applyCortesFilters() {
 }
 
 window.scrollToCortesList = function () {
-  const target = document.getElementById("cortes-list-container");
-  if (target) {
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  const container = document.getElementById("cortes-list-container");
+  if (container) {
+    container.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 };
 
@@ -2957,10 +2957,9 @@ window.focusEventInList = function (elementId) {
 
 window.locateEventOnMap = function (lat, lng) {
   if (!cortesMapInstance) return;
-
-  const listWrapper = document.getElementById("cortes-list-wrapper");
-  if (listWrapper) {
-    listWrapper.scrollTo({ top: 0, behavior: "smooth" });
+  const wrapper = document.getElementById("cortes-list-wrapper");
+  if (wrapper) {
+    wrapper.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   let targetLayer = null;
@@ -2976,24 +2975,16 @@ window.locateEventOnMap = function (lat, lng) {
     });
   }
 
-  if (!targetLayer) return;
+  if (targetLayer) {
+    cortesMapInstance.setView([lat, lng], 16, {
+      animate: true,
+      duration: 1.0,
+    });
 
-  cortesMapInstance.setView([lat, lng], 16, {
-    animate: true,
-    duration: 1.0,
-  });
-
-  cortesMapInstance.once("moveend", () => {
-    targetLayer.openPopup();
-  });
-
-  const currentCenter = cortesMapInstance.getCenter();
-  const dist = Math.sqrt(
-    Math.pow(currentCenter.lat - lat, 2) + Math.pow(currentCenter.lng - lng, 2)
-  );
-  if (dist < 0.00001) {
-    targetLayer.openPopup();
-    cortesMapInstance.off("moveend");
+    cortesMapInstance.once("moveend", () => {
+      targetLayer.openPopup();
+    });
+    setTimeout(() => targetLayer.openPopup(), 1000);
   }
 };
 
