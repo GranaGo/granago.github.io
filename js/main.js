@@ -2934,9 +2934,9 @@ function applyCortesFilters() {
 }
 
 window.scrollToCortesList = function () {
-  const container = document.getElementById("cortes-list-container");
-  if (container) {
-    container.scrollIntoView({ behavior: "smooth", block: "start" });
+  const wrapper = document.getElementById("cortes-list-wrapper");
+  if (wrapper) {
+    wrapper.scrollBy({ top: 300, behavior: "smooth" });
   }
 };
 
@@ -2957,6 +2957,7 @@ window.focusEventInList = function (elementId) {
 
 window.locateEventOnMap = function (lat, lng) {
   if (!cortesMapInstance) return;
+
   const wrapper = document.getElementById("cortes-list-wrapper");
   if (wrapper) {
     wrapper.scrollTo({ top: 0, behavior: "smooth" });
@@ -2967,8 +2968,8 @@ window.locateEventOnMap = function (lat, lng) {
     cortesLayersGroup.eachLayer((layer) => {
       const layerLatLng = layer.getLatLng();
       if (
-        Math.abs(layerLatLng.lat - lat) < 0.0001 &&
-        Math.abs(layerLatLng.lng - lng) < 0.0001
+        Math.abs(layerLatLng.lat - lat) < 0.00001 &&
+        Math.abs(layerLatLng.lng - lng) < 0.00001
       ) {
         targetLayer = layer;
       }
@@ -2976,15 +2977,18 @@ window.locateEventOnMap = function (lat, lng) {
   }
 
   if (targetLayer) {
-    cortesMapInstance.setView([lat, lng], 16, {
+    cortesMapInstance.flyTo([lat, lng], 16, {
       animate: true,
-      duration: 1.0,
+      duration: 1.5,
     });
 
     cortesMapInstance.once("moveend", () => {
       targetLayer.openPopup();
     });
-    setTimeout(() => targetLayer.openPopup(), 1000);
+
+    setTimeout(() => targetLayer.openPopup(), 1500);
+  } else {
+    cortesMapInstance.setView([lat, lng], 16);
   }
 };
 
