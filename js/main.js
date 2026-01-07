@@ -2934,12 +2934,9 @@ function applyCortesFilters() {
 }
 
 window.scrollToCortesList = function () {
-  const wrapper = document.getElementById("cortes-list-wrapper");
-  if (wrapper) {
-    const firstCard = wrapper.querySelector(".event-card");
-    if (firstCard) {
-      firstCard.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+  const target = document.getElementById("cortes-list-container");
+  if (target) {
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 };
 
@@ -2961,9 +2958,9 @@ window.focusEventInList = function (elementId) {
 window.locateEventOnMap = function (lat, lng) {
   if (!cortesMapInstance) return;
 
-  const mapContainer = document.getElementById("map-cortes");
-  if (mapContainer) {
-    mapContainer.scrollIntoView({ behavior: "smooth", block: "center" });
+  const listWrapper = document.getElementById("cortes-list-wrapper");
+  if (listWrapper) {
+    listWrapper.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   let targetLayer = null;
@@ -2984,7 +2981,6 @@ window.locateEventOnMap = function (lat, lng) {
   cortesMapInstance.setView([lat, lng], 16, {
     animate: true,
     duration: 1.0,
-    easeLinearity: 0.25,
   });
 
   cortesMapInstance.once("moveend", () => {
@@ -2995,7 +2991,6 @@ window.locateEventOnMap = function (lat, lng) {
   const dist = Math.sqrt(
     Math.pow(currentCenter.lat - lat, 2) + Math.pow(currentCenter.lng - lng, 2)
   );
-
   if (dist < 0.00001) {
     targetLayer.openPopup();
     cortesMapInstance.off("moveend");
