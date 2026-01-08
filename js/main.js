@@ -2934,13 +2934,15 @@ function applyCortesFilters() {
 }
 
 window.scrollToCortesList = function () {
-  const listContainer = document.getElementById("cortes-list-container");
+  const wrapper = document.getElementById("cortes-list-wrapper");
 
-  if (listContainer) {
-    listContainer.scrollIntoView({ behavior: "smooth", block: "start" });
-  } else {
-    const wrapper = document.getElementById("cortes-list-wrapper");
-    if (wrapper) wrapper.scrollTop = 0;
+  if (wrapper) {
+    wrapper.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+
+    wrapper.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 };
 
