@@ -2935,15 +2935,12 @@ function applyCortesFilters() {
 
 window.scrollToCortesList = function () {
   const listContainer = document.getElementById("cortes-list-container");
-  const wrapper = document.getElementById("cortes-list-wrapper");
 
-  if (listContainer && listContainer.firstElementChild) {
-    listContainer.firstElementChild.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  } else if (wrapper) {
-    wrapper.scrollBy({ top: 250, behavior: "smooth" });
+  if (listContainer) {
+    listContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+  } else {
+    const wrapper = document.getElementById("cortes-list-wrapper");
+    if (wrapper) wrapper.scrollTop = 0;
   }
 };
 
@@ -2952,7 +2949,6 @@ window.focusEventInList = function (elementId) {
   if (!targetCard) return;
 
   if (cortesMapInstance) cortesMapInstance.closePopup();
-
   targetCard.scrollIntoView({ behavior: "smooth", block: "center" });
 
   targetCard.classList.remove("highlight-flash");
