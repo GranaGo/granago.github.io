@@ -5,7 +5,7 @@ from pypdf import PdfReader
 
 # ================= CONFIGURACIÓN =================
 ARCHIVO_PDF = "raw_data/radares.pdf"
-ARCHIVO_GEOJSON = "raw_data/pks_carr_granada.geojson"
+ARCHIVO_GEOJSON = "raw_data/pks.geojson"
 ARCHIVO_SALIDA = "data/radares.json"
 
 def leer_pdf_robusto(ruta_pdf):
