@@ -4,14 +4,13 @@ import os
 from pypdf import PdfReader
 
 # ================= CONFIGURACIÓN =================
-ARCHIVO_PDF = "raw_data/radares.pdf"
-ARCHIVO_GEOJSON = "raw_data/pks.geojson"
+ARCHIVO_PDF = "raw_data/radares.pdf" # Asegúrate que coincide con el nombre de tu archivo
+ARCHIVO_GEOJSON = "raw_data/pks.geojson"      # Asegúrate que coincide con el nombre de tu archivo
 ARCHIVO_SALIDA = "data/radares.json"
 
-# Corrección de desfases de kilometraje (DGT vs Mapas antiguos)
-# Si el mapa tiene PKs antiguos (ej. GR-30 empezando en 116), ajustamos aquí.
+# Corrección de desfases (DGT dice PK X, Mapa dice PK Y)
 OFFSETS_PKS = {
-    "GR30": 116.0  # La DGT dice PK 10, el mapa tiene PK 126 (10+116)
+    "GR30": 116.0  # La GR-30 empieza en el 116 en algunos mapas antiguos
 }
 
 def leer_pdf_aplanado(ruta_pdf):
@@ -20,7 +19,7 @@ def leer_pdf_aplanado(ruta_pdf):
     texto = ""
     for page in reader.pages:
         texto += page.extract_text() + " "
-    # Aplanar saltos de línea para que "10.02 \n (1.877 m)" sea legible
+    # Convertimos todo a texto plano (sin saltos de línea raros)
     return re.sub(r'\s+', ' ', texto)
 
 def cargar_pks_geojson(ruta_geojson):
@@ -35,29 +34,25 @@ def cargar_pks_geojson(ruta_geojson):
     for feature in data.get('features', []):
         geom = feature.get('geometry', {})
         props = feature.get('properties', {})
-        
         if geom['type'] == 'Point' and 'pk' in props:
+            # Normalizamos nombre: GR-30 -> GR30
             ref = props.get('ref', '').replace(" ", "").replace("-", "").upper()
             pk = float(props['pk'])
             coords = geom['coordinates']
-            
             if ref:
                 if ref not in pks_map: pks_map[ref] = {}
                 pks_map[ref][pk] = coords
     return pks_map
 
 def buscar_pk_cercano(pks_disponibles, pk_objetivo, margen=3.0):
-    """Devuelve (pk_encontrado, coordenadas) o None"""
     if not pks_disponibles: return None
     pk_mas_cercano = min(pks_disponibles.keys(), key=lambda k: abs(k - pk_objetivo))
     if abs(pk_mas_cercano - pk_objetivo) <= margen:
-        return pk_mas_cercano, pks_disponibles[pk_mas_cercano]
+        return pks_disponibles[pk_mas_cercano]
     return None
 
 def obtener_tramo_coords(pks_map, ref, inicio, fin):
     if ref not in pks_map: return None
-    
-    # Aplicar offset si es necesario (ej. GR-30)
     offset = OFFSETS_PKS.get(ref, 0.0)
     inicio_map, fin_map = inicio + offset, fin + offset
     
@@ -65,124 +60,135 @@ def obtener_tramo_coords(pks_map, ref, inicio, fin):
     pks_ordenados = sorted(pks_map[ref].keys())
     
     for pk in pks_ordenados:
-        if min(inicio_map, fin_map) <= pk <= max(inicio_map, fin_map):
+        # Permitimos una tolerancia pequeña para capturar puntos en los bordes
+        if min(inicio_map, fin_map) - 0.1 <= pk <= max(inicio_map, fin_map) + 0.1:
             coords.append(pks_map[ref][pk])
             
-    # Si no hay puntos suficientes para una línea, intentamos devolver al menos un punto
+    # Fallback: Si no hay línea, devolvemos al menos un punto (el inicio)
     if len(coords) < 2:
-        # Buscamos el punto más cercano al inicio para no perder el radar
         res = buscar_pk_cercano(pks_map[ref], inicio_map, margen=5.0)
-        if res:
-            return [res[1]] # Devolvemos lista con 1 solo punto
+        if res: return [res]
         return None
-        
     return coords
 
 def procesar():
     mapa_geo = cargar_pks_geojson(ARCHIVO_GEOJSON)
     if not mapa_geo: return
 
-    print("📄 Procesando PDF...")
+    print("📄 Procesando PDF con escáner mejorado...")
     texto_limpio = leer_pdf_aplanado(ARCHIVO_PDF)
     
-    # Regex para capturar todo
-    patron = re.compile(r'Granada\s+([A-Z0-9\-]+)\s+(Radar\s(?:Fijo|Móvil|Tramo|de\sTramo))\s+([0-9\.\,\-\s\(\)m]+)\s+(Creciente|Decreciente|Ambos)')
+    # --- REGEX SUPER FLEXIBLE ---
+    # 1. Busca "Granada"
+    # 2. Coge la carretera (letras/numeros/guiones)
+    # 3. Busca "Radar" y CUALQUIER COSA (texto) hasta que llegue un número
+    # 4. Coge los números/guiones/parentesis del PK
+    # 5. Coge el sentido
+    patron = re.compile(r'Granada\s+([A-Z0-9\-]+)\s+(Radar\s+[^\d]+)([\d\.\,\-\s\(\)m]+)\s+(Creciente|Decreciente|Ambos)', re.IGNORECASE)
+    
     matches = patron.findall(texto_limpio)
+    print(f"🔍 Filas detectadas en el PDF: {len(matches)}")
     
     features = []
+    ignorados = []
     
     for m in matches:
-        ctra_raw, tipo_raw, pk_raw, sentido = m
+        ctra_raw, tipo_txt, pk_raw, sentido = m
         ref = ctra_raw.replace(" ", "").replace("-", "").upper()
         offset = OFFSETS_PKS.get(ref, 0.0)
         
+        tipo_lower = tipo_txt.lower()
         feature = None
-        
-        # --- TIPO 1: TRAMO (Con distancia en metros) ---
-        if "Tramo" in tipo_raw or "(" in pk_raw:
+        motivo_error = "Desconocido"
+
+        # Validar si existe carretera
+        if ref not in mapa_geo:
+            ignorados.append(f"{ctra_raw} (No existe en GeoJSON)")
+            continue
+
+        # --- CASO 1: TRAMO (Paréntesis con metros) ---
+        if "tramo" in tipo_lower or "(" in pk_raw:
             match = re.search(r'([\d\.]+)\s*\(([\d\.]+)\s*m\)', pk_raw)
             if match:
                 inicio = float(match.group(1))
-                dist_raw = float(match.group(2))
-                dist_km = dist_raw / 1000.0 if dist_raw > 100 else dist_raw
+                dist = float(match.group(2))
+                dist_km = dist / 1000.0 if dist > 100 else dist
                 fin = inicio + dist_km
                 
                 coords = obtener_tramo_coords(mapa_geo, ref, inicio, fin)
-                
                 if coords:
                     geom_type = "LineString" if len(coords) > 1 else "Point"
-                    geom_coords = coords if len(coords) > 1 else coords[0]
-                    
+                    geom_data = coords if len(coords) > 1 else coords[0]
                     feature = {
                         "type": "Feature",
-                        "geometry": { "type": geom_type, "coordinates": geom_coords },
+                        "geometry": { "type": geom_type, "coordinates": geom_data },
                         "properties": {
-                            "road": ctra_raw,
-                            "type": "tramo",
+                            "road": ctra_raw, "type": "tramo",
                             "tramo": f"{inicio} - {round(fin, 2)}",
-                            "sentido": sentido,
-                            "desc": f"Radar de Tramo ({dist_raw}m)"
+                            "sentido": sentido, "desc": f"Radar de Tramo ({dist}m)"
                         }
                     }
+                else: motivo_error = f"Tramo {inicio}-{fin} sin coordenadas en mapa"
 
-        # --- TIPO 2: MÓVIL (Rango A - B) ---
+        # --- CASO 2: MÓVIL (Rango A-B) ---
         elif "-" in pk_raw:
             nums = re.findall(r"[\d\.]+", pk_raw)
             pks = [float(n.rstrip('.')) for n in nums if n != '.']
             if len(pks) >= 2:
                 inicio, fin = min(pks), max(pks)
                 coords = obtener_tramo_coords(mapa_geo, ref, inicio, fin)
-                
                 if coords:
-                    # Si solo hay 1 punto (A-403R3), lo pintamos como punto 'movil'
                     geom_type = "LineString" if len(coords) > 1 else "Point"
-                    geom_coords = coords if len(coords) > 1 else coords[0]
-                    
-                    desc_text = "Radar Móvil Frecuente"
-                    if len(coords) == 1: desc_text += " (Inicio tramo)"
-
+                    geom_data = coords if len(coords) > 1 else coords[0]
                     feature = {
                         "type": "Feature",
-                        "geometry": { "type": geom_type, "coordinates": geom_coords },
+                        "geometry": { "type": geom_type, "coordinates": geom_data },
                         "properties": {
-                            "road": ctra_raw,
-                            "type": "movil",
+                            "road": ctra_raw, "type": "movil",
                             "tramo": f"{inicio}-{fin}",
-                            "sentido": sentido,
-                            "desc": desc_text
+                            "sentido": sentido, "desc": "Radar Móvil Frecuente"
                         }
                     }
+                else: motivo_error = f"Rango {inicio}-{fin} fuera del mapa"
 
-        # --- TIPO 3: FIJO (Punto) ---
+        # --- CASO 3: FIJO (Punto) ---
         else:
             nums = re.findall(r"[\d\.]+", pk_raw)
             if nums:
-                pk_obj = float(nums[0].rstrip('.')) + offset # Aplicamos offset aquí también
+                pk_val = float(nums[0].rstrip('.'))
+                pk_mapa = pk_val + offset
+                coords_fijo = buscar_pk_cercano(mapa_geo[ref], pk_mapa)
                 
-                if ref in mapa_geo:
-                    res = buscar_pk_cercano(mapa_geo[ref], pk_obj)
-                    if res:
-                        feature = {
-                            "type": "Feature",
-                            "geometry": { "type": "Point", "coordinates": res[1] },
-                            "properties": {
-                                "road": ctra_raw,
-                                "type": "fijo",
-                                "pk": float(nums[0]), # Mostramos el PK original
-                                "sentido": sentido,
-                                "desc": f"Radar Fijo - PK {nums[0]}"
-                            }
+                if coords_fijo:
+                    feature = {
+                        "type": "Feature",
+                        "geometry": { "type": "Point", "coordinates": coords_fijo },
+                        "properties": {
+                            "road": ctra_raw, "type": "fijo",
+                            "pk": pk_val,
+                            "sentido": sentido, "desc": f"Radar Fijo PK {pk_val}"
                         }
+                    }
+                else: motivo_error = f"PK {pk_val} no encontrado en mapa"
 
         if feature:
             features.append(feature)
+        else:
+            ignorados.append(f"{ctra_raw} {tipo_txt} {pk_raw} -> {motivo_error}")
 
     # Guardar
     output = { "type": "FeatureCollection", "features": features }
     with open(ARCHIVO_SALIDA, 'w', encoding='utf-8') as f:
         json.dump(output, f, ensure_ascii=False)
         
-    print(f"✅ ¡LISTO! {len(features)} radares recuperados (incluyendo GR-30 y tramos cortos).")
+    print(f"✅ FINALIZADO: {len(features)} radares exportados.")
+    
+    if ignorados:
+        print("\n⚠️ RADARES IGNORADOS (Revisar):")
+        for ig in ignorados:
+            print(f" - {ig}")
+    else:
+        print("\n✨ ¡Perfecto! Se procesaron todos los radares detectados.")
 
 if __name__ == "__main__":
     procesar()
