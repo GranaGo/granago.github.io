@@ -3640,3 +3640,69 @@ font:hover {
 #nearby-list-content .icon-btn-small i.ri-search-line {
   color: var(--text-primary) !important;
 }
+
+.radar-icon-container {
+  background: transparent;
+}
+.radar-circle {
+  background-color: #ffffff;
+  border: 3px solid #d9281c;
+  border-radius: 50%;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  color: #d9281c;
+  font-size: 16px;
+  transition: transform 0.2s ease;
+}
+.radar-icon-container:hover .radar-circle {
+  transform: scale(1.1);
+  background-color: #d9281c;
+  color: #fff;
+  border-color: #fff;
+}
+
+@keyframes dash-move {
+  to {
+    stroke-dashoffset: -30;
+  }
+}
+.leaflet-overlay-pane path[stroke-dasharray] {
+  animation: dash-move 1.5s linear infinite;
+}
+
+.popup-radar h3 {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 5px;
+}
+.popup-radar p {
+  margin: 4px 0;
+  font-size: 0.9rem;
+  color: #475569;
+}
+.popup-radar .badge {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: white;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.popup-radar .badge.fijo {
+  background-color: #e67e22;
+}
+.popup-radar .badge.movil {
+  background-color: #d9281c;
+}
+.popup-radar .badge.tramo {
+  background-color: #8e44ad;
+}

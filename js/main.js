@@ -3567,7 +3567,11 @@ async function initCamarasMap() {
 
   if (!camarasDataLoaded) {
     try {
-      await Promise.all([loadLocalKMLCameras(), loadDGTXMLCameras()]);
+      await Promise.all([
+        loadLocalKMLCameras(),
+        loadDGTXMLCameras(),
+        loadRadares(),
+      ]);
       camarasDataLoaded = true;
     } catch (e) {
       console.error("Error general cámaras:", e);
@@ -3714,6 +3718,103 @@ async function loadDGTXMLCameras() {
   } catch (e) {
     console.error("Error procesando XML DGT:", e);
     showNotification("Aviso", "Error leyendo datos de la DGT", "error");
+  }
+}
+
+async function loadRadares() {
+  const iconRadarFijo = L.divIcon({
+    className: "radar-icon-container",
+    html: '<div class="radar-circle"><i class="ri-camera-lens-fill"></i></div>',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    popupAnchor: [0, -16],
+  });
+
+  const iconRadarPunto = L.divIcon({
+    className: "radar-icon-container",
+    html: '<div class="radar-circle" style="border-color: #D9281C; background: #D9281C; color: #fff;"><i class="ri-car-fill" style="font-size:12px;"></i></div>',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    popupAnchor: [0, -10],
+  });
+
+  try {
+    const response = await fetch("data/radares.json");
+    if (!response.ok) return;
+
+    const data = await response.json();
+
+    const radaresLayer = L.geoJSON(data, {
+      style: function (feature) {
+        if (feature.properties.type === "tramo") {
+          return { color: "#8e44ad", weight: 6, opacity: 0.8, smoothFactor: 1 };
+        }
+        if (feature.properties.type === "movil") {
+          return {
+            color: "#D9281C",
+            weight: 5,
+            opacity: 0.7,
+            dashArray: "12, 16",
+            lineCap: "round",
+            lineJoin: "round",
+            smoothFactor: 1,
+          };
+        }
+      },
+      pointToLayer: function (feature, latlng) {
+        if (feature.properties.type === "fijo") {
+          return L.marker(latlng, { icon: iconRadarFijo });
+        }
+        return L.marker(latlng, { icon: iconRadarPunto });
+      },
+      onEachFeature: function (feature, layer) {
+        const p = feature.properties;
+        let badgeColor = "#D9281C";
+        let typeText = "Radar Móvil";
+
+        if (p.type === "fijo") {
+          badgeColor = "#e67e22";
+          typeText = "Radar Fijo";
+        } else if (p.type === "tramo") {
+          badgeColor = "#8e44ad";
+          typeText = "Radar de Tramo";
+        }
+
+        let info =
+          p.type === "fijo"
+            ? `PK: <strong>${p.pk}</strong>`
+            : `Tramo: <strong>${p.tramo}</strong>`;
+
+        const content = `
+            <div style="text-align:center; min-width:150px;">
+                <strong class="notranslate" style="color:#D9281C; font-size:1.1rem; display:block; margin-bottom:5px;">
+                    ${p.road}
+                </strong>
+                
+                <span style="font-size:0.75rem; color:white; background:${badgeColor}; padding:4px 10px; border-radius:12px; display:inline-block; margin-bottom:8px; font-weight:700;">
+                    ${typeText}
+                </span>
+
+                <div style="font-size:0.9rem; color:var(--text-primary); margin-bottom:5px;">
+                    <i class="ri-map-pin-range-line"></i> ${info}
+                </div>
+                
+                <div style="font-size:0.85rem; color:var(--text-secondary);">
+                    Sentido: ${p.sentido}
+                </div>
+            </div>
+        `;
+
+        layer.bindPopup(content, { closeButton: false });
+      },
+    });
+
+    if (camarasMapInstance) {
+      radaresLayer.addTo(camarasMapInstance);
+      console.log("Radares cargados correctamente.");
+    }
+  } catch (e) {
+    console.warn("No se pudieron cargar los radares:", e);
   }
 }
 
