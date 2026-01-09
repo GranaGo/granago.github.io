@@ -1,190 +1,151 @@
 import json
 import re
 import os
-import math
 from pypdf import PdfReader
 
 # ================= CONFIGURACIÓN =================
-# Rutas relativas a la raíz del repo (como se ejecutan en GitHub Actions)
 ARCHIVO_PDF = "raw_data/radares.pdf"
 ARCHIVO_GEOJSON = "raw_data/pks_carr_granada.geojson"
 ARCHIVO_SALIDA = "data/radares.json"
 
-def extraer_datos_pdf(ruta_pdf):
-    """
-    Lee el PDF y extrae las filas basándose en el patrón de comillas del documento.
-    Formato detectado: "PROVINCIA","CARRETERA","TIPO","PK","SENTIDO",...
-    """
+def leer_pdf_robusto(ruta_pdf):
+    """Lee el PDF y devuelve todo el texto junto para buscar patrones globales."""
     if not os.path.exists(ruta_pdf):
-        print(f"⚠️ No se encontró el PDF en {ruta_pdf}")
-        return []
-
+        print(f"❌ ERROR: No existe el archivo {ruta_pdf}")
+        return ""
+    
     reader = PdfReader(ruta_pdf)
-    datos_limpios = []
-    
-    # Regex para capturar filas que parecen CSV: "Texto","Texto","Texto"...
-    # Captura 5 grupos principales: Provincia, Ctra, Tipo, PK, Sentido
-    patron_fila = re.compile(r'"([^"]+)","([^"]+)","([^"]+)","([^"]+)","([^"]+)"')
-
+    texto_completo = ""
     for page in reader.pages:
-        texto = page.extract_text()
-        # Procesamos línea a línea
-        for linea in texto.split('\n'):
-            match = patron_fila.search(linea)
-            if match:
-                datos_limpios.append({
-                    "provincia": match.group(1).strip(),
-                    "carretera": match.group(2).strip().replace(" ", "").upper(), # Normalizamos: A-92 -> A92
-                    "tipo": match.group(3).strip(),
-                    "pk_texto": match.group(4).strip(),
-                    "sentido": match.group(5).strip()
-                })
-    return datos_limpios
+        texto_completo += page.extract_text() + "\n"
+    
+    return texto_completo
 
-def cargar_geometria_carreteras(ruta_geojson):
-    """
-    Carga el GeoJSON y crea un índice de coordenadas por carretera y PK.
-    Retorna: { "A92": { 10.5: [lon, lat], 11.0: [lon, lat]... } }
-    """
-    if not os.path.exists(ruta_geojson):
-        print(f"⚠️ No se encontró GeoJSON en {ruta_geojson}")
-        return {}
-
+def cargar_pks_geojson(ruta_geojson):
+    """Carga SOLO los puntos kilométricos del GeoJSON."""
+    print(f"📍 Leyendo GeoJSON: {ruta_geojson}")
     with open(ruta_geojson, 'r', encoding='utf-8') as f:
-        geo_data = json.load(f)
-
-    mapa_carreteras = {}
-
-    for feature in geo_data.get('features', []):
-        props = feature.get('properties', {})
+        data = json.load(f)
+    
+    pks_map = {}
+    count_pks = 0
+    
+    for feature in data.get('features', []):
         geom = feature.get('geometry', {})
+        props = feature.get('properties', {})
         
-        # Solo nos sirven los Puntos con PK definido
-        if geom['type'] == 'Point' and 'pk' in props and 'ref' in props:
-            # Normalización agresiva para asegurar coincidencia (GR-30 vs GR 30)
-            nombre_ctra = props['ref'].replace(" ", "").replace("-", "").upper()
-            try:
-                pk = float(props['pk'])
-                coords = geom['coordinates'] # [lon, lat]
-                
-                if nombre_ctra not in mapa_carreteras:
-                    mapa_carreteras[nombre_ctra] = {}
-                
-                mapa_carreteras[nombre_ctra][pk] = coords
-            except ValueError:
-                continue
-                
-    return mapa_carreteras
-
-def obtener_tramo_coords(mapa_pks, ctra, inicio, fin):
-    """Obtiene las coordenadas para dibujar la línea de un radar móvil (tramo)."""
-    if ctra not in mapa_pks:
-        return None
-    
-    pks_disponibles = sorted(mapa_pks[ctra].keys())
-    coords = []
-    
-    # Coger todos los puntos que caigan dentro del rango del radar
-    for pk in pks_disponibles:
-        if inicio <= pk <= fin:
-            coords.append(mapa_pks[ctra][pk])
+        # IMPORTANTE: Ignoramos 'LineString', solo queremos 'Point' con 'pk'
+        if geom['type'] == 'Point' and 'pk' in props:
+            ref = props.get('ref', 'Desconocida').replace(" ", "").replace("-", "").upper()
+            pk = float(props['pk'])
+            coords = geom['coordinates']
             
-    # Si tenemos puntos, devolvemos la línea. Si no, intentamos aproximar los extremos.
-    if len(coords) < 2:
-        return None 
-        
-    return coords
+            if ref not in pks_map:
+                pks_map[ref] = {}
+            pks_map[ref][pk] = coords
+            count_pks += 1
+            
+    print(f"   -> Encontrados {count_pks} puntos kilométricos (PKs) para referencia.")
+    return pks_map
 
-def procesar_radares():
-    print("📍 1. Indexando carreteras de Granada...")
-    mapa_geo = cargar_geometria_carreteras(ARCHIVO_GEOJSON)
+def obtener_tramo(pks_map, ref, inicio, fin):
+    if ref not in pks_map: return None
+    # Recolectar coordenadas entre inicio y fin
+    pks = sorted([k for k in pks_map[ref].keys() if inicio <= k <= fin])
+    if len(pks) < 2: return None
+    return [pks_map[ref][k] for k in pks]
+
+def procesar():
+    # 1. Cargar Mapa Base
+    mapa_geo = cargar_pks_geojson(ARCHIVO_GEOJSON)
+    if not mapa_geo:
+        print("⚠️ ALERTA: No se cargaron PKs del GeoJSON. Revisa si el archivo tiene 'Point' con propiedad 'pk'.")
     
-    print("📄 2. Leyendo PDF de la DGT...")
-    lista_radares = extraer_datos_pdf(ARCHIVO_PDF)
+    # 2. Leer PDF
+    print("📄 Leyendo PDF...")
+    texto_pdf = leer_pdf_robusto(ARCHIVO_PDF)
     
-    features_output = []
+    # DEBUG: Mostrar un poco del texto para ver qué está leyendo
+    print("--- INICIO MUESTRA TEXTO PDF ---")
+    print(texto_pdf[:300].replace('\n', ' | ')) 
+    print("--- FIN MUESTRA ---")
+
+    # 3. Extraer Radares con Regex Mejorado
+    # Busca: "Provincia","Carretera","Tipo","PK","Sentido"
+    # Permite espacios extra alrededor de las comas y comillas
+    patron = re.compile(r'"([^"]+)","([^"]+)","([^"]+)","([^"]+)","([^"]+)"')
     
-    print(f"🔄 3. Cruzando datos ({len(lista_radares)} registros encontrados)...")
+    matches = patron.findall(texto_pdf)
+    print(f"🔍 Encontradas {len(matches)} filas potenciales en el PDF.")
+
+    features = []
     
-    for item in lista_radares:
-        # 1. Filtro: Solo Granada
-        if "GRANADA" not in item['provincia'].upper():
+    for m in matches:
+        provincia, carretera, tipo, pk_txt, sentido = m
+        
+        # Filtro Granada
+        if "GRANADA" not in provincia.upper():
             continue
             
-        # Normalizar nombre para buscar en nuestro mapa
-        ctra_ref = item['carretera'].replace("-", "") # A-92 -> A92
+        ref = carretera.replace(" ", "").replace("-", "").upper() # Ej: N432
         
-        # Extraer números del PK (puede ser "150.5" o "10.0-20.0")
-        numeros = re.findall(r"[\d\.]+", item['pk_texto'])
+        # Extraer números del PK
+        nums = re.findall(r"[\d\.]+", pk_txt)
+        pks_vals = []
         try:
-            pks_valores = [float(n) for n in numeros if n != '.']
+            pks_vals = [float(n) for n in nums if n != '.']
         except:
             continue
             
-        if not pks_valores:
-            continue
-
+        if not pks_vals: continue
+        
         feature = None
         
-        # --- CASO A: RADAR FIJO (Un solo punto) ---
-        if "FIJO" in item['tipo'].upper() or len(pks_valores) == 1:
-            pk_objetivo = pks_valores[0]
-            
-            # Buscar coincidencia en el mapa
-            if ctra_ref in mapa_geo:
-                pks_carretera = mapa_geo[ctra_ref]
-                # Encontrar el PK más cercano (Nearest Neighbor)
-                pk_mas_cercano = min(pks_carretera.keys(), key=lambda k: abs(k - pk_objetivo))
-                
-                # Si la diferencia es menor a 3km, lo aceptamos (los PKs a veces varían)
-                if abs(pk_mas_cercano - pk_objetivo) < 3.0:
-                    coords = pks_carretera[pk_mas_cercano]
+        # Lógica de emparejamiento
+        # A) Radar Fijo (Punto)
+        if "FIJO" in tipo.upper() or len(pks_vals) == 1:
+            pk_target = pks_vals[0]
+            if ref in mapa_geo:
+                # Buscar el PK más cercano disponible en el mapa (max 2km diferencia)
+                closest = min(mapa_geo[ref].keys(), key=lambda k: abs(k-pk_target))
+                if abs(closest - pk_target) < 2.0:
                     feature = {
                         "type": "Feature",
-                        "geometry": { "type": "Point", "coordinates": coords },
+                        "geometry": { "type": "Point", "coordinates": mapa_geo[ref][closest] },
                         "properties": {
-                            "carretera": item['carretera'], # Nombre original bonito
-                            "tipo": "fijo",
-                            "pk": pk_objetivo,
-                            "sentido": item['sentido'],
-                            "desc": f"Radar Fijo PK {pk_objetivo}"
+                            "road": carretera,
+                            "type": "fijo",
+                            "pk": pk_target,
+                            "desc": f"Radar Fijo - {carretera} PK {pk_target}"
                         }
                     }
-
-        # --- CASO B: RADAR MÓVIL (Tramo) ---
-        elif len(pks_valores) >= 2:
-            inicio, fin = min(pks_valores), max(pks_valores)
-            
-            # Intentar construir la geometría de la línea
-            # Probamos variaciones del nombre si no existe (ej. GR30 vs GR-30)
-            coords_linea = obtener_tramo_coords(mapa_geo, ctra_ref, inicio, fin)
-            
-            if coords_linea:
+        
+        # B) Radar Móvil (Tramo)
+        elif len(pks_vals) >= 2:
+            start, end = min(pks_vals), max(pks_vals)
+            coords = obtener_tramo(mapa_geo, ref, start, end)
+            if coords:
                 feature = {
                     "type": "Feature",
-                    "geometry": { "type": "LineString", "coordinates": coords_linea },
+                    "geometry": { "type": "LineString", "coordinates": coords },
                     "properties": {
-                        "carretera": item['carretera'],
-                        "tipo": "movil",
-                        "tramo": f"{inicio} - {fin}",
-                        "sentido": item['sentido'],
-                        "desc": f"Radar Móvil ({inicio}-{fin})"
+                        "road": carretera,
+                        "type": "movil",
+                        "tramo": f"{start}-{end}",
+                        "desc": f"Radar Móvil - {carretera}"
                     }
                 }
-
-        if feature:
-            features_output.append(feature)
-
-    # Guardar JSON final
-    salida = { "type": "FeatureCollection", "features": features_output }
-    
-    # Asegurar que el directorio existe
-    os.makedirs(os.path.dirname(ARCHIVO_SALIDA), exist_ok=True)
-    
-    with open(ARCHIVO_SALIDA, 'w', encoding='utf-8') as f:
-        json.dump(salida, f, ensure_ascii=False)
         
-    print(f"✅ ¡Éxito! Se han generado {len(features_output)} radares en {ARCHIVO_SALIDA}")
+        if feature:
+            features.append(feature)
+
+    # 4. Guardar
+    output = { "type": "FeatureCollection", "features": features }
+    os.makedirs(os.path.dirname(ARCHIVO_SALIDA), exist_ok=True)
+    with open(ARCHIVO_SALIDA, 'w', encoding='utf-8') as f:
+        json.dump(output, f)
+        
+    print(f"✅ FINALIZADO: {len(features)} radares guardados en {ARCHIVO_SALIDA}")
 
 if __name__ == "__main__":
-    procesar_radares()
+    procesar()
