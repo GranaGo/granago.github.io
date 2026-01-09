@@ -23,10 +23,13 @@ jobs:
           python-version: "3.9"
 
       - name: 📦 Instalar dependencias
-        run: pip install pandas
+        run: pip install pandas pypdf
 
       - name: ⚙️ Ejecutar script de conversión
         run: python scripts/convertir_gtfs.py
+
+      - name: 📸 Procesar Radares PDF
+        run: python scripts/procesar_radares.py
 
       - name: 🔄 Sincronizar repositorio antes de subir
         run: git pull origin main --rebase --autostash
