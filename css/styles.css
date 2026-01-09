@@ -592,7 +592,7 @@ button,
   height: var(--header-height);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 0 20px;
   padding-top: env(safe-area-inset-top, 0px);
   z-index: 200;
@@ -723,7 +723,7 @@ body.dark-mode .switch-handle {
   left: 20px;
   right: 20px;
   height: 70px;
-  max-width: 400px;
+  max-width: 500px;
   margin: 0 auto;
   background: var(--bg-surface);
   backdrop-filter: blur(20px);
@@ -734,7 +734,7 @@ body.dark-mode .switch-handle {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 10px;
+  padding: 0 5px;
   z-index: 1000;
   padding-bottom: env(safe-area-inset-bottom, 0px);
   pointer-events: none;

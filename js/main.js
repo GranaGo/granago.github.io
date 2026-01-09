@@ -592,26 +592,6 @@ function showPlacesLoader(visible) {
   }
 }
 
-window.toggleSidebar = function () {
-  const panel = document.getElementById("sidebar-panel");
-  const backdrop = document.getElementById("sidebar-backdrop");
-  const body = document.body;
-
-  if (panel.classList.contains("open")) {
-    panel.classList.remove("open");
-    backdrop.classList.remove("visible");
-    setTimeout(() => (backdrop.style.display = "none"), 300);
-    body.style.overflow = "";
-  } else {
-    backdrop.style.display = "block";
-    requestAnimationFrame(() => {
-      panel.classList.add("open");
-      backdrop.classList.add("visible");
-    });
-    body.style.overflow = "hidden";
-  }
-};
-
 window.showNotification = function (title, message, type = "info") {
   const container = document.getElementById("notification-container");
   if (!container) return;
@@ -656,7 +636,9 @@ window.showNotification = function (title, message, type = "info") {
 };
 
 function initTheme() {
-  const toggle = document.getElementById("theme-toggle");
+  const toggle =
+    document.getElementById("theme-toggle-view") ||
+    document.getElementById("theme-toggle");
   const body = document.body;
   const savedTheme = localStorage.getItem("theme");
   const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -670,6 +652,7 @@ function initTheme() {
       body.classList.toggle("dark-mode");
       const isDark = body.classList.contains("dark-mode");
       localStorage.setItem("theme", isDark ? "dark" : "light");
+
       const metaColor = document.querySelector('meta[name="theme-color"]');
       if (metaColor) metaColor.content = isDark ? "#0f172a" : "#f0f2f5";
 
@@ -5092,6 +5075,12 @@ function loadGoogleTranslateScript() {
       return;
     }
 
+    if (document.querySelector('script[src*="translate.google.com"]')) {
+      googleTranslateScriptLoaded = true;
+      resolve();
+      return;
+    }
+
     const script = document.createElement("script");
     script.type = "text/javascript";
     script.src =
@@ -5100,7 +5089,7 @@ function loadGoogleTranslateScript() {
 
     script.onload = () => {
       googleTranslateScriptLoaded = true;
-      setTimeout(resolve, 500);
+      resolve();
     };
 
     script.onerror = () => {
@@ -5108,6 +5097,25 @@ function loadGoogleTranslateScript() {
     };
 
     document.body.appendChild(script);
+  });
+}
+
+function waitForGoogleDropdown(timeout = 10000) {
+  return new Promise((resolve, reject) => {
+    const combo = document.querySelector(".goog-te-combo");
+    if (combo) return resolve(combo);
+
+    const startTime = Date.now();
+    const interval = setInterval(() => {
+      const element = document.querySelector(".goog-te-combo");
+      if (element) {
+        clearInterval(interval);
+        resolve(element);
+      } else if (Date.now() - startTime > timeout) {
+        clearInterval(interval);
+        reject(new Error("Timeout: El widget de Google no cargó a tiempo."));
+      }
+    }, 200);
   });
 }
 
@@ -5131,7 +5139,6 @@ window.changeLanguage = async function (lang) {
     showNotification("Cargando idiomas", "Preparando traducción...", "info");
     try {
       await loadGoogleTranslateScript();
-      await new Promise((resolve) => setTimeout(resolve, 1000));
     } catch (error) {
       console.error(error);
       showNotification("Error", "No se pudo cargar el traductor", "error");
@@ -5139,28 +5146,44 @@ window.changeLanguage = async function (lang) {
     }
   }
 
-  const googleSelect = document.querySelector(".goog-te-combo");
+  try {
+    const googleSelect = await waitForGoogleDropdown();
 
-  if (googleSelect) {
-    googleSelect.value = lang;
-    googleSelect.dispatchEvent(new Event("change"));
-    localStorage.setItem("granaGo_selected_lang", lang);
+    if (googleSelect) {
+      googleSelect.value = lang;
+      googleSelect.dispatchEvent(new Event("change"));
+      googleSelect.dispatchEvent(new Event("input"));
 
-    const langNames = {
-      es: "Español",
-      en: "English",
-      fr: "Français",
-      it: "Italiano",
-    };
+      localStorage.setItem("granaGo_selected_lang", lang);
 
-    let msg = `Traduciendo a ${langNames[lang] || lang}...`;
-    if (lang === "es") msg = "Volviendo al idioma original...";
+      const langNames = {
+        es: "Español",
+        en: "English",
+        fr: "Français",
+        it: "Italiano",
+      };
 
-    showNotification("Idioma cambiado", msg, "success");
-    updateLangButtonActiveState(lang);
-  } else {
-    console.warn("El widget de traducción no se inicializó correctamente.");
-    setTimeout(() => window.changeLanguage(lang), 500);
+      let msg = `Traduciendo a ${langNames[lang] || lang}...`;
+      if (lang === "es") msg = "Volviendo al idioma original...";
+
+      showNotification("Idioma cambiado", msg, "success");
+      updateLangButtonActiveState(lang);
+    }
+  } catch (e) {
+    console.warn("No se encontró el combo de Google Translate:", e);
+    setTimeout(() => {
+      const retrySelect = document.querySelector(".goog-te-combo");
+      if (retrySelect) {
+        retrySelect.value = lang;
+        retrySelect.dispatchEvent(new Event("change"));
+      } else {
+        showNotification(
+          "Error",
+          "Inténtalo de nuevo en unos segundos",
+          "error"
+        );
+      }
+    }, 1000);
   }
 };
 
@@ -5315,7 +5338,6 @@ window.addEventListener("beforeinstallprompt", (e) => {
 });
 
 window.installPWA = async function () {
-  toggleSidebar();
   const isStandalone =
     window.matchMedia("(display-mode: standalone)").matches ||
     window.navigator.standalone === true;

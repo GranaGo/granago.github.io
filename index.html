@@ -60,13 +60,9 @@
     <div class="app-background"></div>
 
     <header class="app-header">
-      <button onclick="toggleSidebar()" class="icon-btn" aria-label="Menú">
-        <i class="icon ri-menu-line"></i>
-      </button>
       <div class="logo-container notranslate" onclick="navigateTo('home')">
         <span class="logo-text">Graná<span class="text-accent">Go</span></span>
       </div>
-      <div style="width: 40px"></div>
     </header>
 
     <main id="app">
@@ -144,7 +140,143 @@
           </div>
         </div>
       </div>
+      <div id="ajustes-view" class="view-section">
+        <div class="section-header">
+          <h2>Ajustes</h2>
+          <p>Configuración y utilidades</p>
+        </div>
 
+        <div class="fade-in-up" style="padding-bottom: 100px">
+          <h3 class="info-title" style="margin-top: 10px">Apariencia</h3>
+          <div class="transport-grid">
+            <div class="transport-card" style="justify-content: space-between">
+              <div style="display: flex; align-items: center; gap: 15px">
+                <div
+                  class="card-icon-wrapper"
+                  style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6"
+                >
+                  <i class="icon ri-contrast-2-fill"></i>
+                </div>
+                <div class="transport-info">
+                  <h3>Modo Oscuro</h3>
+                </div>
+              </div>
+              <button id="theme-toggle-view" class="theme-switch">
+                <div class="switch-handle"></div>
+              </button>
+            </div>
+
+            <div class="transport-card" style="display: block">
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 15px;
+                  margin-bottom: 15px;
+                "
+              >
+                <div
+                  class="card-icon-wrapper"
+                  style="background: rgba(59, 130, 246, 0.1); color: #2563eb"
+                >
+                  <i class="icon ri-translate"></i>
+                </div>
+                <div class="transport-info">
+                  <h3>Idioma</h3>
+                </div>
+              </div>
+              <div
+                class="lang-grid-container"
+                style="grid-template-columns: repeat(4, 1fr); gap: 10px"
+              >
+                <button
+                  onclick="changeLanguage('es')"
+                  class="notranslate lang-btn lang-es"
+                >
+                  ES
+                </button>
+                <button
+                  onclick="changeLanguage('en')"
+                  class="notranslate lang-btn lang-en"
+                >
+                  EN
+                </button>
+                <button
+                  onclick="changeLanguage('fr')"
+                  class="notranslate lang-btn lang-fr"
+                >
+                  FR
+                </button>
+                <button
+                  onclick="changeLanguage('it')"
+                  class="notranslate lang-btn lang-it"
+                >
+                  IT
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <h3 class="info-title">Aplicación</h3>
+          <div class="dashboard-grid">
+            <div class="square-card" onclick="installPWA()">
+              <div
+                class="square-icon"
+                style="background: rgba(219, 39, 119, 0.1); color: #db2777"
+              >
+                <i class="icon ri-download-2-fill"></i>
+              </div>
+              <span>Instalar App</span>
+            </div>
+            <div class="square-card" onclick="navigateTo('manual')">
+              <div
+                class="square-icon"
+                style="background: rgba(16, 185, 129, 0.1); color: #10b981"
+              >
+                <i class="icon ri-book-read-fill"></i>
+              </div>
+              <span>Manual</span>
+            </div>
+            <div class="square-card" onclick="navigateTo('legal')">
+              <div
+                class="square-icon"
+                style="background: rgba(100, 116, 139, 0.1); color: #64748b"
+              >
+                <i class="icon ri-scales-3-fill"></i>
+              </div>
+              <span>Legal</span>
+            </div>
+            <div class="square-card" onclick="hardReload()">
+              <div
+                class="square-icon"
+                style="background: rgba(245, 158, 11, 0.1); color: #f59e0b"
+              >
+                <i class="icon ri-refresh-line"></i>
+              </div>
+              <span>Recargar</span>
+            </div>
+          </div>
+
+          <h3 class="info-title">Soporte</h3>
+          <div
+            class="transport-card"
+            onclick="window.open('https://www.paypal.com/donate/?hosted_button_id=ELYXMJVZP5B8W', '_blank')"
+            style="border-left: 4px solid #004ad4"
+          >
+            <div
+              class="card-icon-wrapper"
+              style="background: rgba(0, 74, 212, 0.1); color: #004ad4"
+            >
+              <i class="icon ri-paypal-fill"></i>
+            </div>
+            <div class="transport-info">
+              <h3>Invítame a un café</h3>
+              <p>Apoya el desarrollo de GranáGo</p>
+            </div>
+            <i class="icon arrow-icon ri-external-link-line"></i>
+          </div>
+        </div>
+      </div>
       <div id="movilidad-view" class="view-section gpu-accelerated">
         <div class="section-header">
           <h2>Movilidad</h2>
@@ -1756,10 +1888,31 @@
           <div id="map-camaras" style="width: 100%; height: 100%"></div>
         </div>
       </div>
+
+      <div id="juegos-view" class="view-section">
+        <div class="section-header">
+          <h2>Juegos</h2>
+          <p>Zona de entretenimiento</p>
+        </div>
+        <div class="empty-state fade-in-up" style="margin-top: 50px">
+          <i
+            class="icon ri-gamepad-line"
+            style="font-size: 4rem; color: var(--text-secondary); opacity: 0.3"
+          ></i>
+          <h3 style="margin-top: 20px; color: var(--text-primary)">
+            Próximamente
+          </h3>
+          <p style="max-width: 300px; margin: 10px auto">
+            Estamos trabajando en minijuegos sobre Granada para que te diviertas
+            mientras esperas el bus.
+          </p>
+        </div>
+      </div>
+
       <div id="manual-view" class="view-section">
         <div class="section-header with-back-btn">
           <button
-            onclick="navigateTo('home')"
+            onclick="navigateTo('ajustes')"
             class="icon-btn back-btn"
             aria-label="Volver atrás"
           >
@@ -2181,7 +2334,7 @@
       <div id="legal-view" class="view-section">
         <div class="section-header with-back-btn">
           <button
-            onclick="navigateTo('home')"
+            onclick="navigateTo('ajustes')"
             class="icon-btn back-btn"
             aria-label="Volver atrás"
           >
@@ -2323,12 +2476,20 @@
 
     <nav class="glass-dock">
       <button
+        onclick="navigateTo('ajustes')"
+        class="dock-item"
+        data-target="ajustes"
+      >
+        <i class="icon ri-settings-4-line"></i> <span>Ajustes</span>
+      </button>
+      <button
         onclick="navigateTo('movilidad')"
         class="dock-item"
         data-target="movilidad"
       >
         <i class="icon ri-map-pin-2-line"></i> <span>Movilidad</span>
       </button>
+
       <div class="dock-center-wrapper">
         <button
           onclick="navigateTo('home')"
@@ -2341,262 +2502,22 @@
           </div>
         </button>
       </div>
+
       <button
         onclick="navigateTo('transporte')"
         class="dock-item"
         data-target="transporte"
       >
-        <i class="icon ri-e-bike-2-line"></i> <span>Transporte</span>
+        <i class="icon ri-e-bike-2-line"></i> <span>Transp.</span>
+      </button>
+      <button
+        onclick="navigateTo('juegos')"
+        class="dock-item"
+        data-target="juegos"
+      >
+        <i class="icon ri-gamepad-line"></i> <span>Juegos</span>
       </button>
     </nav>
-
-    <div id="sidebar-backdrop" onclick="toggleSidebar()"></div>
-    <aside id="sidebar-panel" class="gpu-accelerated">
-      <div class="sidebar-header">
-        <h2 class="text-xl font-bold">Menú</h2>
-        <button
-          onclick="toggleSidebar()"
-          class="icon-btn"
-          style="padding: 0"
-          aria-label="Cerrar menú"
-        >
-          <i class="icon ri-close-line"></i>
-        </button>
-      </div>
-      <div class="sidebar-content">
-        <div
-          class="setting-card"
-          onclick="hardReload()"
-          style="
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            transition: transform 0.2s;
-          "
-        >
-          <div
-            style="
-              background: var(--bg-app);
-              width: 40px;
-              height: 40px;
-              border-radius: 10px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: var(--color-success);
-            "
-          >
-            <i class="icon ri-refresh-line" style="font-size: 20px"></i>
-          </div>
-          <div>
-            <h3 style="margin: 0; font-size: 0.95rem; font-weight: 700">
-              Recargar App
-            </h3>
-            <p
-              style="margin: 0; font-size: 0.8rem; color: var(--text-secondary)"
-            >
-              Actualizar contenido
-            </p>
-          </div>
-        </div>
-        <div class="setting-card">
-          <div class="flex items-center justify-between">
-            <span class="font-semibold">Modo Oscuro</span>
-            <button id="theme-toggle" class="theme-switch">
-              <div class="switch-handle"></div>
-            </button>
-          </div>
-        </div>
-        <div class="setting-card">
-          <span
-            class="font-semibold"
-            style="display: block; margin-bottom: 10px"
-            >Idioma</span
-          >
-          <div class="lang-grid-container">
-            <button
-              onclick="changeLanguage('es')"
-              class="notranslate lang-btn lang-es"
-            >
-              ES
-            </button>
-            <button
-              onclick="changeLanguage('en')"
-              class="notranslate lang-btn lang-en"
-            >
-              EN
-            </button>
-            <button
-              onclick="changeLanguage('fr')"
-              class="notranslate lang-btn lang-fr"
-            >
-              FR
-            </button>
-            <button
-              onclick="changeLanguage('it')"
-              class="notranslate lang-btn lang-it"
-            >
-              IT
-            </button>
-          </div>
-        </div>
-        <div
-          class="setting-card"
-          onclick="toggleSidebar(); navigateTo('manual')"
-          style="
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            transition: transform 0.2s;
-          "
-        >
-          <div
-            style="
-              background: var(--bg-app);
-              width: 40px;
-              height: 40px;
-              border-radius: 10px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: var(--color-primary);
-            "
-          >
-            <i class="icon ri-book-read-fill" style="font-size: 20px"></i>
-          </div>
-          <div>
-            <h3 style="margin: 0; font-size: 0.95rem; font-weight: 700">
-              Manual de Uso
-            </h3>
-            <p
-              style="margin: 0; font-size: 0.8rem; color: var(--text-secondary)"
-            >
-              Aprende a usar la App
-            </p>
-          </div>
-        </div>
-        <div
-          class="setting-card"
-          onclick="installPWA()"
-          style="
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            transition: transform 0.2s;
-          "
-        >
-          <div
-            style="
-              background: var(--bg-app);
-              width: 40px;
-              height: 40px;
-              border-radius: 10px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: #db2777;
-            "
-          >
-            <i class="icon ri-download-2-line" style="font-size: 20px"></i>
-          </div>
-          <div>
-            <h3 style="margin: 0; font-size: 0.95rem; font-weight: 700">
-              Instalar App
-            </h3>
-            <p
-              style="margin: 0; font-size: 0.8rem; color: var(--text-secondary)"
-            >
-              Añadir a pantalla de inicio
-            </p>
-          </div>
-        </div>
-        <div
-          class="setting-card"
-          onclick="toggleSidebar(); window.open('https://www.paypal.com/donate/?hosted_button_id=ELYXMJVZP5B8W', '_blank')"
-          style="
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            transition: transform 0.2s;
-          "
-        >
-          <div
-            style="
-              width: 40px;
-              height: 40px;
-              border-radius: 10px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            "
-          >
-            <i
-              class="icon ri-paypal-fill"
-              style="color: #004ad4; font-size: 24px"
-            ></i>
-          </div>
-
-          <div>
-            <h3
-              style="
-                margin: 0;
-                font-size: 0.95rem;
-                font-weight: 700;
-                color: #00a2ff;
-              "
-            >
-              ¡Dóname!
-            </h3>
-            <p
-              style="margin: 0; font-size: 0.8rem; color: var(--text-secondary)"
-            >
-              Invítame a un café ☕
-            </p>
-          </div>
-        </div>
-
-        <div
-          class="setting-card"
-          onclick="toggleSidebar(); navigateTo('legal')"
-          style="
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            transition: transform 0.2s;
-          "
-        >
-          <div
-            style="
-              background: var(--bg-app);
-              width: 40px;
-              height: 40px;
-              border-radius: 10px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: var(--text-secondary);
-            "
-          >
-            <i class="icon ri-scales-3-line" style="font-size: 20px"></i>
-          </div>
-          <div>
-            <h3 style="margin: 0; font-size: 0.95rem; font-weight: 700">
-              Información Legal
-            </h3>
-            <p
-              style="margin: 0; font-size: 0.8rem; color: var(--text-secondary)"
-            >
-              Privacidad y Cookies
-            </p>
-          </div>
-        </div>
-      </div>
-    </aside>
 
     <div id="notification-container"></div>
 
