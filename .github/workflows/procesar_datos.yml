@@ -5,6 +5,7 @@ on:
     paths:
       - "raw_data/**"
       - "scripts/convertir_gtfs.py"
+      - "scripts/procesar_radares.py"
   workflow_dispatch:
 
 jobs:
