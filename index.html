@@ -1892,7 +1892,7 @@
       <div id="juegos-view" class="view-section">
         <div class="section-header">
           <h2>Zona de Juegos</h2>
-          <p>Entrena tu mente sobre Granada</p>
+          <p>Entrena tu mente</p>
         </div>
 
         <div id="games-menu" class="transport-grid fade-in-up">
@@ -1901,11 +1901,14 @@
               class="card-icon-wrapper"
               style="background: rgba(16, 185, 129, 0.1); color: #10b981"
             >
-              <i class="icon ri-font-size"></i>
+              <i class="icon ri-brain-fill"></i>
             </div>
             <div class="transport-info">
-              <h3>GranáWordle</h3>
-              <p>Adivina la palabra del día o entrena libremente</p>
+              <h3>GranáWord</h3>
+              <p>
+                Adivina la palabra del día o entrena libremente (Solo en
+                Español)
+              </p>
             </div>
             <i class="icon arrow-icon ri-arrow-right-s-line"></i>
           </div>
@@ -2058,46 +2061,43 @@
                 style="background: transparent; border: none; padding: 0"
               >
                 <p>
-                  Esta aplicación es tu herramienta para moverte por Granada sin
-                  complicaciones. Ya sea en autobús, metro, coche o andando,
-                  aquí encontrarás todo lo que necesitas.
-                </p>
-                <p>
-                  <strong>¿Cómo se usa este manual?</strong> Lee la sección que
-                  te interese. Hemos explicado todo paso a paso para que no
-                  tengas miedo de tocar ningún botón.
+                  GranáGo es tu navaja suiza para moverte por Granada. Unifica
+                  autobuses, metro, parkings, gasolina y agenda cultural en una
+                  sola app. Aquí tienes la guía definitiva para exprimirla al
+                  máximo.
                 </p>
               </div>
             </div>
 
             <div class="info-card">
               <h3 class="info-title" style="margin-top: 0">
-                <i class="icon ri-home-5-fill"></i> La Pantalla de Inicio (La
-                Casa)
+                <i class="icon ri-home-5-fill"></i> La Pantalla de Inicio
               </h3>
               <div
                 class="info-body-text"
                 style="background: transparent; border: none; padding: 0"
               >
-                <p>
-                  Nada más entrar, verás un resumen rápido de lo que pasa hoy en
-                  la ciudad:
-                </p>
+                <p>Tu panel de control diario:</p>
                 <ul class="limits-list">
                   <li>
-                    <strong>🌤️ El Tiempo:</strong> La tarjeta de arriba te dice
-                    la temperatura y si va a llover. Se actualiza según dónde
-                    estés.
+                    <strong>🌤️ El Tiempo:</strong> Arriba verás la temperatura y
+                    previsión actual según tu ubicación GPS.
                   </li>
                   <li>
-                    <strong>📅 Resumen del Día:</strong> Debajo verás 4 tarjetas
-                    grandes. Son "atajos". Si tocas cualquiera de ellas, te
-                    llevará directamente a esa sección: <br />•
-                    <strong>Eventos:</strong> Si hay cortes de tráfico o
-                    procesiones. <br />• <strong>Parkings:</strong> Si están
-                    llenos o libres. <br />• <strong>Transporte:</strong> Si hay
-                    huelgas o desvíos de bus. <br />•
-                    <strong>Gasolina:</strong> El precio medio hoy.
+                    <strong>📅 Eventos Hoy:</strong> Acceso rápido a cortes de
+                    tráfico o fiestas activas hoy.
+                  </li>
+                  <li>
+                    <strong>🅿️ Parkings:</strong> Un vistazo rápido al estado
+                    general de ocupación en la ciudad.
+                  </li>
+                  <li>
+                    <strong>🚌 Desvíos:</strong> Te avisa si hay líneas de bus
+                    afectadas por obras o manifestaciones.
+                  </li>
+                  <li>
+                    <strong>⛽ Gasolina:</strong> Precio medio del combustible
+                    hoy.
                   </li>
                 </ul>
               </div>
@@ -2105,289 +2105,403 @@
 
             <div class="info-card">
               <h3 class="info-title" style="margin-top: 0">
-                <i class="icon ri-cursor-fill"></i> ¿Cómo me muevo por la App?
+                <i class="icon ri-map-2-line"></i> ¿Cómo me muevo?
               </h3>
               <div
                 class="info-body-text"
                 style="background: transparent; border: none; padding: 0"
               >
-                <p>
-                  Para cambiar de pantalla, mira la
-                  <strong>barra blanca flotante</strong> que hay en la parte de
-                  abajo de tu móvil. Tiene 3 botones:
-                </p>
-
+                <p>La <strong>Barra Inferior</strong> es el menú principal:</p>
                 <div
                   style="
-                    display: flex;
-                    align-items: center;
-                    gap: 15px;
-                    margin-bottom: 10px;
-                    background: var(--bg-app);
-                    padding: 10px;
-                    border-radius: 12px;
-                  "
-                >
-                  <i
-                    class="icon ri-map-pin-2-line"
-                    style="font-size: 24px; color: var(--text-secondary)"
-                  ></i>
-                  <div>
-                    <strong>1. Movilidad (Izquierda)</strong>
-                    <div style="font-size: 0.8rem">
-                      Turismo, zonas cortadas y lugares importantes.
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  style="
-                    display: flex;
-                    align-items: center;
-                    gap: 15px;
-                    margin-bottom: 10px;
-                    background: var(--bg-app);
-                    padding: 10px;
-                    border-radius: 12px;
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 10px;
+                    margin-top: 10px;
                   "
                 >
                   <div
                     style="
-                      background: linear-gradient(
-                        135deg,
-                        #2563eb 0%,
-                        #1d4ed8 100%
-                      );
-                      color: white;
-                      width: 30px;
-                      height: 30px;
-                      border-radius: 50%;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
+                      background: var(--bg-app);
+                      padding: 10px;
+                      border-radius: 12px;
                     "
                   >
-                    <i class="icon ri-home-5-fill"></i>
+                    <strong>1. Movilidad (Izq)</strong><br />
+                    <span
+                      style="font-size: 0.8rem; color: var(--text-secondary)"
+                      >Turismo, Eventos y Lugares.</span
+                    >
                   </div>
-                  <div>
-                    <strong>2. Inicio (Centro)</strong>
-                    <div style="font-size: 0.8rem">
-                      Para volver siempre a la pantalla principal.
-                    </div>
+                  <div
+                    style="
+                      background: var(--bg-app);
+                      padding: 10px;
+                      border-radius: 12px;
+                    "
+                  >
+                    <strong>2. Inicio (Centro)</strong><br />
+                    <span
+                      style="font-size: 0.8rem; color: var(--text-secondary)"
+                      >Vuelve siempre a la "Casa".</span
+                    >
+                  </div>
+                  <div
+                    style="
+                      background: var(--bg-app);
+                      padding: 10px;
+                      border-radius: 12px;
+                    "
+                  >
+                    <strong>3. Transporte (Der)</strong><br />
+                    <span
+                      style="font-size: 0.8rem; color: var(--text-secondary)"
+                      >Bus, Metro, Coche y Gasolina.</span
+                    >
+                  </div>
+                  <div
+                    style="
+                      background: var(--bg-app);
+                      padding: 10px;
+                      border-radius: 12px;
+                    "
+                  >
+                    <strong>4. Juegos (Der)</strong><br />
+                    <span
+                      style="font-size: 0.8rem; color: var(--text-secondary)"
+                      >Pasatiempos para esperas.</span
+                    >
+                  </div>
+                </div>
+                <p style="margin-top: 15px">
+                  <strong>⬅️ Volver Atrás:</strong> Usa siempre la flecha
+                  situada en la esquina superior izquierda de cada pantalla.
+                </p>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <h3 class="info-title" style="margin-top: 0">
+                <i class="icon ri-bus-fill"></i> Transporte Público
+              </h3>
+              <div
+                class="info-body-text"
+                style="background: transparent; border: none; padding: 0"
+              >
+                <p>
+                  Accede desde <strong>Transporte > Transporte Público</strong>.
+                </p>
+
+                <h4 style="margin-top: 15px; font-size: 0.95rem">
+                  📍 Mapa de Paradas
+                </h4>
+                <p>Identifica cada medio por su color:</p>
+                <ul style="margin-bottom: 10px">
+                  <li>
+                    <span style="color: #d9281c; font-weight: 800">ROJO:</span>
+                    Autobús Urbano.
+                  </li>
+                  <li>
+                    <span style="color: #009a44; font-weight: 800">VERDE:</span>
+                    Metro.
+                  </li>
+                  <li>
+                    <span style="color: #2757f5; font-weight: 800">AZUL:</span>
+                    Interurbano.
+                  </li>
+                </ul>
+                <p><strong>Al pulsar una parada:</strong></p>
+                <ul>
+                  <li>
+                    <i class="ri-search-line"></i>
+                    <strong>Lupa:</strong> Consulta el tiempo de llegada real.
+                  </li>
+                  <li>
+                    <i class="ri-star-line"></i>
+                    <strong>Estrella:</strong> Guárdala en Favoritos para luego.
+                  </li>
+                </ul>
+
+                <h4 style="margin-top: 15px; font-size: 0.95rem">
+                  🚍 Líneas y Tarifas
+                </h4>
+                <p>
+                  Consulta el recorrido pintado en el mapa (Ida/Vuelta), el
+                  listado de paradas con sus transbordos y los precios de los
+                  billetes y tarjetas (Credibús, Bonos, etc.).
+                </p>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <h3 class="info-title" style="margin-top: 0">
+                <i class="icon ri-roadster-fill"></i> Vehículo Personal
+              </h3>
+              <div
+                class="info-body-text"
+                style="background: transparent; border: none; padding: 0"
+              >
+                <p>
+                  Herramientas para conductores en
+                  <strong>Transporte > Vehículo Personal</strong>:
+                </p>
+
+                <div
+                  class="rule-card allowed"
+                  style="
+                    margin-bottom: 10px;
+                    background: var(--bg-app);
+                    border: 1px solid var(--border-subtle);
+                  "
+                >
+                  <div class="rule-icon">
+                    <i class="ri-gas-station-fill" style="color: #f59e0b"></i>
+                  </div>
+                  <div class="rule-content">
+                    <h4 style="color: var(--text-primary)">
+                      Repostar (Gasolina/Eléctrico)
+                    </h4>
+                    <p>Precios actualizados diariamente.</p>
+                    <ul>
+                      <li>
+                        <strong>Top 3:</strong> Muestra solo las 3 más baratas
+                        de la provincia.
+                      </li>
+                      <li>
+                        <strong>Cerca:</strong> Las más económicas en 5km a la
+                        redonda (requiere GPS).
+                      </li>
+                      <li>
+                        <strong>Eléctricos:</strong> Filtra por cargadores
+                        Gratis o de Pago.
+                      </li>
+                    </ul>
                   </div>
                 </div>
 
                 <div
+                  class="rule-card allowed"
                   style="
-                    display: flex;
-                    align-items: center;
-                    gap: 15px;
                     margin-bottom: 10px;
                     background: var(--bg-app);
-                    padding: 10px;
-                    border-radius: 12px;
+                    border: 1px solid var(--border-subtle);
                   "
                 >
-                  <i
-                    class="icon ri-e-bike-2-line"
-                    style="font-size: 24px; color: var(--text-secondary)"
-                  ></i>
-                  <div>
-                    <strong>3. Transporte (Derecha)</strong>
-                    <div style="font-size: 0.8rem">
-                      Lo más importante: Autobuses, Metro, Coche y Gasolina.
-                    </div>
+                  <div class="rule-icon">
+                    <i class="ri-parking-box-fill" style="color: #2563eb"></i>
+                  </div>
+                  <div class="rule-content">
+                    <h4 style="color: var(--text-primary)">Aparcamiento</h4>
+                    <ul>
+                      <li>
+                        <strong>Parkings:</strong> Ocupación en tiempo real
+                        (<span style="color: #10b981">Verde=Libre</span>,
+                        <span style="color: #ef4444">Rojo=Completo</span>).
+                      </li>
+                      <li>
+                        <strong>Zona ORA:</strong> Mapa de zonas Azul, Verde y
+                        Roja con sus tarifas y horarios.
+                      </li>
+                    </ul>
                   </div>
                 </div>
 
-                <p>
-                  <strong>⬅️ Botón Atrás:</strong> Si entras en un sitio y
-                  quieres salir, busca siempre arriba a la izquierda una
-                  flechita hacia atrás.
-                </p>
-              </div>
-            </div>
-
-            <div class="info-card">
-              <h3 class="info-title" style="margin-top: 0">
-                <i class="icon ri-bus-fill"></i> Guía: Autobús y Metro
-              </h3>
-              <div
-                class="info-body-text"
-                style="background: transparent; border: none; padding: 0"
-              >
-                <p>Para ver cuándo llega tu autobús, sigue estos pasos:</p>
-
-                <ol class="limits-list" style="padding-left: 20px">
-                  <li>
-                    Pulsa el botón <strong>Transporte</strong> (abajo a la
-                    derecha).
-                  </li>
-                  <li>
-                    Elige la tarjeta azul que dice
-                    <strong>Transporte Público</strong>.
-                  </li>
-                  <li>
-                    Ahora verás 4 opciones. Pulsa
-                    <strong>Paradas</strong> (icono azul).
-                  </li>
-                  <li>
-                    Se abrirá un mapa. <br />• Los puntos
-                    <span style="color: #d9281c; font-weight: bold">ROJOS</span>
-                    son autobuses urbanos. <br />• Los puntos
-                    <span style="color: #009a44; font-weight: bold"
-                      >VERDES</span
-                    >
-                    son paradas de Metro. <br />• Los puntos
-                    <span style="color: #2757f5; font-weight: bold"
-                      >AZULES</span
-                    >
-                    son autobuses de los pueblos.
-                  </li>
-                  <li>Toca con el dedo encima de una parada en el mapa.</li>
-                  <li>
-                    Se abrirá un recuadro blanco con el nombre de la parada.
-                    <br />👉 <strong>Para ver el tiempo:</strong> Pulsa el icono
-                    de la <strong>LUPA <i class="ri-search-line"></i></strong>.
-                    <br />👉 <strong>Para guardarla:</strong> Pulsa la
-                    <strong>ESTRELLA <i class="ri-star-line"></i></strong>.
-                  </li>
-                </ol>
-
-                <div class="highlight-box">
-                  <strong>💡 Truco:</strong> Si pulsas el botón redondo con una
-                  mirilla <i class="ri-crosshair-2-line"></i> en el mapa, te
-                  llevará automáticamente a donde tú estás ahora mismo.
+                <div
+                  class="rule-card allowed"
+                  style="
+                    background: var(--bg-app);
+                    border: 1px solid var(--border-subtle);
+                  "
+                >
+                  <div class="rule-icon">
+                    <i class="ri-alarm-warning-fill" style="color: #ef4444"></i>
+                  </div>
+                  <div class="rule-content">
+                    <h4 style="color: var(--text-primary)">Evita Multas</h4>
+                    <ul>
+                      <li>
+                        <strong>ZBE:</strong> Mapa de la Zona de Bajas Emisiones
+                        y normas de etiquetas.
+                      </li>
+                      <li>
+                        <strong>Cámaras:</strong> Visualiza el tráfico y radares
+                        (fijos/móviles).
+                      </li>
+                      <li>
+                        <strong>Accesos:</strong> Horarios de pilonas en
+                        Albaicín y Centro.
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
 
             <div class="info-card">
               <h3 class="info-title" style="margin-top: 0">
-                <i class="icon ri-steering-2-fill"></i> Guía para Conductores
-              </h3>
-
-              <div class="rule-card" style="margin-bottom: 15px">
-                <div class="rule-icon">
-                  <i class="ri-gas-station-fill" style="color: #f59e0b"></i>
-                </div>
-                <div class="rule-content">
-                  <h4>Repostar Barato</h4>
-                  <p>
-                    Ve a
-                    <strong>Transporte > Vehículo Personal > Repostar</strong>.
-                    Elige tu tipo de gasolina (ej. Gasolina 95).
-                  </p>
-                  <p>En el mapa, usa los botones de arriba:</p>
-                  <ul>
-                    <li>
-                      <strong>Top 3:</strong> Te enseña solo las 3 gasolineras
-                      más baratas de toda Granada.
-                    </li>
-                    <li>
-                      <strong>Cerca:</strong> Te enseña las más baratas que
-                      están cerca de ti.
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              <div class="rule-card" style="margin-bottom: 15px">
-                <div class="rule-icon">
-                  <i class="ri-parking-box-fill" style="color: #2563eb"></i>
-                </div>
-                <div class="rule-content">
-                  <h4>Aparcar sin vueltas</h4>
-                  <p>
-                    Ve a
-                    <strong
-                      >Transporte > Vehículo Personal > Aparcamiento >
-                      Parkings</strong
-                    >.
-                  </p>
-                  <p>
-                    Verás los parkings en el mapa. El color te dice si cabe tu
-                    coche:
-                  </p>
-                  <ul>
-                    <li>
-                      <span style="color: #10b981; font-weight: 800"
-                        >VERDE:</span
-                      >
-                      Hay muchas plazas libres.
-                    </li>
-                    <li>
-                      <span style="color: #f59e0b; font-weight: 800"
-                        >NARANJA:</span
-                      >
-                      Quedan pocas, date prisa.
-                    </li>
-                    <li>
-                      <span style="color: #ef4444; font-weight: 800"
-                        >ROJO:</span
-                      >
-                      Está completo o cerrado. No vayas.
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              <div class="rule-card">
-                <div class="rule-icon">
-                  <i class="ri-alarm-warning-fill" style="color: #ef4444"></i>
-                </div>
-                <div class="rule-content">
-                  <h4>Multas y Cámaras</h4>
-                  <p>En <strong>Vehículo Personal > Accesos</strong> tienes:</p>
-                  <ul>
-                    <li>
-                      <strong>Zonas Restringidas:</strong> Horarios exactos de
-                      cuándo puedes pasar por calles como Recogidas o Elvira sin
-                      que te multen.
-                    </li>
-                    <li>
-                      <strong>ZBE:</strong> Un mapa para saber hasta dónde
-                      puedes entrar si tu coche es antiguo.
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div class="info-card">
-              <h3 class="info-title" style="margin-top: 0">
-                <i class="icon ri-tools-fill"></i> Ajustes y Ayuda
+                <i class="icon ri-map-pin-user-fill"></i> Movilidad y Ciudad
               </h3>
               <div
                 class="info-body-text"
                 style="background: transparent; border: none; padding: 0"
               >
                 <p>
-                  Arriba a la izquierda de la pantalla principal hay un botón
-                  con tres rayitas <i class="ri-menu-line"></i>. Si lo tocas, se
-                  abre un menú secreto:
+                  Disponible en la pestaña izquierda <strong>Movilidad</strong>:
                 </p>
-                <ul class="limits-list">
+                <ul>
                   <li>
-                    <strong
-                      ><i class="ri-refresh-line"></i> Recargar App:</strong
-                    >
-                    Úsalo si ves que la información no carga o se queda
-                    "pillada". Es como apagar y encender.
+                    <strong>Cortes y Eventos:</strong> Mapa de incidencias. Usa
+                    el filtro "Activo Ahora" para ver solo lo vigente o "Todos"
+                    para la agenda completa.
                   </li>
                   <li>
-                    <strong
-                      ><i class="ri-contrast-2-line"></i> Modo Oscuro:</strong
-                    >
-                    Pone la pantalla en negro para que no te moleste la luz por
-                    la noche.
-                  </li>
-                  <li>
-                    <strong><i class="ri-translate"></i> Idioma:</strong> Puedes
-                    poner la app en Inglés (EN), Francés (FR) o Italiano (IT).
-                    Pulsa ES para volver al español.
+                    <strong>Lugares:</strong> Puntos turísticos y útiles
+                    (Hospitales, Monumentos). Usa el botón
+                    <i class="ri-filter-3-line"></i> para filtrar por
+                    categorías.
                   </li>
                 </ul>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <h3 class="info-title" style="margin-top: 0">
+                <i class="icon ri-gamepad-line"></i> Juegos: GranáWord
+              </h3>
+              <div
+                class="info-body-text"
+                style="background: transparent; border: none; padding: 0"
+              >
+                <p>Adivina la palabra oculta mientras esperas el bus.</p>
+                <div
+                  class="rule-card"
+                  style="margin-bottom: 10px; padding: 10px"
+                >
+                  <div class="rule-content">
+                    <h4 style="margin: 0 0 5px 0">Modos de Juego</h4>
+                    <p style="margin: 0">
+                      <strong>Diario:</strong> Una palabra al día para todos.
+                      <strong>Infinito:</strong> Juega sin parar.
+                    </p>
+                  </div>
+                </div>
+                <p><strong>Código de Colores:</strong></p>
+                <ul style="list-style: none; padding: 0">
+                  <li style="margin-bottom: 5px">
+                    <span
+                      style="
+                        background: #10b981;
+                        padding: 2px 8px;
+                        border-radius: 4px;
+                        color: white;
+                        font-size: 0.8rem;
+                      "
+                      >VERDE</span
+                    >
+                    Letra correcta en sitio correcto.
+                  </li>
+                  <li style="margin-bottom: 5px">
+                    <span
+                      style="
+                        background: #f59e0b;
+                        padding: 2px 8px;
+                        border-radius: 4px;
+                        color: white;
+                        font-size: 0.8rem;
+                      "
+                      >AMARILLO</span
+                    >
+                    Letra correcta pero sitio incorrecto.
+                  </li>
+                  <li>
+                    <span
+                      style="
+                        background: #64748b;
+                        padding: 2px 8px;
+                        border-radius: 4px;
+                        color: white;
+                        font-size: 0.8rem;
+                      "
+                      >GRIS</span
+                    >
+                    La letra no está.
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <h3 class="info-title" style="margin-top: 0">
+                <i class="icon ri-settings-4-fill"></i> Ajustes y Utilidades
+              </h3>
+              <div
+                class="info-body-text"
+                style="background: transparent; border: none; padding: 0"
+              >
+                <p>Pulsa el botón "Ajustes" en la barra inferior.</p>
+
+                <div
+                  class="rule-card"
+                  style="
+                    margin-bottom: 10px;
+                    padding: 10px;
+                    border-left: 4px solid var(--text-accent);
+                  "
+                >
+                  <div class="rule-content">
+                    <h4 style="margin: 0 0 5px 0; font-size: 0.9rem">
+                      📲 Instalar App (PWA)
+                    </h4>
+                    <p style="font-size: 0.85rem">
+                      Instala GranáGo como app nativa:
+                    </p>
+                    <ul
+                      style="
+                        font-size: 0.85rem;
+                        margin-top: 5px;
+                        padding-left: 15px;
+                      "
+                    >
+                      <li>
+                        <strong>Android:</strong> Pulsa "Instalar App" o busca
+                        "Instalar aplicación" en el menú de Chrome.
+                      </li>
+                      <li>
+                        <strong>iPhone:</strong> En Safari, pulsa "Compartir" y
+                        "Añadir a pantalla de inicio".
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div
+                  class="rule-card"
+                  style="margin-bottom: 10px; padding: 10px"
+                >
+                  <div class="rule-content">
+                    <h4 style="margin: 0 0 5px 0; font-size: 0.9rem">
+                      🌍 Idioma y Tema
+                    </h4>
+                    <p style="font-size: 0.85rem">
+                      Activa el <strong>Modo Oscuro</strong> para la noche.
+                      Traduce la app a EN, FR o IT (requiere internet y aceptar
+                      cookies).
+                    </p>
+                  </div>
+                </div>
+
+                <div class="rule-card" style="padding: 10px">
+                  <div class="rule-content">
+                    <h4 style="margin: 0 0 5px 0; font-size: 0.9rem">
+                      🔄 Recargar (Solución de errores)
+                    </h4>
+                    <p style="font-size: 0.85rem">
+                      Si los mapas fallan o ves datos viejos, usa el botón
+                      naranja <strong>"Recargar"</strong> para limpiar la
+                      memoria y actualizar.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -2399,29 +2513,43 @@
                 class="info-body-text"
                 style="background: transparent; border: none; padding: 0"
               >
-                <p>
-                  Sabemos que a veces los datos fallan. Esto es lo que puedes
-                  hacer si no tienes conexión:
-                </p>
-                <div class="rule-card allowed" style="margin-bottom: 10px">
-                  <div class="rule-icon"><i class="ri-check-line"></i></div>
-                  <div class="rule-content">
-                    <h4>SÍ FUNCIONA</h4>
-                    <p>
-                      Podrás ver el listado de líneas de autobús, sus recorridos
-                      pintados en el mapa y los horarios teóricos (a qué hora se
-                      supone que pasan).
+                <div
+                  style="
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 10px;
+                  "
+                >
+                  <div
+                    style="
+                      background: rgba(16, 185, 129, 0.1);
+                      padding: 10px;
+                      border-radius: 12px;
+                      border: 1px solid rgba(16, 185, 129, 0.3);
+                    "
+                  >
+                    <strong style="color: #059669"
+                      ><i class="ri-check-line"></i> SÍ</strong
+                    >
+                    <p style="font-size: 0.8rem; margin: 5px 0 0 0">
+                      Listado de líneas, mapas, horarios, juegos y este
+                      manual. Todo contenido estatico se guarda en tu dispositivo.
                     </p>
                   </div>
-                </div>
-                <div class="rule-card forbidden">
-                  <div class="rule-icon"><i class="ri-close-line"></i></div>
-                  <div class="rule-content">
-                    <h4>NO FUNCIONA</h4>
-                    <p>
-                      No podrás ver cuánto falta exactamente para que llegue el
-                      bus (tiempo real), ni los precios de la gasolina, ni si el
-                      parking está lleno. Para eso hace falta internet.
+                  <div
+                    style="
+                      background: rgba(239, 68, 68, 0.1);
+                      padding: 10px;
+                      border-radius: 12px;
+                      border: 1px solid rgba(239, 68, 68, 0.3);
+                    "
+                  >
+                    <strong style="color: #dc2626"
+                      ><i class="ri-close-line"></i> NO</strong
+                    >
+                    <p style="font-size: 0.8rem; margin: 5px 0 0 0">
+                      Tiempos reales, precios de gasolina, ocupación parking y
+                      traducción.
                     </p>
                   </div>
                 </div>
@@ -2430,15 +2558,14 @@
 
             <div class="highlight-box">
               <strong
-                ><i class="ri-heart-3-fill" style="color: red"></i> Consejo
-                Final</strong
+                ><i class="ri-heart-3-fill" style="color: red"></i> Nota del
+                Desarrollador</strong
               >
               <p>
-                ¡No tengas miedo de explorar! Si te pierdes dentro de la
-                aplicación, solo tienes que pulsar el
-                <strong>botón central de la casa</strong>
-                <i class="ri-home-5-fill"></i> en la barra de abajo y volverás
-                al principio.
+                GranáGo es un proyecto personal gratuito. Los datos provienen de
+                fuentes oficiales (Consorcio, DGT, Ayto). Si te gusta, puedes
+                invitarme a un café desde la sección de Ajustes (PayPal) para
+                mantener los servidores. ¡Gracias!
               </p>
             </div>
           </div>

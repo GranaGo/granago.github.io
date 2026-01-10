@@ -33,6 +33,8 @@ const ASSETS_TO_CACHE = [
   "./data/camaras_granada.kml",
   "./data/aparcamiento_limitado_granada.kml",
   "./data/zonas_restringidas.kml",
+  "./data/radares.json",
+  "./data/palabras.json",
 ];
 
 self.addEventListener("install", (event) => {

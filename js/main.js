@@ -5637,7 +5637,6 @@ let wordleConfig = {
   len: 4,
   target: "",
   originalTarget: "",
-  definition: "",
   attempts: 6,
   currentAttempt: 0,
   currentTile: 0,
@@ -5650,9 +5649,11 @@ async function initWordleDictionary() {
   if (wordleDictionary) return true;
 
   try {
-    const response = await fetch("data/index.json");
+    const response = await fetch("data/palabras.json");
     if (!response.ok) throw new Error("No se encontró el diccionario");
+
     const rawData = await response.json();
+
     wordleDictionary = {
       4: { targets: [], valid: new Set() },
       5: { targets: [], valid: new Set() },
@@ -5662,7 +5663,8 @@ async function initWordleDictionary() {
     rawData.forEach((word) => {
       const cleanWord = word.trim();
       const len = cleanWord.length;
-      if (len >= 4 && len <= 6) {
+
+      if (wordleDictionary[len]) {
         wordleDictionary[len].targets.push(cleanWord);
 
         const normalized = cleanWord
@@ -5675,9 +5677,9 @@ async function initWordleDictionary() {
     });
 
     console.log(`Diccionario cargado:
-           4 letras: ${wordleDictionary[4].targets.length}
-           5 letras: ${wordleDictionary[5].targets.length}
-           6 letras: ${wordleDictionary[6].targets.length}`);
+      4 letras: ${wordleDictionary[4].targets.length}
+      5 letras: ${wordleDictionary[5].targets.length}
+      6 letras: ${wordleDictionary[6].targets.length}`);
 
     return true;
   } catch (e) {
@@ -5699,12 +5701,12 @@ function openWordleMenu() {
   setupContainer.innerHTML = wordleSetupHTML;
   setupContainer.style.display = "block";
   document.getElementById("wordle-board").innerHTML = "";
+
   wordleConfig = {
     mode: "daily",
     len: 4,
     target: "",
     originalTarget: "",
-    definition: "",
     attempts: 6,
     currentAttempt: 0,
     currentTile: 0,
@@ -5713,6 +5715,7 @@ function openWordleMenu() {
 
   const input = document.getElementById("wordle-native-input");
   if (input) input.value = "";
+
   initWordleDictionary();
   updateWordleStatsDisplay();
 }
@@ -5790,7 +5793,6 @@ async function startWordleGame(retryCount = 0) {
       wordleConfig.target = savedState.target;
       wordleConfig.originalTarget =
         savedState.originalTarget || savedState.target;
-      wordleConfig.definition = savedState.definition;
       wordleConfig.gameOver = savedState.gameOver;
 
       document.getElementById("wordle-setup").style.display = "none";
@@ -5960,17 +5962,39 @@ function processGuess(guess) {
   const target = wordleConfig.target;
   let correctCount = 0;
 
+  const letterCounts = {};
+  for (const char of target) {
+    letterCounts[char] = (letterCounts[char] || 0) + 1;
+  }
+
+  const colors = new Array(wordleConfig.len).fill(null);
+
   for (let i = 0; i < wordleConfig.len; i++) {
-    const tile = document.getElementById(`tile-${start + i}`);
+    const letter = guess[i];
+    if (target[i] === letter) {
+      colors[i] = "correct";
+      correctCount++;
+      letterCounts[letter]--;
+    }
+  }
+
+  for (let i = 0; i < wordleConfig.len; i++) {
+    if (colors[i] === "correct") continue;
+
     const letter = guess[i];
 
-    if (target[i] === letter) {
-      tile.classList.add("correct");
-      correctCount++;
-    } else if (target.includes(letter)) {
-      tile.classList.add("present");
+    if (letterCounts[letter] && letterCounts[letter] > 0) {
+      colors[i] = "present";
+      letterCounts[letter]--;
     } else {
-      tile.classList.add("absent");
+      colors[i] = "absent";
+    }
+  }
+
+  for (let i = 0; i < wordleConfig.len; i++) {
+    const tile = document.getElementById(`tile-${start + i}`);
+    if (tile) {
+      tile.classList.add(colors[i]);
     }
   }
 
@@ -6058,13 +6082,8 @@ function showWordleResult(win) {
               win ? "¡Victoria!" : "Fin del juego"
             }</h3>
             <p style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 5px;">
-                ${wordleConfig.originalTarget} </p>
-            ${
-              wordleConfig.definition !==
-              "Definición no disponible en modo local."
-                ? `<p class="info-body-text" style="font-style: italic; margin-bottom: 15px;">"${wordleConfig.definition}"</p>`
-                : ""
-            }
+                ${wordleConfig.originalTarget}
+            </p>
             ${buttonHTML}
         </div>
     `;
@@ -6075,7 +6094,6 @@ function saveWordleState() {
   const state = {
     target: wordleConfig.target,
     originalTarget: wordleConfig.originalTarget,
-    definition: wordleConfig.definition,
     currentAttempt: wordleConfig.currentAttempt,
     gameOver: wordleConfig.gameOver,
     date: new Date().toDateString(),
