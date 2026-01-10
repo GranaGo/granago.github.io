@@ -5669,18 +5669,17 @@ async function initWordleDictionary() {
 
         const normalized = cleanWord
           .toUpperCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "");
+          .replace(/[ÁÀÄÂ]/g, "A")
+          .replace(/[ÉÈËÊ]/g, "E")
+          .replace(/[ÍÌÏÎ]/g, "I")
+          .replace(/[ÓÒÖÔ]/g, "O")
+          .replace(/[ÚÙÜÛ]/g, "U");
 
         wordleDictionary[len].valid.add(normalized);
       }
     });
 
-    console.log(`Diccionario cargado:
-      4 letras: ${wordleDictionary[4].targets.length}
-      5 letras: ${wordleDictionary[5].targets.length}
-      6 letras: ${wordleDictionary[6].targets.length}`);
-
+    console.log(`Diccionario cargado con soporte Ñ`);
     return true;
   } catch (e) {
     console.error("Error cargando diccionario:", e);
@@ -5883,6 +5882,7 @@ function startGameUI(isRestoring = false) {
   if (!isRestoring) {
     wordleConfig.currentAttempt = 0;
     renderWordleBoard();
+    setTimeout(() => updateCurrentRow(""), 100);
   }
 
   document.getElementById("wordle-setup").style.display = "none";
@@ -5892,15 +5892,25 @@ function startGameUI(isRestoring = false) {
   input.setAttribute("inputmode", "text");
   input.setAttribute("spellcheck", "false");
   input.value = "";
+
   setTimeout(() => input.focus(), 200);
+  document.getElementById("wordle-board").onclick = () => input.focus();
 
   input.oninput = (e) => {
     if (wordleConfig.gameOver) return;
-    let val = e.target.value
-      .toUpperCase()
-      .normalize("NFD")
-      .replace(/[^A-Z]/g, "");
+
+    let val = e.target.value.toUpperCase();
+
+    val = val
+      .replace(/[ÁÀÄÂ]/g, "A")
+      .replace(/[ÉÈËÊ]/g, "E")
+      .replace(/[ÍÌÏÎ]/g, "I")
+      .replace(/[ÓÒÖÔ]/g, "O")
+      .replace(/[ÚÙÜÛ]/g, "U");
+    val = val.replace(/[^A-ZÑ]/g, "");
+
     if (val.length > wordleConfig.len) val = val.substring(0, wordleConfig.len);
+
     updateCurrentRow(val);
     input.value = val;
   };
@@ -5912,6 +5922,9 @@ function startGameUI(isRestoring = false) {
         validateAndSubmitGuess(guess);
       } else {
         showNotification("Aviso", "Palabra incompleta", "info");
+        const board = document.getElementById("wordle-board");
+        board.classList.add("shake");
+        setTimeout(() => board.classList.remove("shake"), 500);
       }
     }
   };
@@ -5919,11 +5932,22 @@ function startGameUI(isRestoring = false) {
 
 function updateCurrentRow(text) {
   const start = wordleConfig.currentAttempt * wordleConfig.len;
+
   for (let i = 0; i < wordleConfig.len; i++) {
     const tile = document.getElementById(`tile-${start + i}`);
     if (tile) {
+      tile.classList.remove("active");
       tile.innerText = text[i] || "";
       tile.classList.toggle("pop", !!text[i]);
+    }
+  }
+
+  if (!wordleConfig.gameOver) {
+    let nextIndex = text.length;
+
+    if (nextIndex < wordleConfig.len) {
+      const activeTile = document.getElementById(`tile-${start + nextIndex}`);
+      if (activeTile) activeTile.classList.add("active");
     }
   }
 }
@@ -5931,8 +5955,11 @@ function updateCurrentRow(text) {
 function validateAndSubmitGuess(guess) {
   const normalizedGuess = guess
     .toUpperCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+    .replace(/[ÁÀÄÂ]/g, "A")
+    .replace(/[ÉÈËÊ]/g, "E")
+    .replace(/[ÍÌÏÎ]/g, "I")
+    .replace(/[ÓÒÖÔ]/g, "O")
+    .replace(/[ÚÙÜÛ]/g, "U");
 
   if (
     wordleDictionary &&
@@ -6119,4 +6146,413 @@ function loadWordleState() {
     return null;
   }
   return state;
+}
+
+let sudokuConfig = {
+  mode: "daily",
+  difficulty: "medium",
+  selectedCell: null,
+  board: [],
+  solution: [],
+  fixed: [],
+  mistakes: 0,
+  maxMistakes: 5,
+  timer: 0,
+  timerInterval: null,
+  gameOver: false,
+};
+
+const SudokuGen = {
+  isValid: (board, row, col, num) => {
+    for (let i = 0; i < 9; i++) {
+      if (board[row * 9 + i] === num) return false;
+      if (board[i * 9 + col] === num) return false;
+      const boxRow = 3 * Math.floor(row / 3) + Math.floor(i / 3);
+      const boxCol = 3 * Math.floor(col / 3) + (i % 3);
+      if (board[boxRow * 9 + boxCol] === num) return false;
+    }
+    return true;
+  },
+
+  solve: (board) => {
+    for (let i = 0; i < 81; i++) {
+      if (board[i] === 0) {
+        for (let num = 1; num <= 9; num++) {
+          const row = Math.floor(i / 9);
+          const col = i % 9;
+          if (SudokuGen.isValid(board, row, col, num)) {
+            board[i] = num;
+            if (SudokuGen.solve(board)) return true;
+            board[i] = 0;
+          }
+        }
+        return false;
+      }
+    }
+    return true;
+  },
+
+  generate: (seed = null, difficulty = "medium") => {
+    let board = new Array(81).fill(0);
+
+    const random = seed ? mulberry32(seed) : Math.random;
+
+    for (let i = 0; i < 9; i += 3) {
+      let nums = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+      for (let j = nums.length - 1; j > 0; j--) {
+        const k = Math.floor(random() * (j + 1));
+        [nums[j], nums[k]] = [nums[k], nums[j]];
+      }
+      for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 3; c++) {
+          board[(i + r) * 9 + (i + c)] = nums[r * 3 + c];
+        }
+      }
+    }
+
+    SudokuGen.solve(board);
+    const solution = [...board];
+
+    let attempts =
+      difficulty === "easy" ? 30 : difficulty === "medium" ? 45 : 55;
+    if (seed) attempts = 45;
+
+    while (attempts > 0) {
+      let idx = Math.floor(random() * 81);
+      while (board[idx] === 0) idx = Math.floor(random() * 81);
+      board[idx] = 0;
+      attempts--;
+    }
+
+    return { board, solution };
+  },
+};
+
+function mulberry32(a) {
+  return function () {
+    var t = (a += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+window.openSudokuMenu = function () {
+  document.getElementById("games-menu").style.display = "none";
+  document.getElementById("sudoku-game-container").style.display = "block";
+
+  document.getElementById("sudoku-setup").style.display = "block";
+  document.getElementById("sudoku-board-wrapper").style.display = "none";
+  document.getElementById("sudoku-message").style.display = "none";
+
+  setSudokuMode("daily");
+  setupSudokuInputListeners();
+};
+
+window.closeSudoku = function () {
+  document.getElementById("games-menu").style.display = "flex";
+  document.getElementById("sudoku-game-container").style.display = "none";
+
+  const input = document.getElementById("sudoku-hidden-input");
+  if (input) input.blur();
+
+  if (sudokuConfig.timerInterval) clearInterval(sudokuConfig.timerInterval);
+};
+
+window.setSudokuMode = function (mode) {
+  sudokuConfig.mode = mode;
+  document
+    .getElementById("btn-sudoku-daily")
+    .classList.toggle("active", mode === "daily");
+  document
+    .getElementById("btn-sudoku-infinite")
+    .classList.toggle("active", mode === "infinite");
+
+  const diffSelector = document.getElementById("sudoku-diff-selector");
+  if (diffSelector) {
+    diffSelector.style.display = mode === "infinite" ? "block" : "none";
+  }
+};
+
+window.setSudokuDiff = function (diff, btn) {
+  sudokuConfig.difficulty = diff;
+  const btns = document.querySelectorAll("#sudoku-diff-selector .tab-pill");
+  btns.forEach((b) => b.classList.remove("active"));
+  btn.classList.add("active");
+};
+
+window.startSudokuGame = function () {
+  const todayStr = new Date().toDateString();
+
+  if (sudokuConfig.mode === "daily") {
+    const lastPlay = localStorage.getItem("sudoku_last_daily_date");
+    const lastStatus = localStorage.getItem("sudoku_last_daily_status");
+
+    if (
+      lastPlay === todayStr &&
+      (lastStatus === "completed" || lastStatus === "failed")
+    ) {
+      showNotification(
+        "Ya jugado",
+        "Vuelve mañana para el próximo reto.",
+        "info"
+      );
+      return;
+    }
+
+    const savedSession = JSON.parse(
+      localStorage.getItem("sudoku_daily_session")
+    );
+    if (savedSession && savedSession.date === todayStr) {
+      loadSudokuState(savedSession);
+    } else {
+      const seed = parseInt(todayStr.replace(/\D/g, "")) || Date.now();
+      const gameData = SudokuGen.generate(seed);
+      initSudokuState(gameData.board, gameData.solution);
+    }
+  } else {
+    const gameData = SudokuGen.generate(null, sudokuConfig.difficulty);
+    initSudokuState(gameData.board, gameData.solution);
+  }
+
+  document.getElementById("sudoku-setup").style.display = "none";
+  document.getElementById("sudoku-board-wrapper").style.display = "block";
+
+  renderSudokuBoard();
+  startSudokuTimer();
+};
+
+function initSudokuState(board, solution) {
+  sudokuConfig.board = [...board];
+  sudokuConfig.fixed = board.map((n) => n !== 0);
+  sudokuConfig.solution = solution;
+  sudokuConfig.mistakes = 0;
+  sudokuConfig.timer = 0;
+  sudokuConfig.gameOver = false;
+  sudokuConfig.selectedCell = null;
+  updateSudokuStats();
+}
+
+function loadSudokuState(session) {
+  sudokuConfig.board = session.board;
+  sudokuConfig.fixed = session.fixed;
+  sudokuConfig.solution = session.solution;
+  sudokuConfig.mistakes = session.mistakes;
+  sudokuConfig.timer = session.timer;
+  sudokuConfig.gameOver = false;
+  updateSudokuStats();
+}
+
+function renderSudokuBoard() {
+  const boardEl = document.getElementById("sudoku-board");
+  boardEl.innerHTML = "";
+
+  for (let i = 0; i < 81; i++) {
+    const cell = document.createElement("div");
+    cell.className = "sudoku-cell";
+    cell.id = `sudoku-cell-${i}`;
+
+    if (sudokuConfig.fixed[i]) {
+      cell.classList.add("fixed");
+      cell.innerText = sudokuConfig.board[i];
+    } else if (sudokuConfig.board[i] !== 0) {
+      cell.innerText = sudokuConfig.board[i];
+      if (sudokuConfig.board[i] !== sudokuConfig.solution[i]) {
+        cell.classList.add("error");
+      }
+    }
+
+    cell.onclick = () => selectSudokuCell(i);
+    boardEl.appendChild(cell);
+  }
+}
+
+let sudokuInputInitialized = false;
+
+function setupSudokuInputListeners() {
+  if (sudokuInputInitialized) return;
+
+  const input = document.getElementById("sudoku-hidden-input");
+  if (!input) return;
+
+  input.addEventListener("input", (e) => {
+    if (sudokuConfig.gameOver || sudokuConfig.selectedCell === null) {
+      input.value = "";
+      return;
+    }
+
+    const val = e.target.value;
+    const lastChar = val.slice(-1);
+
+    if (/[1-9]/.test(lastChar)) {
+      handleSudokuLogic(parseInt(lastChar));
+    }
+
+    input.value = "";
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (sudokuConfig.gameOver || sudokuConfig.selectedCell === null) return;
+
+    if (e.key === "Backspace" || e.key === "Delete") {
+      handleSudokuLogic("erase");
+    }
+  });
+
+  sudokuInputInitialized = true;
+}
+
+function selectSudokuCell(index) {
+  if (sudokuConfig.gameOver) return;
+
+  document.querySelectorAll(".sudoku-cell").forEach((c) => {
+    c.classList.remove("selected", "highlighted", "same-number");
+  });
+
+  sudokuConfig.selectedCell = index;
+  const cellEl = document.getElementById(`sudoku-cell-${index}`);
+  cellEl.classList.add("selected");
+
+  const hiddenInput = document.getElementById("sudoku-hidden-input");
+  if (hiddenInput) {
+    hiddenInput.focus({ preventScroll: true });
+  }
+
+  const row = Math.floor(index / 9);
+  const col = index % 9;
+  const val = sudokuConfig.board[index];
+
+  for (let i = 0; i < 81; i++) {
+    const r = Math.floor(i / 9);
+    const c = i % 9;
+    const el = document.getElementById(`sudoku-cell-${i}`);
+
+    if (r === row || c === col) el.classList.add("highlighted");
+    if (val !== 0 && sudokuConfig.board[i] === val)
+      el.classList.add("same-number");
+  }
+}
+
+function handleSudokuLogic(input) {
+  const idx = sudokuConfig.selectedCell;
+  const cellEl = document.getElementById(`sudoku-cell-${idx}`);
+
+  if (sudokuConfig.fixed[idx]) return;
+
+  if (input === "erase") {
+    sudokuConfig.board[idx] = 0;
+    cellEl.innerText = "";
+    cellEl.classList.remove("error");
+    selectSudokuCell(idx);
+    saveSudokuProgress();
+    return;
+  }
+
+  const num = parseInt(input);
+
+  if (num !== sudokuConfig.solution[idx]) {
+    sudokuConfig.mistakes++;
+    updateSudokuStats();
+    cellEl.innerText = num;
+    cellEl.classList.add("error");
+
+    const boardEl = document.getElementById("sudoku-board");
+    boardEl.classList.add("shake");
+    setTimeout(() => boardEl.classList.remove("shake"), 500);
+
+    if (sudokuConfig.mistakes >= sudokuConfig.maxMistakes) {
+      endSudokuGame(false);
+    }
+  } else {
+    sudokuConfig.board[idx] = num;
+    cellEl.innerText = num;
+    cellEl.classList.remove("error");
+    if (!sudokuConfig.board.includes(0)) {
+      endSudokuGame(true);
+    }
+  }
+
+  selectSudokuCell(idx);
+  saveSudokuProgress();
+}
+
+function updateSudokuStats() {
+  const el = document.getElementById("sudoku-mistakes");
+  if (el)
+    el.innerText = `Errores: ${sudokuConfig.mistakes}/${sudokuConfig.maxMistakes}`;
+}
+
+function startSudokuTimer() {
+  if (sudokuConfig.timerInterval) clearInterval(sudokuConfig.timerInterval);
+  sudokuConfig.timerInterval = setInterval(() => {
+    sudokuConfig.timer++;
+    const m = Math.floor(sudokuConfig.timer / 60)
+      .toString()
+      .padStart(2, "0");
+    const s = (sudokuConfig.timer % 60).toString().padStart(2, "0");
+    const el = document.getElementById("sudoku-timer");
+    if (el) el.innerText = `${m}:${s}`;
+    if (sudokuConfig.timer % 5 === 0) saveSudokuProgress();
+  }, 1000);
+}
+
+function saveSudokuProgress() {
+  if (sudokuConfig.mode !== "daily" || sudokuConfig.gameOver) return;
+
+  const state = {
+    date: new Date().toDateString(),
+    board: sudokuConfig.board,
+    fixed: sudokuConfig.fixed,
+    solution: sudokuConfig.solution,
+    mistakes: sudokuConfig.mistakes,
+    timer: sudokuConfig.timer,
+  };
+  localStorage.setItem("sudoku_daily_session", JSON.stringify(state));
+}
+
+function endSudokuGame(win) {
+  sudokuConfig.gameOver = true;
+  clearInterval(sudokuConfig.timerInterval);
+
+  const input = document.getElementById("sudoku-hidden-input");
+  if (input) input.blur();
+
+  const wrapper = document.getElementById("sudoku-board-wrapper");
+  const message = document.getElementById("sudoku-message");
+
+  if (win) {
+    showNotification("¡Excelente!", "Has completado el Sudoku", "success");
+    if (sudokuConfig.mode === "daily") {
+      localStorage.setItem("sudoku_last_daily_status", "completed");
+      localStorage.setItem("sudoku_last_daily_date", new Date().toDateString());
+      localStorage.removeItem("sudoku_daily_session");
+    }
+
+    setTimeout(() => {
+      wrapper.style.display = "none";
+      message.style.display = "block";
+      message.style.borderLeftColor = "var(--color-success)";
+      message.querySelector("h3").innerText = "¡Victoria!";
+      message.querySelector("p").innerText = `Tiempo: ${
+        document.getElementById("sudoku-timer").innerText
+      }`;
+    }, 1000);
+  } else {
+    showNotification("Fin del juego", "Demasiados errores", "error");
+
+    if (sudokuConfig.mode === "daily") {
+      localStorage.setItem("sudoku_last_daily_status", "failed");
+      localStorage.setItem("sudoku_last_daily_date", new Date().toDateString());
+      localStorage.removeItem("sudoku_daily_session");
+    }
+
+    setTimeout(() => {
+      wrapper.style.display = "none";
+      message.style.display = "block";
+      message.style.borderLeftColor = "var(--color-error)";
+      message.querySelector("h3").innerText = "Fin del Juego";
+      message.querySelector("p").innerText =
+        "Has alcanzado el límite de errores. Vuelve mañana.";
+    }, 1000);
+  }
 }
