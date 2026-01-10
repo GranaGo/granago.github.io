@@ -6,6 +6,7 @@ on:
       - "raw_data/**"
       - "scripts/convertir_gtfs.py"
       - "scripts/procesar_radares.py"
+      - "scripts/procesar_palabras.py"
   workflow_dispatch:
 
 jobs:
@@ -31,6 +32,9 @@ jobs:
 
       - name: 📸 Procesar Radares PDF
         run: python scripts/procesar_radares.py
+
+      - name: 📚 Procesar Diccionario Wordle
+        run: python scripts/procesar_palabras.py
 
       - name: 🔄 Sincronizar repositorio antes de subir
         run: git pull origin main --rebase --autostash

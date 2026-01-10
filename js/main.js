@@ -67,6 +67,8 @@ let oraDataLoaded = false;
 let parkingsTileLayer = null;
 let oraTileLayer = null;
 
+let wordleSetupHTML = "";
+
 const loadedScripts = {};
 let googleTranslateScriptLoaded = false;
 
@@ -5628,4 +5630,475 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
 
 function deg2rad(deg) {
   return deg * (Math.PI / 180);
+}
+
+let wordleConfig = {
+  mode: "daily",
+  len: 4,
+  target: "",
+  originalTarget: "",
+  definition: "",
+  attempts: 6,
+  currentAttempt: 0,
+  currentTile: 0,
+  gameOver: false,
+};
+
+let wordleDictionary = null;
+
+async function initWordleDictionary() {
+  if (wordleDictionary) return true;
+
+  try {
+    const response = await fetch("data/index.json");
+    if (!response.ok) throw new Error("No se encontró el diccionario");
+    const rawData = await response.json();
+    wordleDictionary = {
+      4: { targets: [], valid: new Set() },
+      5: { targets: [], valid: new Set() },
+      6: { targets: [], valid: new Set() },
+    };
+
+    rawData.forEach((word) => {
+      const cleanWord = word.trim();
+      const len = cleanWord.length;
+      if (len >= 4 && len <= 6) {
+        wordleDictionary[len].targets.push(cleanWord);
+
+        const normalized = cleanWord
+          .toUpperCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
+
+        wordleDictionary[len].valid.add(normalized);
+      }
+    });
+
+    console.log(`Diccionario cargado:
+           4 letras: ${wordleDictionary[4].targets.length}
+           5 letras: ${wordleDictionary[5].targets.length}
+           6 letras: ${wordleDictionary[6].targets.length}`);
+
+    return true;
+  } catch (e) {
+    console.error("Error cargando diccionario:", e);
+    showNotification("Error", "Fallo al cargar palabras", "error");
+    return false;
+  }
+}
+
+function openWordleMenu() {
+  const setupContainer = document.getElementById("wordle-setup");
+  if (!wordleSetupHTML) {
+    wordleSetupHTML = setupContainer.innerHTML;
+  }
+
+  document.getElementById("games-menu").style.display = "none";
+  document.getElementById("wordle-game-container").style.display = "block";
+
+  setupContainer.innerHTML = wordleSetupHTML;
+  setupContainer.style.display = "block";
+  document.getElementById("wordle-board").innerHTML = "";
+  wordleConfig = {
+    mode: "daily",
+    len: 4,
+    target: "",
+    originalTarget: "",
+    definition: "",
+    attempts: 6,
+    currentAttempt: 0,
+    currentTile: 0,
+    gameOver: false,
+  };
+
+  const input = document.getElementById("wordle-native-input");
+  if (input) input.value = "";
+  initWordleDictionary();
+  updateWordleStatsDisplay();
+}
+
+function closeWordle() {
+  document.getElementById("games-menu").style.display = "flex";
+  document.getElementById("wordle-game-container").style.display = "none";
+  wordleConfig.gameOver = false;
+}
+
+function setWordleMode(mode) {
+  wordleConfig.mode = mode;
+  document
+    .getElementById("btn-mode-daily")
+    .classList.toggle("active", mode === "daily");
+  document
+    .getElementById("btn-mode-infinite")
+    .classList.toggle("active", mode === "infinite");
+  updateWordleStatsDisplay();
+}
+
+function setWordleLen(len) {
+  wordleConfig.len = len;
+  [4, 5, 6].forEach((l) =>
+    document
+      .getElementById(`btn-len-${l}`)
+      .classList.toggle("active", l === len)
+  );
+}
+
+function updateWordleStatsDisplay() {
+  const stats = JSON.parse(
+    localStorage.getItem("granaGo_wordle_stats") || '{"daily":0, "infinite":0}'
+  );
+  const val = wordleConfig.mode === "daily" ? stats.daily : stats.infinite;
+  document.getElementById("wordle-stats-text").innerText = `Racha ${
+    wordleConfig.mode === "daily" ? "Diaria" : "Actual"
+  }: ${val}`;
+}
+
+async function startWordleGame(retryCount = 0) {
+  const setupContainer = document.getElementById("wordle-setup");
+  const todayStr = new Date().toDateString();
+
+  if (!wordleSetupHTML) wordleSetupHTML = setupContainer.innerHTML;
+
+  if (!wordleDictionary) {
+    setupContainer.innerHTML =
+      '<div class="spinner" style="margin:20px auto"></div><p style="text-align:center;">Cargando diccionario...</p>';
+    const loaded = await initWordleDictionary();
+    if (!loaded) {
+      setupContainer.innerHTML = wordleSetupHTML;
+      return;
+    }
+  }
+
+  if (wordleConfig.mode === "daily") {
+    const lastPlay = localStorage.getItem(
+      `wordle_last_daily_${wordleConfig.len}`
+    );
+
+    if (lastPlay === todayStr) {
+      showNotification(
+        "Aviso",
+        `Ya has completado el reto diario de ${wordleConfig.len} letras.`,
+        "info"
+      );
+      if (setupContainer.innerHTML.includes("spinner"))
+        setupContainer.innerHTML = wordleSetupHTML;
+      return;
+    }
+
+    const savedState = loadWordleState();
+    if (savedState) {
+      wordleConfig.target = savedState.target;
+      wordleConfig.originalTarget =
+        savedState.originalTarget || savedState.target;
+      wordleConfig.definition = savedState.definition;
+      wordleConfig.gameOver = savedState.gameOver;
+
+      document.getElementById("wordle-setup").style.display = "none";
+      renderWordleBoard();
+
+      const tiles = document.querySelectorAll(".wordle-cell");
+      if (savedState.board) {
+        savedState.board.forEach((data, i) => {
+          if (tiles[i]) {
+            tiles[i].innerText = data.text;
+            data.classes.forEach((cls) => tiles[i].classList.add(cls));
+          }
+        });
+      }
+
+      let filasUsadas = 0;
+      for (let r = 0; r < wordleConfig.attempts; r++) {
+        const firstCellIndex = r * wordleConfig.len;
+        const cell = tiles[firstCellIndex];
+        if (
+          cell &&
+          (cell.classList.contains("correct") ||
+            cell.classList.contains("present") ||
+            cell.classList.contains("absent"))
+        ) {
+          filasUsadas++;
+        }
+      }
+      wordleConfig.currentAttempt = filasUsadas;
+
+      startGameUI(true);
+      return;
+    }
+  }
+
+  setupContainer.innerHTML =
+    '<div class="spinner" style="margin:20px auto"></div><p style="text-align:center;">Preparando palabra...</p>';
+
+  try {
+    const wordLen = wordleConfig.len;
+
+    if (!wordleDictionary[wordLen] || !wordleDictionary[wordLen].targets) {
+      throw new Error("No hay palabras cargadas para esta longitud");
+    }
+
+    const targets = wordleDictionary[wordLen].targets;
+
+    if (targets.length === 0) throw new Error("Lista de palabras vacía");
+
+    let selectedWord = "";
+
+    if (wordleConfig.mode === "daily") {
+      const today = new Date();
+      const seed =
+        today.getFullYear() * 10000 +
+        (today.getMonth() + 1) * 100 +
+        today.getDate();
+      const uniqueIndex = (seed * 123 + wordLen * 45) % targets.length;
+      selectedWord = targets[uniqueIndex];
+    } else {
+      const randomIndex = Math.floor(Math.random() * targets.length);
+      selectedWord = targets[randomIndex];
+    }
+
+    wordleConfig.originalTarget = selectedWord.toUpperCase();
+    wordleConfig.target = selectedWord
+      .toUpperCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+
+    startGameUI(false);
+    saveWordleState();
+  } catch (e) {
+    console.error("Error startWordleGame:", e);
+    showNotification("Error", "Error al iniciar el juego local.", "error");
+    setupContainer.innerHTML = wordleSetupHTML;
+  }
+}
+
+window.focusGameInput = function () {
+  const input = document.getElementById("wordle-native-input");
+  if (input) input.focus();
+};
+
+function startGameUI(isRestoring = false) {
+  wordleConfig.gameOver = false;
+
+  if (!isRestoring) {
+    wordleConfig.currentAttempt = 0;
+    renderWordleBoard();
+  }
+
+  document.getElementById("wordle-setup").style.display = "none";
+
+  const input = document.getElementById("wordle-native-input");
+  input.type = "text";
+  input.setAttribute("inputmode", "text");
+  input.setAttribute("spellcheck", "false");
+  input.value = "";
+  setTimeout(() => input.focus(), 200);
+
+  input.oninput = (e) => {
+    if (wordleConfig.gameOver) return;
+    let val = e.target.value
+      .toUpperCase()
+      .normalize("NFD")
+      .replace(/[^A-Z]/g, "");
+    if (val.length > wordleConfig.len) val = val.substring(0, wordleConfig.len);
+    updateCurrentRow(val);
+    input.value = val;
+  };
+
+  input.onkeydown = async (e) => {
+    if (e.key === "Enter") {
+      const guess = input.value;
+      if (guess.length === wordleConfig.len) {
+        validateAndSubmitGuess(guess);
+      } else {
+        showNotification("Aviso", "Palabra incompleta", "info");
+      }
+    }
+  };
+}
+
+function updateCurrentRow(text) {
+  const start = wordleConfig.currentAttempt * wordleConfig.len;
+  for (let i = 0; i < wordleConfig.len; i++) {
+    const tile = document.getElementById(`tile-${start + i}`);
+    if (tile) {
+      tile.innerText = text[i] || "";
+      tile.classList.toggle("pop", !!text[i]);
+    }
+  }
+}
+
+function validateAndSubmitGuess(guess) {
+  const normalizedGuess = guess
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  if (
+    wordleDictionary &&
+    wordleDictionary[wordleConfig.len].valid.has(normalizedGuess)
+  ) {
+    processGuess(guess);
+  } else {
+    handleInvalidWord();
+  }
+}
+
+function handleInvalidWord() {
+  const board = document.getElementById("wordle-board");
+  board.classList.add("shake");
+  setTimeout(() => board.classList.remove("shake"), 500);
+  showNotification(
+    "No válida",
+    "La palabra no está en el diccionario",
+    "error"
+  );
+  const input = document.getElementById("wordle-native-input");
+  if (input) input.focus();
+}
+
+function processGuess(guess) {
+  const start = wordleConfig.currentAttempt * wordleConfig.len;
+  const target = wordleConfig.target;
+  let correctCount = 0;
+
+  for (let i = 0; i < wordleConfig.len; i++) {
+    const tile = document.getElementById(`tile-${start + i}`);
+    const letter = guess[i];
+
+    if (target[i] === letter) {
+      tile.classList.add("correct");
+      correctCount++;
+    } else if (target.includes(letter)) {
+      tile.classList.add("present");
+    } else {
+      tile.classList.add("absent");
+    }
+  }
+
+  if (correctCount === wordleConfig.len) {
+    wordleConfig.gameOver = true;
+    saveWordleState();
+    endGame(true);
+  } else if (wordleConfig.currentAttempt === wordleConfig.attempts - 1) {
+    wordleConfig.gameOver = true;
+    saveWordleState();
+    endGame(false);
+  } else {
+    wordleConfig.currentAttempt++;
+    const input = document.getElementById("wordle-native-input");
+    if (input) input.value = "";
+    saveWordleState();
+  }
+}
+
+function renderWordleBoard() {
+  const board = document.getElementById("wordle-board");
+  board.style.gridTemplateColumns = `repeat(${wordleConfig.len}, 1fr)`;
+  board.innerHTML = "";
+  for (let i = 0; i < wordleConfig.attempts * wordleConfig.len; i++) {
+    const cell = document.createElement("div");
+    cell.className = "wordle-cell";
+    cell.id = `tile-${i}`;
+    board.appendChild(cell);
+  }
+}
+
+function endGame(win) {
+  wordleConfig.gameOver = true;
+  let stats = JSON.parse(
+    localStorage.getItem("granaGo_wordle_stats") || '{"daily":0, "infinite":0}'
+  );
+
+  if (win) {
+    const start = wordleConfig.currentAttempt * wordleConfig.len;
+    for (let i = 0; i < wordleConfig.len; i++) {
+      setTimeout(() => {
+        const tile = document.getElementById(`tile-${start + i}`);
+        if (tile) tile.classList.add("winner");
+      }, i * 100);
+    }
+
+    if (wordleConfig.mode === "daily") stats.daily++;
+    else stats.infinite++;
+
+    showNotification("¡Conseguido!", "Palabra encontrada", "success");
+  } else {
+    document.getElementById("wordle-board").classList.add("shake");
+    if (wordleConfig.mode === "infinite") stats.infinite = 0;
+    showNotification("Fin del juego", "No has dado con la palabra", "error");
+  }
+
+  if (wordleConfig.mode === "daily") {
+    localStorage.setItem(
+      `wordle_last_daily_${wordleConfig.len}`,
+      new Date().toDateString()
+    );
+    localStorage.removeItem(`wordle_session_daily_${wordleConfig.len}`);
+  }
+
+  localStorage.setItem("granaGo_wordle_stats", JSON.stringify(stats));
+  updateWordleStatsDisplay();
+
+  setTimeout(() => showWordleResult(win), 1500);
+}
+
+function showWordleResult(win) {
+  const setup = document.getElementById("wordle-setup");
+  setup.style.display = "block";
+  const buttonHTML =
+    wordleConfig.mode === "infinite"
+      ? `<button class="cookie-btn primary" onclick="startWordleGame()">Jugar otra vez</button>`
+      : `<p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:10px;">Reto diario completado. ¡Vuelve mañana!</p>
+       <button class="cookie-btn secondary" onclick="closeWordle()">Volver a Juegos</button>`;
+
+  setup.innerHTML = `
+        <div class="info-card" style="border-left: 4px solid ${
+          win ? "var(--color-success)" : "var(--color-error)"
+        }">
+            <h3 class="info-title" style="margin-top:0">${
+              win ? "¡Victoria!" : "Fin del juego"
+            }</h3>
+            <p style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 5px;">
+                ${wordleConfig.originalTarget} </p>
+            ${
+              wordleConfig.definition !==
+              "Definición no disponible en modo local."
+                ? `<p class="info-body-text" style="font-style: italic; margin-bottom: 15px;">"${wordleConfig.definition}"</p>`
+                : ""
+            }
+            ${buttonHTML}
+        </div>
+    `;
+}
+
+function saveWordleState() {
+  if (wordleConfig.mode !== "daily") return;
+  const state = {
+    target: wordleConfig.target,
+    originalTarget: wordleConfig.originalTarget,
+    definition: wordleConfig.definition,
+    currentAttempt: wordleConfig.currentAttempt,
+    gameOver: wordleConfig.gameOver,
+    date: new Date().toDateString(),
+    board: Array.from(document.querySelectorAll(".wordle-cell")).map((c) => ({
+      text: c.innerText,
+      classes: Array.from(c.classList),
+    })),
+  };
+  localStorage.setItem(
+    `wordle_session_daily_${wordleConfig.len}`,
+    JSON.stringify(state)
+  );
+}
+
+function loadWordleState() {
+  const saved = localStorage.getItem(
+    `wordle_session_daily_${wordleConfig.len}`
+  );
+  if (!saved) return null;
+  const state = JSON.parse(saved);
+  if (state.date !== new Date().toDateString()) {
+    localStorage.removeItem(`wordle_session_daily_${wordleConfig.len}`);
+    return null;
+  }
+  return state;
 }

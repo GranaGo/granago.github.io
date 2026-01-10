@@ -3706,3 +3706,139 @@ font:hover {
 .popup-radar .badge.tramo {
   background-color: #8e44ad;
 }
+
+.wordle-board {
+  display: grid;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 20px;
+  padding: 10px;
+}
+
+.wordle-cell {
+  width: 50px;
+  height: 50px;
+  border: 2px solid var(--border-subtle);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  transition: all 0.3s ease;
+}
+
+.wordle-cell.pop {
+  transform: scale(1.1);
+  border-color: var(--text-secondary);
+}
+.wordle-cell.correct {
+  background: var(--color-success) !important;
+  color: white !important;
+  border-color: var(--color-success) !important;
+}
+.wordle-cell.present {
+  background: var(--color-warning) !important;
+  color: white !important;
+  border-color: var(--color-warning) !important;
+}
+.wordle-cell.absent {
+  background: var(--text-secondary) !important;
+  color: white !important;
+  border-color: var(--text-secondary) !important;
+}
+
+.wordle-keyboard {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  gap: 6px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.key-btn {
+  grid-column: span 2;
+  height: 45px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.key-btn.wide {
+  grid-column: span 3;
+  font-size: 0.7rem;
+}
+.key-btn:active {
+  transform: scale(0.95);
+  background: var(--bg-app);
+}
+.key-btn.correct {
+  background: var(--color-success);
+  color: white;
+}
+.key-btn.present {
+  background: var(--color-warning);
+  color: white;
+}
+.key-btn.absent {
+  background: #334155;
+  color: white;
+  opacity: 0.5;
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-20px);
+  }
+  60% {
+    transform: translateY(-10px);
+  }
+}
+
+.wordle-cell.winner {
+  animation: bounce 0.6s ease;
+  background-color: var(--color-success) !important;
+  color: white !important;
+  border-color: var(--color-success) !important;
+}
+
+@keyframes shake {
+  10%,
+  90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+  20%,
+  80% {
+    transform: translate3d(2px, 0, 0);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+  40%,
+  60% {
+    transform: translate3d(4px, 0, 0);
+  }
+}
+
+.shake {
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
