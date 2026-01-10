@@ -4765,7 +4765,7 @@ async function updateHomeEventsWidget() {
         div.className = "mini-event-title";
 
         if (evt.isEndingToday) {
-          div.innerHTML = `${evt.title} <span style="color: #ef4444; font-weight: 700; font-size: 0.8em; white-space: nowrap;">(FIN HOY)</span>`;
+          div.innerHTML = `${evt.title} <span style="color: var(--color-error); font-weight: 700; font-size: 0.8em; white-space: nowrap;">(FIN HOY)</span>`;
         } else {
           div.textContent = evt.title;
         }
@@ -4848,7 +4848,7 @@ async function updateHomeBusWidget() {
     if (sortedLines.length > 0) {
       const titleDiv = document.createElement("div");
       titleDiv.className = "bus-status-text";
-      titleDiv.style.cssText = "color:#ef4444; font-weight:700;";
+      titleDiv.style.cssText = "color:var(--color-error); font-weight:700;";
       titleDiv.textContent =
         sortedLines.length > 1 ? "Líneas afectadas:" : "Línea afectada:";
 
