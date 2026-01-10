@@ -3903,3 +3903,21 @@ body.dark-mode .sudoku-cell.highlighted::before {
   font-size: 0.9rem;
   padding: 0 5px;
 }
+
+#wordle-game-container,
+#sudoku-board-wrapper {
+  position: relative !important;
+}
+
+#wordle-native-input,
+#sudoku-hidden-input {
+  position: absolute !important;
+  top: 50px !important; 
+  left: 0 !important;
+  width: 100% !important;
+  height: 200px !important;
+  opacity: 0 !important;
+  z-index: -1;
+  pointer-events: none;
+  margin: 0 !important;
+}

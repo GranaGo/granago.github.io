@@ -6556,3 +6556,23 @@ function endSudokuGame(win) {
     }, 1000);
   }
 }
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", () => {
+    if (window.visualViewport.height < window.innerHeight - 100) {
+      const activeElement = document.activeElement;
+
+      if (activeElement && activeElement.id === "wordle-native-input") {
+        const board = document.getElementById("wordle-board");
+        if (board)
+          board.scrollIntoView({ block: "center", behavior: "smooth" });
+      }
+
+      if (activeElement && activeElement.id === "sudoku-hidden-input") {
+        const board = document.getElementById("sudoku-board");
+        if (board)
+          board.scrollIntoView({ block: "center", behavior: "smooth" });
+      }
+    }
+  });
+}
