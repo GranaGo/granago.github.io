@@ -89,7 +89,7 @@
   --color-primary: #2563eb;
   --color-success: #10b981;
   --color-warning: #f59e0b;
-  --color-error: #e20000;
+  --color-error: #ef4444;
   --color-info: #06b6d4;
   --color-purple: #8b5cf6;
   --color-pink: #db2777;
@@ -116,7 +116,6 @@ body.dark-mode {
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
   --text-accent: #2563eb;
-  --color-error: #e20000;
   --border-subtle: rgba(255, 255, 255, 0.05);
   --shadow-soft: 0 10px 40px -10px rgba(0, 0, 0, 0.3);
 }
@@ -3175,7 +3174,7 @@ body.dark-mode .map-loader {
 }
 .widget-bus .summary-icon {
   background: rgba(239, 68, 68, 0.15);
-  color: var(--color-error);
+  color: #ef4444;
 }
 .widget-fuel .summary-icon {
   background: rgba(16, 185, 129, 0.15);
