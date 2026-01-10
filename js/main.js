@@ -6576,3 +6576,309 @@ if (window.visualViewport) {
     }
   });
 }
+
+let memoryConfig = {
+  hasFlippedCard: false,
+  lockBoard: false,
+  firstCard: null,
+  secondCard: null,
+  moves: 0,
+  pairsFound: 0,
+  totalPairs: 8,
+};
+
+const memoryIcons = [
+  "ri-bus-fill",
+  "ri-train-fill",
+  "ri-parking-box-fill",
+  "ri-gas-station-fill",
+  "ri-camera-lens-fill",
+  "ri-roadster-fill",
+  "ri-motorbike-fill",
+  "ri-map-pin-user-fill",
+];
+
+function openMemoryMenu() {
+  document.getElementById("games-menu").style.display = "none";
+  document.getElementById("memory-game-container").style.display = "block";
+  initMemoryGame();
+}
+
+function closeMemory() {
+  document.getElementById("games-menu").style.display = "flex";
+  document.getElementById("memory-game-container").style.display = "none";
+}
+
+function initMemoryGame() {
+  const board = document.getElementById("memory-board");
+  const msg = document.getElementById("memory-message");
+
+  board.innerHTML = "";
+  msg.style.display = "none";
+
+  memoryConfig.moves = 0;
+  memoryConfig.pairsFound = 0;
+  memoryConfig.hasFlippedCard = false;
+  memoryConfig.lockBoard = false;
+  memoryConfig.firstCard = null;
+  memoryConfig.secondCard = null;
+
+  updateMemoryStats();
+
+  const deck = [...memoryIcons, ...memoryIcons];
+  deck.sort(() => 0.5 - Math.random());
+
+  deck.forEach((iconClass) => {
+    const card = document.createElement("div");
+    card.classList.add("memory-card");
+    card.dataset.icon = iconClass;
+
+    card.innerHTML = `
+      <div class="memory-face memory-front">
+        <i class="ri-question-mark"></i>
+      </div>
+      <div class="memory-face memory-back">
+        <i class="${iconClass}"></i>
+      </div>
+    `;
+
+    card.addEventListener("click", flipCard);
+    board.appendChild(card);
+  });
+}
+
+function flipCard() {
+  if (memoryConfig.lockBoard) return;
+  if (this === memoryConfig.firstCard) return;
+
+  this.classList.add("flip");
+
+  if (!memoryConfig.hasFlippedCard) {
+    memoryConfig.hasFlippedCard = true;
+    memoryConfig.firstCard = this;
+    return;
+  }
+
+  memoryConfig.secondCard = this;
+  memoryConfig.moves++;
+  updateMemoryStats();
+  checkForMatch();
+}
+
+function checkForMatch() {
+  let isMatch =
+    memoryConfig.firstCard.dataset.icon ===
+    memoryConfig.secondCard.dataset.icon;
+
+  if (isMatch) {
+    disableCards();
+  } else {
+    unflipCards();
+  }
+}
+
+function disableCards() {
+  memoryConfig.firstCard.classList.add("matched");
+  memoryConfig.secondCard.classList.add("matched");
+  memoryConfig.firstCard.removeEventListener("click", flipCard);
+  memoryConfig.secondCard.removeEventListener("click", flipCard);
+
+  memoryConfig.pairsFound++;
+  resetBoard();
+
+  if (memoryConfig.pairsFound === memoryConfig.totalPairs) {
+    setTimeout(() => {
+      document.getElementById("memory-message").style.display = "block";
+      showNotification("¡Genial!", "Has completado el Memory", "success");
+    }, 500);
+  }
+}
+
+function unflipCards() {
+  memoryConfig.lockBoard = true;
+
+  setTimeout(() => {
+    memoryConfig.firstCard.classList.remove("flip");
+    memoryConfig.secondCard.classList.remove("flip");
+    resetBoard();
+  }, 1000);
+}
+
+function resetBoard() {
+  [memoryConfig.hasFlippedCard, memoryConfig.lockBoard] = [false, false];
+  [memoryConfig.firstCard, memoryConfig.secondCard] = [null, null];
+}
+
+function updateMemoryStats() {
+  const el = document.getElementById("memory-stats-text");
+  if (el) el.innerText = `Movimientos: ${memoryConfig.moves}`;
+}
+
+let quizConfig = {
+  allQuestions: [],
+  roundQuestions: [],
+  currentIdx: 0,
+  score: 0,
+  isAnswered: false,
+  questionsPerRound: 10,
+};
+
+async function openQuizMenu() {
+  document.getElementById("games-menu").style.display = "none";
+  document.getElementById("quiz-game-container").style.display = "block";
+
+  if (quizConfig.allQuestions.length === 0) {
+    const setup = document.getElementById("quiz-setup");
+    const game = document.getElementById("quiz-gameplay");
+
+    setup.style.display = "block";
+    game.style.display = "none";
+
+    try {
+      const response = await fetch("data/trivial.json");
+      if (!response.ok) throw new Error("Error cargando preguntas");
+
+      quizConfig.allQuestions = await response.json();
+      setup.style.display = "none";
+      game.style.display = "block";
+      startQuizGame();
+    } catch (e) {
+      console.error(e);
+      setup.innerHTML = `<p style="color:var(--color-error)">Error al cargar las preguntas.<br>Inténtalo más tarde.</p>`;
+    }
+  } else {
+    startQuizGame();
+  }
+}
+
+function closeQuiz() {
+  document.getElementById("games-menu").style.display = "flex";
+  document.getElementById("quiz-game-container").style.display = "none";
+}
+
+function startQuizGame() {
+  quizConfig.currentIdx = 0;
+  quizConfig.score = 0;
+  quizConfig.isAnswered = false;
+  quizConfig.roundQuestions = [...quizConfig.allQuestions]
+    .sort(() => 0.5 - Math.random())
+    .slice(0, quizConfig.questionsPerRound);
+
+  document.getElementById("quiz-question-box").style.display = "block";
+  document.getElementById("quiz-result-msg").style.display = "none";
+
+  updateQuizStats();
+  showQuestion();
+}
+
+function showQuestion() {
+  const qData = quizConfig.roundQuestions[quizConfig.currentIdx];
+  const qEl = document.getElementById("quiz-question");
+  const optsEl = document.getElementById("quiz-options");
+  const counterEl = document.getElementById("quiz-counter");
+  const progressEl = document.getElementById("quiz-progress-bar");
+  const container = document.getElementById("quiz-question-box");
+  container.classList.remove("fade-in-right");
+  void container.offsetWidth;
+  container.classList.add("fade-in-right");
+  counterEl.innerText = `PREGUNTA ${quizConfig.currentIdx + 1} / ${
+    quizConfig.questionsPerRound
+  }`;
+  qEl.innerText = qData.pregunta;
+  optsEl.innerHTML = "";
+  quizConfig.isAnswered = false;
+  const progressPct =
+    (quizConfig.currentIdx / quizConfig.questionsPerRound) * 100;
+  progressEl.style.width = `${progressPct}%`;
+  const shuffledOptions = [...qData.opciones].sort(() => 0.5 - Math.random());
+
+  shuffledOptions.forEach((optText) => {
+    const btn = document.createElement("button");
+    btn.className = "quiz-btn";
+    btn.innerHTML = `<span>${optText}</span> <i class="icon ri-checkbox-blank-circle-line"></i>`;
+    btn.onclick = () =>
+      handleQuizAnswer(optText, qData.respuesta_correcta, btn);
+    optsEl.appendChild(btn);
+  });
+}
+
+function handleQuizAnswer(selectedText, correctText, btnElement) {
+  if (quizConfig.isAnswered) return;
+  quizConfig.isAnswered = true;
+
+  const allBtns = document.querySelectorAll(".quiz-btn");
+
+  allBtns.forEach((btn) => {
+    const spanText = btn.querySelector("span").innerText;
+    if (spanText === correctText) {
+      btn.classList.add("correct");
+      btn.querySelector("i").className = "icon ri-checkbox-circle-fill";
+    }
+  });
+
+  if (selectedText === correctText) {
+    quizConfig.score++;
+    if (navigator.vibrate) navigator.vibrate(50);
+  } else {
+    btnElement.classList.add("wrong");
+    btnElement.querySelector("i").className = "icon ri-close-circle-fill";
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+  }
+
+  updateQuizStats();
+
+  setTimeout(() => {
+    quizConfig.currentIdx++;
+    if (quizConfig.currentIdx < quizConfig.questionsPerRound) {
+      showQuestion();
+    } else {
+      finishQuizGame();
+    }
+  }, 1500);
+}
+
+function finishQuizGame() {
+  document.getElementById("quiz-question-box").style.display = "none";
+  document.getElementById("quiz-progress-bar").style.width = "100%";
+
+  const resBox = document.getElementById("quiz-result-msg");
+  resBox.style.display = "block";
+  resBox.className = "fade-in-up";
+
+  const score = quizConfig.score;
+  const total = quizConfig.questionsPerRound;
+  const title = document.getElementById("quiz-title-result");
+  const text = document.getElementById("quiz-text-result");
+  const icon = document.getElementById("quiz-icon-result");
+
+  text.innerText = `Has acertado ${score} de ${total}`;
+
+  if (score === total) {
+    title.innerText = "¡Matrícula de Honor!";
+    title.style.color = "var(--color-success)";
+    icon.className = "icon ri-trophy-fill";
+    icon.style.color = "#fbbf24";
+    showNotification("¡Increíble!", "Eres un experto en Granada", "success");
+  } else if (score >= total * 0.7) {
+    title.innerText = "¡Muy Bien!";
+    title.style.color = "var(--text-primary)";
+    icon.className = "icon ri-thumb-up-fill";
+    icon.style.color = "var(--color-primary)";
+  } else if (score >= total * 0.5) {
+    title.innerText = "Aprobado";
+    title.style.color = "var(--text-secondary)";
+    icon.className = "icon ri-emotion-normal-line";
+    icon.style.color = "var(--color-warning)";
+  } else {
+    title.innerText = "¡Ay, esa malafollá!";
+    title.style.color = "var(--color-error)";
+    icon.className = "icon ri-emotion-sad-line";
+    icon.style.color = "var(--color-error)";
+  }
+}
+
+function updateQuizStats() {
+  document.getElementById(
+    "quiz-stats-text"
+  ).innerText = `Puntos: ${quizConfig.score}`;
+}

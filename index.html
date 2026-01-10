@@ -1925,6 +1925,33 @@
             </div>
             <i class="icon arrow-icon ri-arrow-right-s-line"></i>
           </div>
+          <div class="transport-card" onclick="openMemoryMenu()">
+            <div
+              class="card-icon-wrapper"
+              style="background: rgba(249, 115, 22, 0.1); color: #f97316"
+            >
+              <i class="icon ri-checkbox-multiple-blank-fill"></i>
+            </div>
+            <div class="transport-info">
+              <h3>Granámory</h3>
+              <p>Encuentra las parejas de transporte</p>
+            </div>
+            <i class="icon arrow-icon ri-arrow-right-s-line"></i>
+          </div>
+
+          <div class="transport-card" onclick="openQuizMenu()">
+            <div
+              class="card-icon-wrapper"
+              style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6"
+            >
+              <i class="icon ri-question-answer-fill"></i>
+            </div>
+            <div class="transport-info">
+              <h3>GranáQuiz</h3>
+              <p>Demuestra cuánto sabes de Granada</p>
+            </div>
+            <i class="icon arrow-icon ri-arrow-right-s-line"></i>
+          </div>
         </div>
 
         <div
@@ -2182,6 +2209,165 @@
             >
               Toca una casilla y usa el teclado de tu móvil.
             </p>
+          </div>
+        </div>
+        <div
+          id="memory-game-container"
+          style="display: none; margin-top: 10px"
+          class="fade-in-up"
+        >
+          <div class="section-header with-back-btn">
+            <button onclick="closeMemory()" class="icon-btn back-btn">
+              <i class="icon ri-arrow-left-line"></i>
+            </button>
+            <div>
+              <h2>Granámory</h2>
+              <p id="memory-stats-text">Movimientos: 0</p>
+            </div>
+          </div>
+
+          <div id="memory-board" class="memory-board"></div>
+
+          <div
+            id="memory-message"
+            class="info-card"
+            style="
+              display: none;
+              margin-top: 20px;
+              border-left: 4px solid var(--color-success);
+            "
+          >
+            <h3 class="info-title" style="margin-top: 0">¡Completado!</h3>
+            <p>Has encontrado todas las parejas.</p>
+            <button
+              class="cookie-btn primary"
+              onclick="initMemoryGame()"
+              style="margin-top: 10px"
+            >
+              Jugar de nuevo
+            </button>
+          </div>
+        </div>
+        <div
+          id="quiz-game-container"
+          style="display: none; margin-top: 10px"
+          class="fade-in-up"
+        >
+          <div class="section-header with-back-btn">
+            <button onclick="closeQuiz()" class="icon-btn back-btn">
+              <i class="icon ri-arrow-left-line"></i>
+            </button>
+            <div>
+              <h2>GranáQuiz</h2>
+              <p id="quiz-stats-text">Puntos: 0</p>
+            </div>
+          </div>
+
+          <div
+            id="quiz-setup"
+            class="info-card"
+            style="text-align: center; display: none"
+          >
+            <div class="spinner" style="margin: 20px auto"></div>
+            <p>Cargando preguntas...</p>
+          </div>
+
+          <div id="quiz-gameplay" style="display: block">
+            <div
+              id="quiz-card"
+              class="info-card"
+              style="
+                min-height: 300px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                position: relative;
+              "
+            >
+              <div
+                style="
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  right: 0;
+                  height: 6px;
+                  background: var(--bg-app);
+                  border-top-left-radius: 16px;
+                  border-top-right-radius: 16px;
+                  overflow: hidden;
+                "
+              >
+                <div
+                  id="quiz-progress-bar"
+                  style="
+                    height: 100%;
+                    width: 0%;
+                    background: var(--color-primary);
+                    transition: width 0.3s;
+                  "
+                ></div>
+              </div>
+
+              <div id="quiz-question-box" style="padding-top: 15px">
+                <span
+                  id="quiz-counter"
+                  style="
+                    font-size: 0.75rem;
+                    color: var(--text-secondary);
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                  "
+                  >PREGUNTA 1/10</span
+                >
+                <h3
+                  id="quiz-question"
+                  style="
+                    font-size: 1.15rem;
+                    margin: 15px 0 25px 0;
+                    color: var(--text-primary);
+                    line-height: 1.4;
+                  "
+                >
+                  ¿...?
+                </h3>
+                <div id="quiz-options" class="quiz-options-grid"></div>
+              </div>
+
+              <div
+                id="quiz-result-msg"
+                style="display: none; text-align: center; padding: 20px"
+              >
+                <i
+                  id="quiz-icon-result"
+                  class="icon"
+                  style="font-size: 4rem; margin-bottom: 10px"
+                ></i>
+                <h3
+                  id="quiz-title-result"
+                  style="font-size: 1.5rem; margin: 10px 0"
+                >
+                  ¡Completado!
+                </h3>
+                <p
+                  id="quiz-text-result"
+                  style="
+                    font-size: 1.1rem;
+                    color: var(--text-secondary);
+                    margin-bottom: 20px;
+                  "
+                >
+                  Has acertado X de Y
+                </p>
+                <button
+                  class="cookie-btn primary"
+                  onclick="startQuizGame()"
+                  style="width: 100%"
+                >
+                  Jugar Otra Vez
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

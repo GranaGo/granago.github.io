@@ -35,6 +35,7 @@ const ASSETS_TO_CACHE = [
   "./data/zonas_restringidas.kml",
   "./data/radares.json",
   "./data/palabras.json",
+  "./data/trivial.json"
 ];
 
 self.addEventListener("install", (event) => {
