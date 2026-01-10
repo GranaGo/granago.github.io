@@ -1,4 +1,4 @@
-name: Procesar GTFS a JSON
+name: Procesar Datos sobre Granada
 
 on:
   push:

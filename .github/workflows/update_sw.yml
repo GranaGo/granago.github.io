@@ -1,8 +1,8 @@
-name: Auto Update Service Worker
+name: Auto Update PWA Service Worker Version
 
 on:
   workflow_run:
-    workflows: ["Procesar GTFS a JSON", "Normalize Granada POIs"]
+    workflows: ["Procesar Datos sobre Granada", "Guardar Puntos de Interes Normalizados"]
     types:
       - completed
 

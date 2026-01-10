@@ -1,4 +1,4 @@
-name: Normalize Granada POIs
+name: Guardar Puntos de Interes Normalizados
 
 on:
   push:
