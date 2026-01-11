@@ -462,7 +462,7 @@
   },
   {
     "id": 52,
-    "pregunta": "¿Qué edificio renacentista alberga actualmente el Ayuntamiento de Granada?",
+    "pregunta": "¿Qué edificio alberga actualmente el Ayuntamiento de Granada?",
     "opciones": [
       "Palacio de Bibataubín",
       "Convento del Carmen Calzado",
@@ -480,7 +480,7 @@
       "Calle de las Besas",
       "Calle de los Besos"
     ],
-    "respuesta_correcta": "Carrera del Darro"
+    "respuesta_correcta": "Calle de las Besas"
   },
   {
     "id": 54,
@@ -636,7 +636,7 @@
   },
   {
     "id": 71,
-    "pregunta": "¿Qué nombre recibe la festividad del 1 de febrero en honor al patrón de la ciudad?",
+    "pregunta": "¿Qué nombre recibe la festividad del primer domingo de febrero en honor al patrón de la ciudad?",
     "opciones": ["Día de la Cruz", "San Cecilio", "San Antón", "La Toma"],
     "respuesta_correcta": "San Cecilio"
   },
@@ -755,7 +755,7 @@
       "Enrique Egas",
       "Alonso Cano"
     ],
-    "respuesta_correcta": "Diego de Siloé"
+    "respuesta_correcta": "Alonso Cano"
   },
   {
     "id": 84,
@@ -941,7 +941,7 @@
       "Palacio de Agua",
       "Huerta de la Alegría"
     ],
-    "respuesta_correcta": "Jardín del Arquitecto"
+    "respuesta_correcta": "Jardín del Rey"
   },
   {
     "id": 105,
@@ -1361,7 +1361,7 @@
       "Cueva de granadas",
       "Valle de los ríos"
     ],
-    "respuesta_correcta": "Colina de peregrinos"
+    "respuesta_correcta": "Ciudad de los extranjeros"
   },
   {
     "id": 150,
@@ -6988,5 +6988,16 @@
       "Silla del Moro"
     ],
     "respuesta_correcta": "San Miguel Alto"
+  },
+  {
+    "id": 751,
+    "pregunta": "¿Quién fue el arquitecto que empezó la Catedral de Granada con un estilo renacentista?",
+    "opciones": [
+      "Juan de Herrera",
+      "Diego de Siloé",
+      "Enrique Egas",
+      "Alonso Cano"
+    ],
+    "respuesta_correcta": "Diego de Siloé"
   }
 ]
