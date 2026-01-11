@@ -447,16 +447,29 @@ window.addEventListener("popstate", (event) => {
   } else {
     navigateTo("home", false);
   }
+});
 
+function checkExitFullscreen() {
+  const isFullscreen =
+    document.fullscreenElement ||
+    document.webkitFullscreenElement ||
+    document.mozFullScreenElement ||
+    document.msFullscreenElement;
+
+  if (!isFullscreen && drivingModeActive) {
+    history.back();
+  }
+}
+
+document.addEventListener("fullscreenchange", checkExitFullscreen);
+document.addEventListener("webkitfullscreenchange", checkExitFullscreen);
+document.addEventListener("mozfullscreenchange", checkExitFullscreen);
+document.addEventListener("MSFullscreenChange", checkExitFullscreen);
+
+window.addEventListener("popstate", (event) => {
   if (drivingModeActive) {
     toggleDrivingMode(true);
   }
-});
-
-document.addEventListener('fullscreenchange', () => {
-    if (!document.fullscreenElement && drivingModeActive) {
-        toggleDrivingMode();
-    }
 });
 
 function ensureMapContainerIsClean(elementId) {
