@@ -453,6 +453,12 @@ window.addEventListener("popstate", (event) => {
   }
 });
 
+document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement && drivingModeActive) {
+        toggleDrivingMode();
+    }
+});
+
 function ensureMapContainerIsClean(elementId) {
   const container = document.getElementById(elementId);
   if (container && container._leaflet_id) {
