@@ -3912,3 +3912,13 @@ body.dark-mode .sudoku-cell.highlighted::before {
   color: rgba(150, 150, 150, 0.8) !important;
   text-decoration: none;
 }
+
+.map-header-bar .center-content .filter-chip {
+  padding: 6px 16px;
+  height: 36px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 50px;
+}

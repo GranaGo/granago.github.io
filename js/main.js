@@ -55,6 +55,11 @@ let camarasMapInstance = null;
 let camarasClusterGroup = null;
 let camarasTileLayer = null;
 let camarasDataLoaded = false;
+let drivingModeActive = false;
+let watchId = null;
+let wakeLock = null;
+let lastAlertTime = 0;
+const ALERT_RADIUS = 0.5;
 
 let parkingsMapInstance = null;
 let parkingsLayerGroup = null;
@@ -68,6 +73,7 @@ let parkingsTileLayer = null;
 let oraTileLayer = null;
 
 let wordleSetupHTML = "";
+let isMuted = false;
 
 const loadedScripts = {};
 let googleTranslateScriptLoaded = false;
@@ -3748,7 +3754,7 @@ async function loadRadares() {
     if (!response.ok) return;
 
     const data = await response.json();
-
+    window.radaresData = data;
     const radaresLayer = L.geoJSON(data, {
       style: function (feature) {
         if (feature.properties.type === "tramo") {
@@ -6832,4 +6838,265 @@ function updateQuizStats() {
   document.getElementById(
     "quiz-stats-text"
   ).innerText = `Puntos: ${quizConfig.score}`;
+}
+
+const VOICE_CONFIG = {
+  es: {
+    code: "es-ES",
+    labels: {
+      active: "Modo conducción activado",
+      attention: "Atención",
+      road: "en carretera",
+      fixed: "Radar Fijo",
+      mobile: "Radar Móvil",
+      section: "Radar de Tramo",
+    },
+  },
+  en: {
+    code: "en-US",
+    labels: {
+      active: "Driving mode activated",
+      attention: "Warning",
+      road: "on road",
+      fixed: "Speed Camera",
+      mobile: "Mobile Radar",
+      section: "Section Control",
+    },
+  },
+  fr: {
+    code: "fr-FR",
+    labels: {
+      active: "Mode conduite activé",
+      attention: "Attention",
+      road: "sur la route",
+      fixed: "Radar Fixe",
+      mobile: "Radar Mobile",
+      section: "Radar Tronçon",
+    },
+  },
+  it: {
+    code: "it-IT",
+    labels: {
+      active: "Modalità guida attivata",
+      attention: "Attenzione",
+      road: "sulla strada",
+      fixed: "Autovelox Fisso",
+      mobile: "Autovelox Mobile",
+      section: "Tutor",
+    },
+  },
+};
+
+function getVoiceSettings() {
+  const lang = localStorage.getItem("granaGo_selected_lang") || "es";
+  return VOICE_CONFIG[lang] || VOICE_CONFIG["es"];
+}
+
+function getDistanceToSegment(lat, lon, latA, lonA, latB, lonB) {
+  const R = 6371;
+  const x = (lon - lonA) * Math.cos((((latA + lat) / 2) * Math.PI) / 180);
+  const y = lat - latA;
+  const dx = (lonB - lonA) * Math.cos((((latA + latB) / 2) * Math.PI) / 180);
+  const dy = latB - latA;
+
+  let t = (x * dx + y * dy) / (dx * dx + dy * dy);
+
+  t = Math.max(0, Math.min(1, t));
+
+  const closestLat = latA + t * dy;
+  const closestLon =
+    lonA + (t * dx) / Math.cos((((latA + closestLat) / 2) * Math.PI) / 180);
+  return getDistanceFromLatLonInKm(lat, lon, closestLat, closestLon);
+}
+
+async function toggleDrivingMode() {
+  const hud = document.getElementById("driving-hud");
+
+  if (!drivingModeActive) {
+    if (!camarasDataLoaded) await initCamarasMap();
+
+    drivingModeActive = true;
+    hud.style.display = "flex";
+    requestWakeLock();
+
+    watchId = navigator.geolocation.watchPosition(
+      processDrivingPosition,
+      handleDrivingError,
+      { enableHighAccuracy: true, maximumAge: 0 }
+    );
+
+    showNotification(
+      "Modo Conducción",
+      "GPS activo y pantalla bloqueada",
+      "success"
+    );
+    const msgs = getVoiceSettings().labels;
+    speak(msgs.active);
+  } else {
+    drivingModeActive = false;
+    const hud = document.getElementById("driving-hud");
+    if (hud) hud.style.display = "none";
+
+    if (watchId) navigator.geolocation.clearWatch(watchId);
+    if (wakeLock) wakeLock.release();
+
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+
+      if (camarasMapInstance) {
+        camarasMapInstance.setView([lat, lng], 17);
+        camarasMapInstance.invalidateSize();
+
+        if (userMarker) {
+          userMarker.setLatLng([lat, lng]);
+        }
+      }
+    });
+
+    showNotification("Modo Conducción", "Finalizado", "info");
+  }
+}
+
+function processDrivingPosition(position) {
+  const lat = position.coords.latitude;
+  const lng = position.coords.longitude;
+  const speed = position.coords.speed;
+  const kmh = speed ? Math.round(speed * 3.6) : 0;
+  const hudSpeed = document.getElementById("hud-speed");
+  if (hudSpeed) {
+    hudSpeed.innerHTML = `${kmh} <span style="font-size: 1.5rem;">km/h</span>`;
+  }
+
+  checkNearbyRadars(lat, lng);
+}
+
+function checkNearbyRadars(userLat, userLng) {
+  if (!window.radaresData) return;
+
+  let closestRadar = null;
+  let minDistance = Infinity;
+
+  window.radaresData.features.forEach((radar) => {
+    let dist = Infinity;
+    const geom = radar.geometry;
+
+    if (geom.type === "Point") {
+      const rLat = geom.coordinates[1];
+      const rLng = geom.coordinates[0];
+      dist = getDistanceFromLatLonInKm(userLat, userLng, rLat, rLng);
+    } else if (geom.type === "LineString") {
+      let minDistToLine = Infinity;
+      const coords = geom.coordinates;
+
+      for (let i = 0; i < coords.length - 1; i++) {
+        const p1 = coords[i];
+        const p2 = coords[i + 1];
+        const d = getDistanceToSegment(
+          userLat,
+          userLng,
+          p1[1],
+          p1[0],
+          p2[1],
+          p2[0]
+        );
+        if (d < minDistToLine) minDistToLine = d;
+      }
+      dist = minDistToLine;
+    }
+
+    if (dist < minDistance) {
+      minDistance = dist;
+      closestRadar = radar;
+    }
+  });
+
+  updateHudAlert(closestRadar, minDistance);
+}
+
+function updateHudAlert(radar, distanceKm) {
+  const alertBox = document.getElementById("hud-alert");
+  const now = Date.now();
+
+  if (radar && distanceKm < ALERT_RADIUS) {
+    const props = radar.properties;
+    const color = props.type === "fijo" ? "#e67e22" : "#D9281C";
+
+    alertBox.innerHTML = `
+            <i class="ri-alarm-warning-fill" style="font-size: 4rem; color: ${color}; animation: pulse 1s infinite;"></i>
+            <div style="font-size: 1.5rem; font-weight:bold; margin-top: 10px; color:${color}">${props.type.toUpperCase()}</div>
+            <div>${props.road} - ${props.desc}</div>
+            <div style="font-size: 0.9rem;">A ${(distanceKm * 1000).toFixed(
+              0
+            )} metros</div>
+        `;
+
+    if (now - lastAlertTime > 15000) {
+      const msgs = getVoiceSettings().labels;
+      const type = props.type;
+
+      let radarTypeTranslated = msgs.fixed;
+      if (type === "movil") radarTypeTranslated = msgs.mobile;
+      if (type === "tramo") radarTypeTranslated = msgs.section;
+
+      const frase = `${msgs.attention}. ${radarTypeTranslated} ${msgs.road} ${props.road}`;
+
+      speak(frase);
+
+      lastAlertTime = now;
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    }
+  } else {
+    alertBox.innerHTML = `
+            <i class="ri-steering-2-line" style="font-size: 3rem; color: #10b981;"></i>
+            <div style="font-size: 1.2rem; margin-top: 10px;">Circulando</div>
+        `;
+  }
+}
+
+function speak(text) {
+  if (isMuted) return;
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+    const settings = getVoiceSettings();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = settings.code;
+    utterance.rate = 1.0;
+    window.speechSynthesis.speak(utterance);
+  }
+}
+
+window.toggleMute = function () {
+  isMuted = !isMuted;
+  const btn = document.getElementById("btn-mute-driving");
+  const icon = btn.querySelector("i");
+
+  if (isMuted) {
+    btn.style.background = "#991b1b";
+    btn.style.borderColor = "#7f1d1d";
+    icon.className = "ri-volume-mute-fill";
+    showNotification("Voz desactivada", "", "info");
+    window.speechSynthesis.cancel();
+  } else {
+    btn.style.background = "#374151";
+    btn.style.borderColor = "#4b5563";
+    icon.className = "ri-volume-up-fill";
+    showNotification("Voz activada", "", "success");
+    speak("Audio activado");
+  }
+};
+
+async function requestWakeLock() {
+  try {
+    wakeLock = await navigator.wakeLock.request("screen");
+    wakeLock.addEventListener("release", () => {
+      console.log("Pantalla desbloqueada");
+    });
+  } catch (err) {
+    console.error(`${err.name}, ${err.message}`);
+  }
+}
+
+function handleDrivingError(err) {
+  console.warn("ERROR(" + err.code + "): " + err.message);
 }
