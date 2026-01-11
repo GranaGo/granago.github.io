@@ -71,8 +71,6 @@ let wordleSetupHTML = "";
 
 const loadedScripts = {};
 let googleTranslateScriptLoaded = false;
-
-window.metroStationsCache = null;
 let linesDataCache = {
   urbano: { paradas: null, rutas: null, horarios: null },
   metro: { paradas: null, rutas: null, horarios: null },
@@ -388,9 +386,6 @@ const PARKING_COORDS = {
   triunfoave: { lat: 37.184731, lng: -3.605899 },
   victoria: { lat: 37.172974, lng: -3.6000821 },
   violon: { lat: 37.1670793, lng: -3.5984144 },
-  triunfo: { lat: 37.184731, lng: -3.605899 },
-  pedroantonio: { lat: 37.1733032, lng: -3.6065272 },
-  loscarmenes: { lat: 37.1513787, lng: -3.595468 },
 };
 
 function loadScript(src) {
@@ -2704,6 +2699,7 @@ async function renderMobilityEvents() {
   if (!cortesMapInstance) {
     cortesMapInstance = L.map("map-cortes", {
       zoomControl: false,
+      preferCanvas: true,
       attributionControl: false,
     }).setView([GRANADA_COORDS.lat, GRANADA_COORDS.lon], 13);
 
@@ -3852,6 +3848,7 @@ async function initParkingsMap() {
   if (!parkingsMapInstance) {
     parkingsMapInstance = L.map(mapId, {
       zoomControl: false,
+      preferCanvas: true,
       attributionControl: false,
     }).setView([GRANADA_COORDS.lat, GRANADA_COORDS.lon], 13);
 
@@ -3860,14 +3857,6 @@ async function initParkingsMap() {
     parkingsLayerGroup = L.layerGroup().addTo(parkingsMapInstance);
 
     parkingsMapInstance.locate({ setView: true, maxZoom: 14 });
-    parkingsMapInstance.on("locationfound", (e) => {
-      const gpsIcon = L.divIcon({
-        className: "gps-marker-container",
-        html: `<div class="gps-dot-animated"></div>`,
-        iconSize: [24, 24],
-      });
-      L.marker(e.latlng, { icon: gpsIcon }).addTo(parkingsMapInstance);
-    });
   } else {
     parkingsMapInstance.invalidateSize();
   }
@@ -4033,20 +4022,13 @@ async function initORAMap() {
   if (!oraMapInstance) {
     oraMapInstance = L.map(mapId, {
       zoomControl: false,
+      preferCanvas: true,
       attributionControl: false,
     }).setView([GRANADA_COORDS.lat, GRANADA_COORDS.lon], 14);
 
     checkMapTheme();
 
     oraMapInstance.locate({ setView: true, maxZoom: 15 });
-    oraMapInstance.on("locationfound", (e) => {
-      const gpsIcon = L.divIcon({
-        className: "gps-marker-container",
-        html: `<div class="gps-dot-animated"></div>`,
-        iconSize: [24, 24],
-      });
-      L.marker(e.latlng, { icon: gpsIcon }).addTo(oraMapInstance);
-    });
   } else {
     oraMapInstance.invalidateSize();
   }
@@ -4131,6 +4113,7 @@ async function initRestriccionesMap() {
   if (!restriccionesMap) {
     restriccionesMap = L.map(mapId, {
       zoomControl: false,
+      preferCanvas: true,
       attributionControl: false,
     }).setView([GRANADA_COORDS.lat, GRANADA_COORDS.lon], 14);
 
@@ -4298,62 +4281,6 @@ async function initHomeDashboard() {
   ]);
 }
 
-function isPointNearPolyline(pointLat, pointLng, polyline, thresholdMeters) {
-  for (let i = 0; i < polyline.length - 1; i++) {
-    const start = polyline[i];
-    const end = polyline[i + 1];
-    const dist = distancePointToSegment(
-      pointLat,
-      pointLng,
-      start[0],
-      start[1],
-      end[0],
-      end[1]
-    );
-    if (dist <= thresholdMeters) return true;
-  }
-  return false;
-}
-
-function distancePointToSegment(pLat, pLng, aLat, aLng, bLat, bLng) {
-  const R = 6371e3;
-
-  const x = (pLng - aLng) * Math.cos(((aLat + pLat) / 2) * (Math.PI / 180));
-  const y = pLat - aLat;
-
-  const degToM = 111319;
-  const x_m = x * degToM;
-  const y_m = y * degToM;
-
-  const dx =
-    (bLng - aLng) * Math.cos(((aLat + bLat) / 2) * (Math.PI / 180)) * degToM;
-  const dy = (bLat - aLat) * degToM;
-
-  const dot = x_m * dx + y_m * dy;
-  const len_sq = dx * dx + dy * dy;
-
-  let param = -1;
-  if (len_sq !== 0) param = dot / len_sq;
-
-  let xx, yy;
-
-  if (param < 0) {
-    xx = 0;
-    yy = 0;
-  } else if (param > 1) {
-    xx = dx;
-    yy = dy;
-  } else {
-    xx = param * dx;
-    yy = param * dy;
-  }
-
-  const d_x = x_m - xx;
-  const d_y = y_m - yy;
-
-  return Math.sqrt(d_x * d_x + d_y * d_y);
-}
-
 const PROXY_URL = "https://proxy.contacto-granago.workers.dev/?url=";
 const URLS = {
   rss:
@@ -4402,14 +4329,6 @@ const VALID_LINES = new Set([
   "F5",
   "F6",
 ]);
-
-const EJE_CENTRO_POLYLINE = [
-  [37.18437, -3.6006],
-  [37.17965, -3.5996],
-  [37.17635, -3.59795],
-  [37.1743, -3.5986],
-  [37.1705, -3.5976],
-];
 
 function cleanHTML(htmlString) {
   const doc = new DOMParser().parseFromString(htmlString, "text/html");
