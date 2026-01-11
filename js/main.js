@@ -974,6 +974,12 @@ async function initMapParadas() {
         maxZoom: 19,
       }).setView([GRANADA_COORDS.lat, GRANADA_COORDS.lon], 13);
 
+      L.control
+        .attribution({
+          prefix: false,
+        })
+        .addTo(mapInstance);
+
       mapInstance.locate({
         setView: true,
         maxZoom: 16,
@@ -1651,7 +1657,11 @@ function renderLineMap() {
         attributionControl: false,
         preferCanvas: true,
       }).setView([GRANADA_COORDS.lat, GRANADA_COORDS.lon], 13);
-
+      L.control
+        .attribution({
+          prefix: false,
+        })
+        .addTo(lineMapInstance);
       const isDark = document.body.classList.contains("dark-mode");
       const url = isDark
         ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -2338,6 +2348,11 @@ async function initLugaresMap() {
       preferCanvas: true,
       maxZoom: 19,
     }).setView([37.1773, -3.5986], 14);
+    L.control
+      .attribution({
+        prefix: false,
+      })
+      .addTo(placesMapInstance);
     placesMapInstance.locate({
       setView: true,
       maxZoom: 16,
@@ -2702,7 +2717,11 @@ async function renderMobilityEvents() {
       preferCanvas: true,
       attributionControl: false,
     }).setView([GRANADA_COORDS.lat, GRANADA_COORDS.lon], 13);
-
+    L.control
+      .attribution({
+        prefix: false,
+      })
+      .addTo(cortesMapInstance);
     const isDark = document.body.classList.contains("dark-mode");
     const url = isDark
       ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -3506,6 +3525,11 @@ async function initCamarasMap() {
       preferCanvas: true,
       maxZoom: 19,
     }).setView([GRANADA_COORDS.lat, GRANADA_COORDS.lon], 13);
+    L.control
+      .attribution({
+        prefix: false,
+      })
+      .addTo(camarasMapInstance);
     camarasMapInstance.locate({
       setView: true,
       maxZoom: 14,
@@ -3851,7 +3875,11 @@ async function initParkingsMap() {
       preferCanvas: true,
       attributionControl: false,
     }).setView([GRANADA_COORDS.lat, GRANADA_COORDS.lon], 13);
-
+    L.control
+      .attribution({
+        prefix: false,
+      })
+      .addTo(parkingsMapInstance);
     checkMapTheme();
 
     parkingsLayerGroup = L.layerGroup().addTo(parkingsMapInstance);
@@ -4025,7 +4053,11 @@ async function initORAMap() {
       preferCanvas: true,
       attributionControl: false,
     }).setView([GRANADA_COORDS.lat, GRANADA_COORDS.lon], 14);
-
+    L.control
+      .attribution({
+        prefix: false,
+      })
+      .addTo(oraMapInstance);
     checkMapTheme();
 
     oraMapInstance.locate({ setView: true, maxZoom: 15 });

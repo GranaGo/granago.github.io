@@ -3896,3 +3896,19 @@ body.dark-mode .sudoku-cell.highlighted::before {
   content-visibility: auto;
   contain-intrinsic-size: 100px;
 }
+
+.leaflet-container .leaflet-control-attribution {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: rgba(150, 150, 150, 0.6) !important;
+  font-size: 10px;
+  text-decoration: none;
+  padding: 0 5px;
+  margin: 0;
+  box-shadow: none !important;
+}
+
+.leaflet-container .leaflet-control-attribution a {
+  color: rgba(150, 150, 150, 0.8) !important;
+  text-decoration: none;
+}
