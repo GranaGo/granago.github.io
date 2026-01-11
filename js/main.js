@@ -449,29 +449,6 @@ window.addEventListener("popstate", (event) => {
   }
 });
 
-function checkExitFullscreen() {
-  const isFullscreen =
-    document.fullscreenElement ||
-    document.webkitFullscreenElement ||
-    document.mozFullScreenElement ||
-    document.msFullscreenElement;
-
-  if (!isFullscreen && drivingModeActive) {
-    history.back();
-  }
-}
-
-document.addEventListener("fullscreenchange", checkExitFullscreen);
-document.addEventListener("webkitfullscreenchange", checkExitFullscreen);
-document.addEventListener("mozfullscreenchange", checkExitFullscreen);
-document.addEventListener("MSFullscreenChange", checkExitFullscreen);
-
-window.addEventListener("popstate", (event) => {
-  if (drivingModeActive) {
-    toggleDrivingMode(true);
-  }
-});
-
 function ensureMapContainerIsClean(elementId) {
   const container = document.getElementById(elementId);
   if (container && container._leaflet_id) {
@@ -6982,7 +6959,6 @@ async function toggleDrivingMode() {
   const hud = document.getElementById("driving-hud");
 
   if (!drivingModeActive) {
-    history.pushState({ mode: "driving" }, "Modo Conducción", "");
     if (!camarasDataLoaded) await initCamarasMap();
 
     drivingModeActive = true;
@@ -7018,10 +6994,6 @@ async function toggleDrivingMode() {
     const msgs = getVoiceSettings().labels;
     speak(msgs.active);
   } else {
-    if (fromBackButton !== true) {
-      history.back();
-      return;
-    }
     drivingModeActive = false;
 
     document.body.classList.remove("driving-mode-on");
