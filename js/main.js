@@ -60,6 +60,9 @@ let watchId = null;
 let wakeLock = null;
 let lastAlertTime = 0;
 const ALERT_RADIUS = 0.5;
+let currentDisplayedSpeed = 0;
+let targetSpeed = 0;
+let speedAnimationId = null;
 
 let parkingsMapInstance = null;
 let parkingsLayerGroup = null;
@@ -6909,6 +6912,49 @@ function getDistanceToSegment(lat, lon, latA, lonA, latB, lonB) {
   return getDistanceFromLatLonInKm(lat, lon, closestLat, closestLon);
 }
 
+function getBearing(lat1, lon1, lat2, lon2) {
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const toDeg = (rad) => (rad * 180) / Math.PI;
+
+  const dLon = toRad(lon2 - lon1);
+  const y = Math.sin(dLon) * Math.cos(toRad(lat2));
+  const x =
+    Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+    Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon);
+
+  let brng = toDeg(Math.atan2(y, x));
+  return (brng + 360) % 360;
+}
+
+function isAngleSimilar(angle1, angle2) {
+  if (angle1 === null || angle2 === null || isNaN(angle1)) return true;
+
+  const diff = Math.abs(angle1 - angle2) % 360;
+  const diff2 = Math.abs(diff - 360);
+  const minDiff = Math.min(diff, diff2);
+  return minDiff < 40 || Math.abs(minDiff - 180) < 40;
+}
+
+function animateSpeedLoop() {
+  if (!drivingModeActive) return;
+
+  const diff = targetSpeed - currentDisplayedSpeed;
+
+  if (Math.abs(diff) > 0.1) {
+    currentDisplayedSpeed += diff * 0.1;
+  } else {
+    currentDisplayedSpeed = targetSpeed;
+  }
+
+  const hudSpeed = document.getElementById("hud-speed");
+  if (hudSpeed) {
+    const val = Math.round(currentDisplayedSpeed);
+    hudSpeed.innerHTML = `${val} <span style="font-size: 1.5rem; font-weight: 400; color: #aaa;">km/h</span>`;
+  }
+
+  speedAnimationId = requestAnimationFrame(animateSpeedLoop);
+}
+
 async function toggleDrivingMode() {
   const hud = document.getElementById("driving-hud");
 
@@ -6917,6 +6963,9 @@ async function toggleDrivingMode() {
 
     drivingModeActive = true;
     hud.style.display = "flex";
+    currentDisplayedSpeed = 0;
+    targetSpeed = 0;
+    animateSpeedLoop();
     requestWakeLock();
 
     watchId = navigator.geolocation.watchPosition(
@@ -6934,9 +6983,9 @@ async function toggleDrivingMode() {
     speak(msgs.active);
   } else {
     drivingModeActive = false;
-    const hud = document.getElementById("driving-hud");
-    if (hud) hud.style.display = "none";
+    hud.style.display = "none";
 
+    if (speedAnimationId) cancelAnimationFrame(speedAnimationId);
     if (watchId) navigator.geolocation.clearWatch(watchId);
     if (wakeLock) wakeLock.release();
 
@@ -6962,11 +7011,8 @@ function processDrivingPosition(position) {
   const lat = position.coords.latitude;
   const lng = position.coords.longitude;
   const speed = position.coords.speed;
-  const kmh = speed ? Math.round(speed * 3.6) : 0;
-  const hudSpeed = document.getElementById("hud-speed");
-  if (hudSpeed) {
-    hudSpeed.innerHTML = `${kmh} <span style="font-size: 1.5rem;">km/h</span>`;
-  }
+  const heading = position.coords.heading;
+  targetSpeed = speed ? speed * 3.6 : 0;
 
   checkNearbyRadars(lat, lng);
 }
@@ -6980,6 +7026,7 @@ function checkNearbyRadars(userLat, userLng) {
   window.radaresData.features.forEach((radar) => {
     let dist = Infinity;
     const geom = radar.geometry;
+    let matchesHeading = true;
 
     if (geom.type === "Point") {
       const rLat = geom.coordinates[1];
@@ -6988,6 +7035,7 @@ function checkNearbyRadars(userLat, userLng) {
     } else if (geom.type === "LineString") {
       let minDistToLine = Infinity;
       const coords = geom.coordinates;
+      let segmentAngle = 0;
 
       for (let i = 0; i < coords.length - 1; i++) {
         const p1 = coords[i];
@@ -7000,12 +7048,26 @@ function checkNearbyRadars(userLat, userLng) {
           p2[1],
           p2[0]
         );
+
+        if (d < 0.5) {
+          segmentAngle = getBearing(p1[1], p1[0], p2[1], p2[0]);
+
+          if (
+            userHeading !== null &&
+            !isAngleSimilar(userHeading, segmentAngle)
+          ) {
+            matchesHeading = false;
+          } else {
+            matchesHeading = true;
+          }
+        }
+
         if (d < minDistToLine) minDistToLine = d;
       }
       dist = minDistToLine;
     }
 
-    if (dist < minDistance) {
+    if (matchesHeading && dist < minDistance) {
       minDistance = dist;
       closestRadar = radar;
     }
