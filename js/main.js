@@ -447,6 +447,10 @@ window.addEventListener("popstate", (event) => {
   } else {
     navigateTo("home", false);
   }
+
+  if (drivingModeActive) {
+    toggleDrivingMode(true);
+  }
 });
 
 function ensureMapContainerIsClean(elementId) {
@@ -6959,14 +6963,32 @@ async function toggleDrivingMode() {
   const hud = document.getElementById("driving-hud");
 
   if (!drivingModeActive) {
+    history.pushState({ mode: "driving" }, "Modo Conducción", "");
     if (!camarasDataLoaded) await initCamarasMap();
 
     drivingModeActive = true;
+
+    document.body.classList.add("driving-mode-on");
+
     hud.style.display = "flex";
+
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch((e) => console.log(e));
+    }
+
     currentDisplayedSpeed = 0;
     targetSpeed = 0;
     animateSpeedLoop();
+
     requestWakeLock();
+
+    showNotification(
+      "Modo Conducción",
+
+      "GPS activo y pantalla bloqueada",
+
+      "success"
+    );
 
     watchId = navigator.geolocation.watchPosition(
       processDrivingPosition,
@@ -6974,16 +6996,22 @@ async function toggleDrivingMode() {
       { enableHighAccuracy: true, maximumAge: 0 }
     );
 
-    showNotification(
-      "Modo Conducción",
-      "GPS activo y pantalla bloqueada",
-      "success"
-    );
     const msgs = getVoiceSettings().labels;
     speak(msgs.active);
   } else {
+    if (fromBackButton !== true) {
+      history.back();
+      return;
+    }
     drivingModeActive = false;
+
+    document.body.classList.remove("driving-mode-on");
+
     hud.style.display = "none";
+
+    if (document.exitFullscreen && document.fullscreenElement) {
+      document.exitFullscreen().catch((e) => console.log(e));
+    }
 
     if (speedAnimationId) cancelAnimationFrame(speedAnimationId);
     if (watchId) navigator.geolocation.clearWatch(watchId);
@@ -6992,14 +7020,10 @@ async function toggleDrivingMode() {
     navigator.geolocation.getCurrentPosition((pos) => {
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
-
       if (camarasMapInstance) {
         camarasMapInstance.setView([lat, lng], 17);
         camarasMapInstance.invalidateSize();
-
-        if (userMarker) {
-          userMarker.setLatLng([lat, lng]);
-        }
+        if (userMarker) userMarker.setLatLng([lat, lng]);
       }
     });
 

@@ -1908,8 +1908,8 @@
               left: 0;
               width: 100%;
               height: 100%;
-              background: rgba(0, 0, 0, 0.95);
-              z-index: 99999; /* Z-index extremo para tapar el glass-dock */
+              background: #000000;
+              z-index: 1001;
               flex-direction: column;
               align-items: center;
               justify-content: center;
@@ -1943,7 +1943,7 @@
             <div
               style="
                 position: absolute;
-                bottom: 110px; /* La altura que te gustaba para librar el dock */
+                bottom: 80px;
                 left: 50%;
                 transform: translateX(-50%);
                 display: flex;
@@ -1961,13 +1961,12 @@
                   width: 55px;
                   height: 55px;
                   border-radius: 50%;
-                  background: rgba(255, 255, 255, 0.15);
-                  border: 1px solid rgba(255, 255, 255, 0.3);
+                  background: #333; /* Fondo sólido, quitamos transparencia */
+                  border: 1px solid #555;
                   color: white;
                   display: flex;
                   align-items: center;
                   justify-content: center;
-                  backdrop-filter: blur(5px);
                 "
               >
                 <i class="ri-volume-up-fill" style="font-size: 1.8rem"></i>
@@ -1981,12 +1980,12 @@
                   height: 70px;
                   border-radius: 50%;
                   background: #ef4444;
-                  border: 4px solid rgba(127, 29, 29, 0.5);
+                  border: 4px solid #7f1d1d;
                   color: white;
                   display: flex;
                   align-items: center;
                   justify-content: center;
-                  box-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
+                  box-shadow: 0 0 25px rgba(239, 68, 68, 0.4);
                 "
               >
                 <i class="ri-close-line" style="font-size: 2.5rem"></i>
