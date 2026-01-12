@@ -4003,3 +4003,7 @@ body.driving-mode-on #cookie-banner {
 #parkings-table-container {
   margin-top: 10px;
 }
+
+body.keyboard-open .glass-dock {
+  display: none !important;
+}

@@ -6615,20 +6615,33 @@ function endSudokuGame(win) {
 
 if (window.visualViewport) {
   window.visualViewport.addEventListener("resize", () => {
-    if (window.visualViewport.height < window.innerHeight - 100) {
+    const isKeyboardOpen =
+      window.visualViewport.height < window.innerHeight - 150;
+
+    const isGameActive =
+      document.getElementById("wordle-game-container").style.display ===
+        "block" ||
+      document.getElementById("sudoku-board-wrapper").style.display === "block";
+
+    if (isKeyboardOpen && isGameActive) {
+      document.body.classList.add("keyboard-open");
+
       const activeElement = document.activeElement;
-
-      if (activeElement && activeElement.id === "wordle-native-input") {
-        const board = document.getElementById("wordle-board");
+      if (
+        activeElement &&
+        (activeElement.id === "wordle-native-input" ||
+          activeElement.id === "sudoku-hidden-input")
+      ) {
+        const boardId =
+          activeElement.id === "wordle-native-input"
+            ? "wordle-board"
+            : "sudoku-board";
+        const board = document.getElementById(boardId);
         if (board)
           board.scrollIntoView({ block: "center", behavior: "smooth" });
       }
-
-      if (activeElement && activeElement.id === "sudoku-hidden-input") {
-        const board = document.getElementById("sudoku-board");
-        if (board)
-          board.scrollIntoView({ block: "center", behavior: "smooth" });
-      }
+    } else {
+      document.body.classList.remove("keyboard-open");
     }
   });
 }
