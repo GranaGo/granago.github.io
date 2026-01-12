@@ -7,7 +7,6 @@ OUTPUT = Path("data/poi_final.geojson")
 
 def get_category(tags):
     """Devuelve la categoría exacta según tu lista de POIs"""
-    # Amenity
     if "amenity" in tags:
         amenity_map = {
             "parking": "Parking",
@@ -26,12 +25,10 @@ def get_category(tags):
             "university": "Universidad",
             "information": "Oficina de Turismo",
         }
-        # Diferenciar Guardia Civil
         if tags.get("amenity") == "police" and tags.get("operator", "").lower().find("guardia civil") != -1:
             return "Guardia Civil"
         return amenity_map.get(tags["amenity"])
 
-    # Tourism
     if tags.get("tourism") == "viewpoint":
         return "Mirador"
     if tags.get("tourism") == "museum":
@@ -39,7 +36,6 @@ def get_category(tags):
     if tags.get("tourism") == "information":
         return "Oficina de Turismo"
 
-    # Historic
     if "historic" in tags:
         historic_map = {
             "monument": "Monumento",
@@ -50,25 +46,20 @@ def get_category(tags):
         }
         return historic_map.get(tags["historic"])
 
-    # Leisure
     if tags.get("leisure") == "stadium":
         return "Estadio"
     if tags.get("leisure") == "garden":
         return "Jardín"
 
-    # Sport
     if tags.get("sport") == "bullfighting":
         return "Plaza de Toros"
 
-    # Shop
     if tags.get("shop") == "mall":
         return "Centro Comercial"
 
-    # Railway
     if tags.get("railway") == "station":
         return "Estación de Tren"
 
-    # Building (culto)
     building_map = {
         "church": "Iglesia",
         "cathedral": "Catedral",
@@ -87,11 +78,9 @@ def generate_id(name, coords):
     hash_input = f"{name}-{coords[0]}-{coords[1]}"
     return hashlib.md5(hash_input.encode("utf-8")).hexdigest()[:8]
 
-# Cargar raw GeoJSON
 with INPUT.open(encoding="utf-8") as f:
     raw = json.load(f)
 
-# Deduplicar usando set de hash
 seen = set()
 features = []
 
@@ -121,10 +110,8 @@ for f in raw["features"]:
         }
     })
 
-# Ordenar por categoría y luego por nombre
 features.sort(key=lambda x: (x["properties"]["category"], x["properties"]["name"]))
 
-# Crear GeoJSON final mínimo
 output = {
     "type": "FeatureCollection",
     "features": features

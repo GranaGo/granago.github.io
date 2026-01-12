@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - "raw_data/poi.geojson"
-      - "scripts/ajustar_pois.py"
+      - "scripts/procesar_pois.py"
   workflow_dispatch:
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
           python-version: "3.11"
 
       - name: Normalize GeoJSON
-        run: python scripts/ajustar_pois.py
+        run: python scripts/procesar_pois.py
 
       - name: 🔄 Sincronizar repositorio antes de subir
         run: git pull origin main --rebase --autostash

@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - "raw_data/**"
-      - "scripts/convertir_gtfs.py"
+      - "scripts/procesar_gtfs.py"
       - "scripts/procesar_radares.py"
       - "scripts/procesar_palabras.py"
   workflow_dispatch:
@@ -28,7 +28,7 @@ jobs:
         run: pip install pandas pypdf
 
       - name: ⚙️ Ejecutar script de conversión
-        run: python scripts/convertir_gtfs.py
+        run: python scripts/procesar_gtfs.py
 
       - name: 📸 Procesar Radares PDF
         run: python scripts/procesar_radares.py

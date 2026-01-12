@@ -3,14 +3,11 @@ import re
 import os
 from pypdf import PdfReader
 
-# ================= CONFIGURACIÓN =================
 ARCHIVO_PDF = "raw_data/radares.pdf"
 ARCHIVO_VIALES = "raw_data/BTN0605L_CARRETERA.json" 
 ARCHIVO_PKS = "raw_data/BTN0618P_KIL_CARR.json"     
 ARCHIVO_SALIDA = "data/radares.json"
 
-# Offset manual por si alguna carretera antigua (como la GR-30) 
-# sigue usando kilometraje viejo en el PDF de la DGT.
 OFFSETS_PKS = {
     "GR30": 116.0 
 }
@@ -26,7 +23,6 @@ def leer_pdf_aplanado(ruta_pdf):
 def cargar_mapa_ign(ruta_viales, ruta_pks):
     print("📍 Cargando Cartografía Oficial del IGN...")
     
-    # 1. Mapear ID_VIAL -> Nombre Carretera (ej: 12345 -> "A-44")
     id_a_nombre = {}
     try:
         with open(ruta_viales, 'r', encoding='utf-8') as f:
@@ -37,7 +33,6 @@ def cargar_mapa_ign(ruta_viales, ruta_pks):
                 nombre = props.get('NOMBRE')
                 
                 if id_vial and nombre:
-                    # Normalizamos: "N-323a " -> "N323A"
                     nombre_norm = nombre.replace(" ", "").replace("-", "").upper()
                     id_a_nombre[id_vial] = nombre_norm
     except Exception as e:
@@ -46,7 +41,6 @@ def cargar_mapa_ign(ruta_viales, ruta_pks):
 
     print(f"   -> Identificadas {len(id_a_nombre)} carreteras.")
 
-    # 2. Asignar Coordenadas a cada PK
     pks_map = {}
     count_pks = 0
     
@@ -58,16 +52,15 @@ def cargar_mapa_ign(ruta_viales, ruta_pks):
                 geom = feat.get('geometry', {})
                 
                 id_vial = props.get('ID_VIAL')
-                pk_val = float(props.get('PK_0618', 0)) # El PK oficial (ej: 14)
+                pk_val = float(props.get('PK_0618', 0))
                 
                 if id_vial in id_a_nombre and geom['type'] == 'Point':
                     nombre_carr = id_a_nombre[id_vial]
-                    coords = geom['coordinates'] # [lon, lat]
+                    coords = geom['coordinates']
                     
                     if nombre_carr not in pks_map:
                         pks_map[nombre_carr] = {}
                     
-                    # Guardamos la coordenada para ese PK
                     pks_map[nombre_carr][pk_val] = coords
                     count_pks += 1
                     
@@ -83,7 +76,6 @@ def buscar_pk_cercano(pks_disponibles, pk_objetivo, margen=2.0):
     if not pks_disponibles: return None
     pk_mas_cercano = min(pks_disponibles.keys(), key=lambda k: abs(k - pk_objetivo))
     
-    # Si la distancia es razonable (menos de 'margen' km), lo aceptamos
     if abs(pk_mas_cercano - pk_objetivo) <= margen:
         return pks_disponibles[pk_mas_cercano]
     return None
@@ -96,16 +88,13 @@ def obtener_tramo_coords(pks_map, ref, inicio, fin):
     coords = []
     pks_ordenados = sorted(pks_map[ref].keys())
     
-    # Recolectar todos los puntos entre Inicio y Fin
     for pk in pks_ordenados:
-        # Margen de 0.5km para asegurar cobertura en bordes
         if min(inicio_map, fin_map) - 0.5 <= pk <= max(inicio_map, fin_map) + 0.5:
             coords.append(pks_map[ref][pk])
             
-    # Si no hay puntos intermedios, devolvemos al menos el punto de inicio
     if len(coords) < 2:
         res = buscar_pk_cercano(pks_map[ref], inicio_map, margen=5.0)
-        if res: return [res] # Un solo punto
+        if res: return [res]
         return None
     
     return coords
@@ -117,7 +106,6 @@ def procesar():
     print("📄 Leyendo Radares del PDF...")
     texto_limpio = leer_pdf_aplanado(ARCHIVO_PDF)
     
-    # Regex flexible para capturar líneas
     patron = re.compile(r'Granada\s+([A-Z0-9\-]+)\s+(Radar\s+[^\d]+)([\d\.\,\-\s\(\)m]+)\s+(Creciente|Decreciente|Ambos)', re.IGNORECASE)
     matches = patron.findall(texto_limpio)
     
@@ -131,12 +119,10 @@ def procesar():
         feature = None
         motivo = ""
 
-        # Ver si existe la carretera en nuestros datos oficiales
         if ref not in mapa_geo:
             ignorados.append(f"{ctra_raw}: No encontrada en IGN")
             continue
 
-        # --- CASO A: TRAMO (ej: 10.5 (1.800 m)) ---
         if "tramo" in tipo_txt.lower() or "(" in pk_raw:
             match = re.search(r'([\d\.]+)\s*\(([\d\.]+)\s*m\)', pk_raw)
             if match:
@@ -155,7 +141,6 @@ def procesar():
                     }
                 else: motivo = "Sin coordenadas en rango"
 
-        # --- CASO B: MÓVIL (ej: 10 - 20) ---
         elif "-" in pk_raw:
             nums = re.findall(r"[\d\.]+", pk_raw)
             pks = [float(n.rstrip('.')) for n in nums if n != '.']
@@ -172,7 +157,6 @@ def procesar():
                     }
                 else: motivo = "Rango sin datos"
 
-        # --- CASO C: FIJO (ej: 14.5) ---
         else:
             nums = re.findall(r"[\d\.]+", pk_raw)
             if nums:
@@ -192,7 +176,6 @@ def procesar():
         elif motivo:
             ignorados.append(f"{ctra_raw} {pk_raw}: {motivo}")
 
-    # Guardar JSON
     salida = { "type": "FeatureCollection", "features": features }
     os.makedirs(os.path.dirname(ARCHIVO_SALIDA), exist_ok=True)
     with open(ARCHIVO_SALIDA, 'w', encoding='utf-8') as f:

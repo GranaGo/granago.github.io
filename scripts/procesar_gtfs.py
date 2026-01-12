@@ -2,7 +2,6 @@ import pandas as pd
 import json
 import os
 
-# ================= CONFIGURACIÓN =================
 RUTAS_ENTRADA = {
     "metro": "raw_data/gtfs_metro",
     "urbano": "raw_data/gtfs_urbano",
@@ -12,22 +11,11 @@ RUTAS_ENTRADA = {
 AGENCIA_INTERURBANO_OBJETIVO = "CTAG"
 CARPETA_SALIDA = "data"
 
-# Colores por defecto (usados si el GTFS falla y no hay manual)
 COLORES_DEFECTO = {
-    "metro": "009A44",       # Corregido (le faltaba un 4)
-    "urbano": "D9281C",      # Rojo Rober
-    "interurbano": "2757F5"  # Verde Consorcio
+    "metro": "009A44",
+    "urbano": "D9281C",
+    "interurbano": "2757F5"
 }
-
-# --- 🎨 COLORES MANUALES (OPCIONAL) ---
-# Si alguna línea se resiste, ponla aquí.
-COLORES_MANUALES = {
-    "urbano": {
-        "N5": "000000" # Ejemplo
-    }
-}
-
-# ================= FUNCIONES AUXILIARES =================
 
 def limpiar_nombre_linea(nombre, es_interurbano):
     """Quita ceros a la izquierda solo si es interurbano (ej: 0177 -> 177)"""
@@ -50,7 +38,6 @@ def corregir_hora(hora_str):
 def cargar_csv(ruta, archivo):
     path = os.path.join(ruta, archivo)
     if os.path.exists(path):
-        # dtype=str es vital para no perder ceros en colores o IDs
         return pd.read_csv(path, dtype=str)
     return pd.DataFrame()
 
@@ -75,12 +62,9 @@ def analizar_calendario(df_calendar):
         mapa_servicios[sid] = dias
     return mapa_servicios
 
-# ================= PROCESAMIENTO PRINCIPAL =================
-
 def procesar_gtfs(modo, ruta_entrada):
     print(f"\n--- 🚌 Procesando {modo.upper()} ---")
     
-    # 1. Cargar Datos
     df_agency = cargar_csv(ruta_entrada, "agency.txt")
     df_routes = cargar_csv(ruta_entrada, "routes.txt")
     df_trips = cargar_csv(ruta_entrada, "trips.txt")
@@ -89,7 +73,6 @@ def procesar_gtfs(modo, ruta_entrada):
     df_shapes = cargar_csv(ruta_entrada, "shapes.txt")
     df_calendar = cargar_csv(ruta_entrada, "calendar.txt")
 
-    # 2. Filtrado Interurbano (CTAG)
     if modo == "interurbano" and not df_agency.empty:
         agencias = df_agency[df_agency['agency_id'] == AGENCIA_INTERURBANO_OBJETIVO]['agency_id'].tolist()
         if agencias:
@@ -100,56 +83,40 @@ def procesar_gtfs(modo, ruta_entrada):
             df_stops = df_stops[df_stops['stop_id'].isin(valid_stops)]
             print(f"   ✅ Filtrado CTAG: {len(df_routes)} líneas.")
 
-    # 3. Mapa de Calendario
     mapa_dias = analizar_calendario(df_calendar)
 
-    # 4. Estructuras de Salida
     out_rutas = {}
     out_paradas = {}
     out_horarios = {}
     out_colores = {}
 
-    # Agrupar por línea (Route)
     for _, ruta in df_routes.iterrows():
         rid = ruta['route_id']
         r_short = limpiar_nombre_linea(ruta.get('route_short_name', ''), modo == "interurbano")
         r_long = ruta.get('route_long_name', '')
         
-        # --- LÓGICA DE COLORES ---
         color_final = None
         
-        # 1. ¿Está en COLORES_MANUALES?
-        if modo in COLORES_MANUALES and r_short in COLORES_MANUALES[modo]:
-            color_final = COLORES_MANUALES[modo][r_short]
-        
-        # 2. Si no, mirar route_color del GTFS
         if not color_final:
             gtfs_color = ruta.get('route_color')
             
-            # Verificamos que no sea NaN y tenga contenido
             if pd.notna(gtfs_color):
                 c_str = str(gtfs_color).strip()
                 if c_str and c_str.lower() != "nan":
                     color_final = c_str
         
-        # 3. Si sigue vacío, usar color por defecto
         if not color_final:
             color_final = COLORES_DEFECTO[modo]
         
-        # 4. Asegurar formato Hex con #
         if not color_final.startswith('#'):
             color_final = '#' + color_final
             
         out_colores[r_short] = color_final
-        # -----------------------------------
-
-        # Inicializar diccionarios
         out_rutas[r_short] = {"ida": [], "vuelta": []}
         out_paradas[r_short] = {"ida": [], "vuelta": []}
         out_horarios[r_short] = {"ida": {"L-J":[], "V":[], "S":[], "D":[]}, 
                                  "vuelta": {"L-J":[], "V":[], "S":[], "D":[]}}
 
-        # Filtrar trips de esta línea
         trips_linea = df_trips[df_trips['route_id'] == rid]
 
         for direction_id in ['0', '1']:
@@ -158,7 +125,6 @@ def procesar_gtfs(modo, ruta_entrada):
             
             if trips_dir.empty: continue
 
-            # --- A. RUTAS (SHAPES) ---
             if not df_shapes.empty:
                 shape_id = trips_dir['shape_id'].mode()
                 if not shape_id.empty:
@@ -166,7 +132,6 @@ def procesar_gtfs(modo, ruta_entrada):
                     puntos = df_shapes[df_shapes['shape_id'] == s_id].sort_values(by='shape_pt_sequence', key=lambda x: x.astype(int))
                     out_rutas[r_short][dir_key] = puntos[['shape_pt_lat', 'shape_pt_lon']].astype(float).values.tolist()
 
-            # --- B. PARADAS ---
             trip_ids = trips_dir['trip_id'].unique()
             best_trip = None
             max_stops = 0
@@ -193,7 +158,6 @@ def procesar_gtfs(modo, ruta_entrada):
                     })
                 out_paradas[r_short][dir_key] = lista_p
 
-            # --- C. HORARIOS (HÍBRIDO: Lista completa para Inter, Resumen para otros) ---
             temp_horarios = {"L-J": [], "V": [], "S": [], "D": []}
 
             for _, trip in trips_dir.iterrows():
@@ -214,30 +178,24 @@ def procesar_gtfs(modo, ruta_entrada):
                 for dia in dias_operativos:
                     temp_horarios[dia].append(dato_viaje)
 
-            # PROCESAR
             for dia in ["L-J", "V", "S", "D"]:
                 lista = temp_horarios[dia]
                 
                 if not lista:
                     out_horarios[r_short][dir_key][dia] = None 
                 else:
-                    # Ordenar siempre cronológicamente
                     lista.sort(key=lambda x: x['sort'])
                     
                     if modo == "interurbano":
-                        # CASO 1: Lista COMPLETA (solo las horas formateadas)
-                        # Usamos un set para evitar duplicados exactos si hubiera, y volvemos a ordenar
                         horas_unicas = sorted(list(set([x['show'] for x in lista])))
                         out_horarios[r_short][dir_key][dia] = horas_unicas
                     else:
-                        # CASO 2: Resumen INICIO/FIN (Urbano/Metro)
                         primer_viaje = lista[0]['show']
                         ultimo_viaje = lista[-1]['show']
                         out_horarios[r_short][dir_key][dia] = {
                             "inicio": primer_viaje,
                             "fin": ultimo_viaje
                         }
-    # 5. Guardar Archivos
     path_salida = os.path.join(CARPETA_SALIDA, modo)
     os.makedirs(path_salida, exist_ok=True)
 
@@ -252,7 +210,6 @@ def procesar_gtfs(modo, ruta_entrada):
     
     print(f"   💾 Guardados paradas, rutas, horarios y colores en {path_salida}")
 
-# ================= EJECUCIÓN =================
 if __name__ == "__main__":
     os.makedirs(CARPETA_SALIDA, exist_ok=True)
     

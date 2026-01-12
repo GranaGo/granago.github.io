@@ -1,75 +1,77 @@
 import json
 import os
-import unicodedata
 
-# ================= CONFIGURACIÓN =================
-ARCHIVO_ENTRADA = "raw_data/index.json"
+ARCHIVO_ENTRADA = "raw_data/raw_palabras.json"
+ARCHIVO_PAISES = "raw_data/paisciudad.min.json"
+ARCHIVO_ESP = "raw_data/esp.json"
 ARCHIVO_SALIDA = "data/palabras.json"
 
 def normalizar_palabra(palabra):
-    """
-    Elimina tildes y normaliza para comparaciones futuras si es necesario.
-    Para el diccionario de Wordle, nos interesa guardar la versión limpia 
-    para validar (sin tilde) y/o la original.
-    
-    En este caso, guardaremos la palabra TAL CUAL viene en el diccionario
-    pero filtraremos las que no sean válidas.
-    """
+    """Lógica de normalización original: elimina espacios en blanco."""
     return palabra.strip()
 
 def procesar():
-    if not os.path.exists(ARCHIVO_ENTRADA):
-        print(f"⚠️ No se encontró {ARCHIVO_ENTRADA}. Saltando procesamiento.")
-        return
 
-    print(f"📖 Leyendo diccionario gigante desde {ARCHIVO_ENTRADA}...")
-    
-    try:
+    todas_las_palabras = set()
+
+    if os.path.exists(ARCHIVO_ENTRADA):
+        print(f"📖 Leyendo palabras desde {ARCHIVO_ENTRADA}...")
         with open(ARCHIVO_ENTRADA, 'r', encoding='utf-8') as f:
             datos = json.load(f)
-            
-        palabras_filtradas = []
-        conteo = {4: 0, 5: 0, 6: 0}
-        
-        # Detectar si el JSON es una lista plana ["a", "b"] o lista de objetos
-        if isinstance(datos, list):
-            for item in datos:
-                # Obtener string si es objeto
-                palabra = item if isinstance(item, str) else list(item.values())[0]
-                palabra = palabra.strip()
-                
-                # --- FILTROS ---
-                # 1. Longitud 4, 5 o 6
-                if len(palabra) not in [4, 5, 6]:
-                    continue
-                    
-                # 2. Sin espacios, guiones ni números
-                if ' ' in palabra or '-' in palabra or any(c.isdigit() for c in palabra):
-                    continue
-                
-                # Añadir a la lista
-                palabras_filtradas.append(palabra)
-                conteo[len(palabra)] += 1
-                
-        # Guardar resultado optimizado
-        os.makedirs(os.path.dirname(ARCHIVO_SALIDA), exist_ok=True)
-        
-        with open(ARCHIVO_SALIDA, 'w', encoding='utf-8') as f:
-            json.dump(palabras_filtradas, f, ensure_ascii=False, separators=(',', ':'))
-            
-        print(f"✅ ¡LISTO! Archivo generado en {ARCHIVO_SALIDA}")
-        print(f"   📊 Total: {len(palabras_filtradas)} palabras.")
-        print(f"   🔹 4 letras: {conteo[4]}")
-        print(f"   🔹 5 letras: {conteo[5]}")
-        print(f"   🔹 6 letras: {conteo[6]}")
-        
-        # Mostrar reducción de tamaño
-        size_in = os.path.getsize(ARCHIVO_ENTRADA) / (1024 * 1024)
-        size_out = os.path.getsize(ARCHIVO_SALIDA) / (1024 * 1024)
-        print(f"   📉 Reducción: {size_in:.2f} MB -> {size_out:.2f} MB")
+            if isinstance(datos, list):
+                for item in datos:
+                    p = item if isinstance(item, str) else item.get('palabra', '')
+                    todas_las_palabras.add(p)
 
-    except Exception as e:
-        print(f"❌ Error procesando palabras: {e}")
+    if os.path.exists(ARCHIVO_PAISES):
+        print(f"📖 Leyendo países y ciudades desde {ARCHIVO_PAISES}...")
+        with open(ARCHIVO_PAISES, 'r', encoding='utf-8') as f:
+            datos_paises = json.load(f)
+            for pais, ciudades in datos_paises.items():
+                todas_las_palabras.add(pais)
+                todas_las_palabras.update(ciudades)
+
+    if os.path.exists(ARCHIVO_ESP):
+        print(f"📖 Leyendo divisiones de España desde {ARCHIVO_ESP}...")
+        with open(ARCHIVO_ESP, 'r', encoding='utf-8') as f:
+            datos_esp = json.load(f)
+            for ccaa in datos_esp:
+                todas_las_palabras.add(ccaa.get("label", ""))
+                for provincia in ccaa.get("provinces", []):
+                    todas_las_palabras.add(provincia.get("label", ""))
+                    for pueblo in provincia.get("towns", []):
+                        todas_las_palabras.add(pueblo.get("label", ""))
+
+    if not todas_las_palabras:
+        print("❌ No hay datos para procesar.")
+        return
+    palabras_filtradas = []
+    conteo = {4: 0, 5: 0, 6: 0}
+
+    for palabra in sorted(list(todas_las_palabras)):
+        if not isinstance(palabra, str):
+            continue
+            
+        palabra = normalizar_palabra(palabra)
+        
+        if len(palabra) not in [4, 5, 6]:
+            continue
+            
+        if ' ' in palabra or '-' in palabra or any(c.isdigit() for c in palabra):
+            continue
+        
+        palabras_filtradas.append(palabra)
+        conteo[len(palabra)] += 1
+                
+    os.makedirs(os.path.dirname(ARCHIVO_SALIDA), exist_ok=True)
+    with open(ARCHIVO_SALIDA, 'w', encoding='utf-8') as f:
+        json.dump(palabras_filtradas, f, ensure_ascii=False, separators=(',', ':'))
+        
+    print(f"✅ ¡LISTO! Archivo generado en {ARCHIVO_SALIDA}")
+    print(f"   📊 Total único: {len(palabras_filtradas)} palabras.")
+    print(f"   🔹 4 letras: {conteo[4]}")
+    print(f"   🔹 5 letras: {conteo[5]}")
+    print(f"   🔹 6 letras: {conteo[6]}")
 
 if __name__ == "__main__":
     procesar()
