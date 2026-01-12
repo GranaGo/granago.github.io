@@ -4753,11 +4753,7 @@ async function updateHomeEventsWidget() {
   const eventsList = document.getElementById("home-events-list");
   if (!eventsList) return;
 
-  eventsList.innerHTML = `
-    <div class="skeleton skeleton-title"></div>
-    <div class="skeleton skeleton-text"></div>
-    <div class="skeleton skeleton-text" style="width:60%"></div>
-  `;
+  eventsList.innerHTML = "";
 
   const getLocalTodayString = () => {
     const d = new Date();
@@ -4843,11 +4839,7 @@ async function updateHomeBusWidget() {
   const busContent = document.getElementById("home-bus-content");
   if (!busContent) return;
 
-  busContent.innerHTML = `
-    <div class="skeleton skeleton-title"></div>
-    <div class="skeleton skeleton-text"></div>
-    <div class="skeleton skeleton-text" style="width:60%"></div>
-  `;
+  busContent.innerHTML = "";
 
   let affectedLines = new Set();
 
@@ -4948,13 +4940,6 @@ async function updateHomeBusWidget() {
 
 async function updateHomeParking() {
   const container = document.getElementById("home-parking-content");
-
-  container.innerHTML = `
-    <div class="skeleton skeleton-title"></div>
-    <div class="skeleton skeleton-text"></div>
-    <div class="skeleton skeleton-text" style="width:60%"></div>
-  `;
-
   try {
     const PROXY = "https://proxy.contacto-granago.workers.dev/?url=";
     const TABLE_URL =
@@ -5021,12 +5006,6 @@ async function updateHomeFuel() {
   const title = document.getElementById("fuel-widget-title");
 
   if (!container || !title) return;
-
-  container.innerHTML = `
-    <div class="skeleton skeleton-title"></div>
-    <div class="skeleton skeleton-text"></div>
-    <div class="skeleton skeleton-text" style="width:60%"></div>
-  `;
 
   try {
     const PROXY = "https://proxy.contacto-granago.workers.dev/?url=";
