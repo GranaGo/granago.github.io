@@ -4003,3 +4003,19 @@ body.driving-mode-on #cookie-banner {
 #parkings-table-container {
   margin-top: 10px;
 }
+
+@keyframes skeleton-loading {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--border-subtle) 50%, var(--bg-surface) 75%);
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 8px;
+  display: block;
+}
+
+.skeleton-text { height: 1.2rem; margin-bottom: 8px; width: 80%; }
+.skeleton-title { height: 2rem; width: 50%; margin-bottom: 12px; }
