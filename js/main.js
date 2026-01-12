@@ -78,6 +78,11 @@ let oraTileLayer = null;
 let wordleSetupHTML = "";
 let isMuted = false;
 
+let taxiMapInstance = null;
+let taxiLayersGroup = null;
+let taxiTileLayer = null;
+let taxiDataLoaded = false;
+
 const loadedScripts = {};
 let googleTranslateScriptLoaded = false;
 let linesDataCache = {
@@ -482,6 +487,7 @@ window.navigateTo = async function (viewId, addToHistory = true) {
     "ora",
     "zonas-restringidas",
     "zbe",
+    "taxi-vtc",
   ];
   if (fullScreenMapViews.includes(viewId)) {
     document.body.classList.add("noscroll");
@@ -506,6 +512,7 @@ window.navigateTo = async function (viewId, addToHistory = true) {
       "parkings",
       "ora",
       "linea-detalle",
+      "taxi-vtc",
     ];
 
     if (viewsWithMap.includes(viewId)) {
@@ -516,7 +523,9 @@ window.navigateTo = async function (viewId, addToHistory = true) {
       if (["paradas", "lugares", "camaras", "repostar-map"].includes(viewId)) {
         extraScripts.push(loadScript("js/leaflet.markercluster.js"));
       }
-      if (["camaras", "ora", "zonas-restringidas"].includes(viewId)) {
+      if (
+        ["camaras", "ora", "zonas-restringidas", "taxi-vtc"].includes(viewId)
+      ) {
         extraScripts.push(loadScript("js/leaflet-omnivore.min.js"));
       }
       await Promise.all(extraScripts);
@@ -555,6 +564,8 @@ window.navigateTo = async function (viewId, addToHistory = true) {
     if (typeof initRepostarMap === "function") {
       setTimeout(() => initRepostarMap(), 200);
     }
+  } else if (viewId === "taxi-vtc") {
+    setTimeout(() => initTaxiMap(), 200);
   }
 };
 
@@ -822,6 +833,10 @@ function checkMapTheme() {
 
   if (typeof restriccionesMap !== "undefined") {
   }
+
+  if (typeof taxiMapInstance !== "undefined" && taxiMapInstance) {
+    taxiTileLayer = updateMapTheme(taxiMapInstance, taxiTileLayer);
+  }
 }
 
 function checkMapThemePlaces() {
@@ -962,6 +977,20 @@ function destroyUnusedMaps() {
   if (cRestricciones) {
     cRestricciones._leaflet_id = null;
     cRestricciones.innerHTML = "";
+  }
+
+  if (taxiMapInstance) {
+    taxiMapInstance.off();
+    taxiMapInstance.remove();
+    taxiMapInstance = null;
+    taxiLayersGroup = null;
+    taxiDataLoaded = false;
+    taxiTileLayer = null;
+  }
+  const cTaxi = document.getElementById("map-taxis");
+  if (cTaxi) {
+    cTaxi._leaflet_id = null;
+    cTaxi.innerHTML = "";
   }
 }
 
@@ -7177,3 +7206,95 @@ async function requestWakeLock() {
 function handleDrivingError(err) {
   console.warn("ERROR(" + err.code + "): " + err.message);
 }
+
+async function initTaxiMap() {
+  const mapId = "map-taxis";
+  const loader = document.getElementById("taxis-loader");
+  if (!document.getElementById(mapId)) return;
+  ensureMapContainerIsClean(mapId);
+
+  if (loader) loader.classList.add("visible");
+
+  if (!taxiMapInstance) {
+    taxiMapInstance = L.map(mapId, {
+      zoomControl: false,
+      preferCanvas: true,
+      attributionControl: false,
+    }).setView([37.1773, -3.5986], 14);
+
+    checkMapTheme();
+
+    taxiLayersGroup = L.layerGroup().addTo(taxiMapInstance);
+    taxiMapInstance.locate({ setView: true, maxZoom: 15 });
+
+    setTimeout(() => taxiMapInstance.invalidateSize(), 100);
+  }
+
+  if (!taxiDataLoaded) {
+    loadTaxiKML();
+    taxiDataLoaded = true;
+  }
+
+  if (loader) setTimeout(() => loader.classList.remove("visible"), 500);
+}
+
+function loadTaxiKML() {
+  const customLayer = L.geoJson(null, {
+    pointToLayer: function (feature, latlng) {
+      return L.marker(latlng, {
+        icon: L.divIcon({
+          className: "",
+          html: `<div class="transport-marker-container" style="background-color: #333; border: 2px solid #fff;">
+                    <i class="ri-taxi-fill" style="font-size: 16px; color: #fff;"></i>
+                 </div>`,
+          iconSize: [30, 30],
+          iconAnchor: [15, 15],
+        }),
+      });
+    },
+    onEachFeature: function (feature, layer) {
+      if (feature.geometry.type !== "Point") return;
+
+      const name = feature.properties.name || "Parada de Taxi";
+      const latlng = layer.getLatLng();
+
+      const content = `
+        <div style="text-align:center; min-width:130px; padding: 5px;">
+            <strong style="font-size:0.95rem; display: block; margin-bottom: 8px; class="notranslate">${name}</strong>
+            <button class="btn-navigate-popup" onclick="openMapsApp(${latlng.lat}, ${latlng.lng})">
+                <i class="ri-direction-fill"></i> Ir ahora
+            </button>
+        </div>`;
+
+      layer.bindPopup(content, { closeButton: false });
+    },
+  });
+
+  omnivore
+    .kml("data/taxi_granada.kml", null, customLayer)
+    .addTo(taxiMapInstance);
+}
+
+window.scrollToTaxiInfo = function () {
+  const target = document.getElementById("taxi-info-container");
+  if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+};
+
+window.switchTaxiTariff = function (type, btn) {
+  const container = btn.parentElement;
+  container
+    .querySelectorAll(".tab-pill")
+    .forEach((b) => b.classList.remove("active"));
+  btn.classList.add("active");
+
+  document.getElementById("taxi-urban-rates").style.display =
+    type === "urban" ? "block" : "none";
+  document.getElementById("taxi-inter-rates").style.display =
+    type === "inter" ? "block" : "none";
+};
+
+window.openTaxiApp = function (service) {
+  if (service === "pidetaxi") {
+    window.open("https://pidetaxi.es", "_blank");
+  }
+};

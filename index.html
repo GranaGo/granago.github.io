@@ -635,6 +635,19 @@
             </div>
             <i class="icon arrow-icon ri-arrow-right-s-line"></i>
           </div>
+          <div class="transport-card" onclick="navigateTo('taxi-vtc')">
+            <div
+              class="card-icon-wrapper"
+              style="background: rgba(234, 179, 8, 0.1); color: #eab308"
+            >
+              <i class="icon ri-taxi-fill"></i>
+            </div>
+            <div class="transport-info">
+              <h3>Taxi y VTC</h3>
+              <p>PideTaxi</p>
+            </div>
+            <i class="icon arrow-icon ri-arrow-right-s-line"></i>
+          </div>
         </div>
       </div>
 
@@ -2000,6 +2013,399 @@
         </div>
       </div>
 
+      <div
+        id="taxi-vtc-view"
+        class="view-section"
+        style="display: flex; flex-direction: column; height: 100%"
+      >
+        <div class="section-header with-back-btn" style="flex-shrink: 0">
+          <button
+            onclick="navigateTo('transporte')"
+            class="icon-btn back-btn"
+            aria-label="Volver atrás"
+          >
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div>
+            <h2>Taxi y VTC</h2>
+            <p>Guía completa de tarifas 2026</p>
+          </div>
+        </div>
+
+        <div class="transport-grid fade-in-up" style="margin-bottom: 20px">
+          <div class="transport-card taxi-container-card">
+            <div
+              class="card-icon-wrapper"
+              style="background: #ef4444; color: #fff !important"
+            >
+              <i
+                class="ri-hand"
+                style="font-size: 1.8rem; color: #fff !important"
+              ></i>
+            </div>
+            <div class="transport-info">
+              <h3 style="margin-bottom: 12px">PideTaxi Granada</h3>
+              <div class="taxi-buttons-grid">
+                <button
+                  class="taxi-action-btn call"
+                  onclick="window.open('tel:958280000')"
+                >
+                  <i class="ri-phone-fill"></i> Llamar
+                </button>
+                <button
+                  class="taxi-action-btn web"
+                  onclick="openTaxiApp('pidetaxi')"
+                >
+                  <i class="ri-global-line"></i> Web / App
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          style="
+            height: 50vh;
+            width: 100%;
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 20px;
+            flex-shrink: 0;
+          "
+        >
+          <div
+            id="map-taxis"
+            class="gpu-accelerated"
+            style="width: 100%; height: 100%"
+          ></div>
+          <div id="taxis-loader" class="map-loader visible">
+            <div class="spinner"></div>
+            <p>Cargando paradas...</p>
+          </div>
+          <button onclick="scrollToTaxiInfo()" class="btn-scroll-down">
+            <span>Ver Tarifas e Info</span>
+            <i class="icon ri-arrow-down-line" style="font-size: 24px"></i>
+          </button>
+        </div>
+
+        <div
+          id="taxi-info-container"
+          style="flex: 1; overflow-y: auto; padding-bottom: 100px"
+          class="fade-in-up"
+        >
+          <h3 class="info-title">Tarifas Oficiales 2026</h3>
+          <div
+            class="tabs-pills"
+            style="justify-content: center; margin-bottom: 15px"
+          >
+            <button
+              class="tab-pill active"
+              onclick="switchTaxiTariff('urban', this)"
+            >
+              Urbana
+            </button>
+            <button class="tab-pill" onclick="switchTaxiTariff('inter', this)">
+              Interurbana
+            </button>
+          </div>
+
+          <div id="taxi-urban-rates" class="info-card fade-in-up">
+            <div class="tariff-section">
+              <strong>Tarifa 1: Diurna Laborable</strong>
+              <p
+                style="
+                  font-size: 0.75rem;
+                  margin: -5px 0 10px 0;
+                  color: var(--text-secondary);
+                "
+              >
+                Lunes a Jueves de 07:00 a 22:00 | Viernes de 07:00 a 21:00
+              </p>
+              <div class="price-row">
+                <span>Bajada Bandera</span> <strong>1,60 €</strong>
+              </div>
+              <div class="price-row">
+                <span>Km recorrido</span> <strong>0,99 €</strong>
+              </div>
+              <div class="price-row">
+                <span>Carrera Mínima</span> <strong>4,25 €</strong>
+              </div>
+              <div class="price-row">
+                <span>Hora de espera</span> <strong>21,84 €</strong>
+              </div>
+            </div>
+            <div class="tariff-divider"></div>
+            <div class="tariff-section">
+              <strong>Tarifa 2: Nocturna / Festivos</strong>
+              <p
+                style="
+                  font-size: 0.75rem;
+                  margin: -5px 0 10px 0;
+                  color: var(--text-secondary);
+                "
+              >
+                Sábados/Domingos/Festivos, noches laborables y fiestas locales
+              </p>
+              <div class="price-row">
+                <span>Bajada Bandera</span> <strong>2,02 €</strong>
+              </div>
+              <div class="price-row">
+                <span>Km recorrido</span> <strong>1,18 €</strong>
+              </div>
+              <div class="price-row">
+                <span>Carrera Mínima</span> <strong>5,28 €</strong>
+              </div>
+              <div class="price-row">
+                <span>Hora de espera</span> <strong>27,33 €</strong>
+              </div>
+            </div>
+            <div class="tariff-divider"></div>
+            <div
+              class="tariff-section"
+              style="
+                border-left: 4px solid var(--color-error);
+                padding-left: 10px;
+              "
+            >
+              <strong>Tarifa Especial Nocturna</strong>
+              <p
+                style="
+                  font-size: 0.75rem;
+                  margin: -5px 0 10px 0;
+                  color: var(--text-secondary);
+                "
+              >
+                Sábados y festivos de 01:00 a 06:00 h
+              </p>
+              <div class="price-row">
+                <span>Bajada Bandera</span> <strong>2,47 €</strong>
+              </div>
+              <div class="price-row">
+                <span>Km recorrido</span> <strong>1,33 €</strong>
+              </div>
+              <div class="price-row">
+                <span>Carrera Mínima</span> <strong>6,50 €</strong>
+              </div>
+              <div class="price-row">
+                <span>Hora de espera</span> <strong>34,15 €</strong>
+              </div>
+            </div>
+          </div>
+
+          <div
+            id="taxi-inter-rates"
+            class="info-card fade-in-up"
+            style="display: none"
+          >
+            <div class="tariff-section">
+              <strong>Tarifa 1: Diurna Laborable</strong>
+              <p
+                style="
+                  font-size: 0.75rem;
+                  margin: -5px 0 10px 0;
+                  color: var(--text-secondary);
+                "
+              >
+                Lunes a Viernes de 06:00 a 22:00 h
+              </p>
+              <div class="price-row">
+                <span>Bajada Bandera</span> <strong>3,41 €</strong>
+              </div>
+              <div class="price-row">
+                <span>Km recorrido</span> <strong>0,66 €</strong>
+              </div>
+              <div class="price-row">
+                <span>Carrera Mínima</span> <strong>3,56 €</strong>
+              </div>
+              <div class="price-row">
+                <span>Hora de espera</span> <strong>16,33 €</strong>
+              </div>
+            </div>
+            <div class="tariff-divider"></div>
+            <div class="tariff-section">
+              <strong>Tarifa 2: Noche / Festivos</strong>
+              <p
+                style="
+                  font-size: 0.75rem;
+                  margin: -5px 0 10px 0;
+                  color: var(--text-secondary);
+                "
+              >
+                Noches laborables, fines de semana y festivos
+              </p>
+              <div class="price-row">
+                <span>Bajada Bandera</span> <strong>1,70 €</strong>
+              </div>
+              <div class="price-row">
+                <span>Km recorrido</span> <strong>0,78 €</strong>
+              </div>
+              <div class="price-row">
+                <span>Carrera Mínima</span> <strong>3,56 €</strong>
+              </div>
+              <div class="price-row">
+                <span>Hora de espera</span> <strong>19,62 €</strong>
+              </div>
+            </div>
+          </div>
+
+          <h3 class="info-title">Suplementos y Equipaje</h3>
+          <div class="info-card">
+            <div class="price-row">
+              <span>Bulto o maleta (>60cm)</span> <strong>+0,52 €</strong>
+            </div>
+            <div class="price-row">
+              <span>Salida Estación (Tren/Bus)</span> <strong>+0,51 €</strong>
+            </div>
+            <div class="price-row">
+              <span>Eurotaxi (>5 plazas)</span>
+              <strong>+1,03 € / plaza extra</strong>
+            </div>
+          </div>
+
+          <h3 class="info-title">Aeropuerto y Sierra Nevada</h3>
+          <div class="info-card">
+            <div class="tariff-section">
+              <strong>Aeropuerto (F.G.L. Granada)</strong>
+              <div class="price-row">
+                <span>Lunes a Viernes</span> <strong>25 - 30 €</strong>
+              </div>
+              <div class="price-row">
+                <span>Noche / Fines de semana</span> <strong>30 - 35 €</strong>
+              </div>
+              <small
+                style="
+                  display: block;
+                  margin-top: 5px;
+                  color: var(--text-secondary);
+                "
+                >* Precio según taxímetro (18km aprox.).</small
+              >
+            </div>
+            <div class="tariff-divider"></div>
+            <div class="tariff-section">
+              <strong>Sierra Nevada</strong>
+              <div class="price-row">
+                <span>Sin nieve</span> <strong>60 €</strong>
+              </div>
+              <div class="price-row">
+                <span>Con nieve (Cadenas)</span> <strong>100 €</strong>
+              </div>
+              <small
+                style="
+                  display: block;
+                  margin-top: 5px;
+                  color: var(--text-secondary);
+                "
+                >* Tiempo estimado: 30-45 minutos.</small
+              >
+            </div>
+            <div class="tariff-divider"></div>
+            <div class="tariff-section">
+              <strong>Aeropuerto de Málaga</strong>
+              <div class="price-row">
+                <span>Tarifa 1 (Día)</span> <strong>~145 €</strong>
+              </div>
+              <div class="price-row">
+                <span>Tarifa 2 (Noche)</span> <strong>~175 €</strong>
+              </div>
+            </div>
+          </div>
+
+          <h3 class="info-title">Precios Cinturón (desde Centro*)</h3>
+          <div class="info-card">
+            <div class="price-row">
+              <span>Cenes de la Vega</span> <strong>8 - 12 €</strong>
+            </div>
+            <div class="price-row">
+              <span>Huétor Vega</span> <strong>10 - 15 €</strong>
+            </div>
+            <div class="price-row">
+              <span>La Zubia / Armilla</span> <strong>12 - 20 €</strong>
+            </div>
+            <div class="price-row">
+              <span>Cúllar Vega / Cájar</span> <strong>15 - 18 €</strong>
+            </div>
+            <div class="price-row">
+              <span>Albolote / Atarfe</span> <strong>23 - 28 €</strong>
+            </div>
+            <div class="price-row">
+              <span>Dúrcal</span> <strong>35 - 40 €</strong>
+            </div>
+            <p
+              style="
+                font-size: 0.7rem;
+                color: var(--text-secondary);
+                margin-top: 10px;
+              "
+            >
+              * Referencia: Puerta Real / Fuente de las Batallas.
+            </p>
+          </div>
+
+          <h3 class="info-title">Otras Ciudades (Larga Distancia)</h3>
+          <div class="info-card">
+            <div class="price-row">
+              <span>Jaén</span> <strong>110 - 130 €</strong>
+            </div>
+            <div class="price-row">
+              <span>Málaga / Córdoba</span> <strong>150 - 210 €</strong>
+            </div>
+            <div class="price-row">
+              <span>Almería / Sevilla</span> <strong>220 - 320 €</strong>
+            </div>
+            <div class="price-row">
+              <span>Cádiz / Madrid</span> <strong>330 - 540 €</strong>
+            </div>
+            <div class="price-row">
+              <span>Valencia</span> <strong>570 - 680 €</strong>
+            </div>
+          </div>
+
+          <h3 class="info-title">¿Cómo calcular el coste?</h3>
+          <div
+            class="info-card"
+            style="border-left: 4px solid var(--text-accent)"
+          >
+            <p
+              style="
+                font-size: 0.9rem;
+                line-height: 1.5;
+                color: var(--text-secondary);
+              "
+            >
+              <strong>Ejemplo:</strong> De Catedral a Alhambra (2.5 km). <br />
+              Bajada (1.60€) + Distancia (2.5 km = 2.50€) = 4.10€. <br />
+              Al ser inferior a la <strong>carrera mínima</strong>, se pagan
+              <strong>4.25 €</strong>.
+            </p>
+            <div class="highlight-box" style="margin-top: 10px">
+              <i class="ri-information-fill"></i> Preguntar el precio aproximado
+              antes de salir es totalmente normal y recomendable.
+            </div>
+          </div>
+          <h3 class="info-title">Consejos sobre el Pago</h3>
+          <div
+            class="info-card"
+            style="border-left: 4px solid var(--color-warning)"
+          >
+            <p
+              style="
+                font-size: 0.9rem;
+                color: var(--text-secondary);
+                line-height: 1.5;
+                margin: 0;
+              "
+            >
+              Aunque la mayoría de los taxis aceptan tarjeta, se recomienda
+              <strong>preguntar antes de subir</strong> o llevar efectivo por si
+              el terminal falla. El taxímetro debe estar siempre visible.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div id="juegos-view" class="view-section">
         <div class="section-header">
           <h2>Zona de Juegos</h2>
@@ -2529,7 +2935,7 @@
 
             <div class="info-card">
               <h3 class="info-title" style="margin-top: 0">
-                <i class="icon ri-home-5-fill"></i> La Pantalla de Inicio
+                <i class="icon ri-home-2-fill"></i> La Pantalla de Inicio
               </h3>
               <div
                 class="info-body-text"
@@ -3435,7 +3841,7 @@
           aria-label="Inicio"
         >
           <div class="home-circle">
-            <i class="icon ri-home-5-fill"></i>
+            <i class="icon ri-home-2-fill"></i>
           </div>
         </button>
       </div>

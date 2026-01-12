@@ -3929,12 +3929,59 @@ body.driving-mode-on .app-header,
 body.driving-mode-on .leaflet-control-container,
 body.driving-mode-on .cookie-banner,
 body.driving-mode-on #cookie-banner {
-    display: none !important;
+  display: none !important;
 }
 
 #driving-hud {
-    background-color: #000000 !important;
-    background: #000000 !important;
-    opacity: 1 !important;
-    z-index: 1001 !important;
+  background-color: #000000 !important;
+  background: #000000 !important;
+  opacity: 1 !important;
+  z-index: 1001 !important;
+}
+
+.taxi-container-card {
+  padding: 20px !important;
+  cursor: default !important;
+}
+
+.taxi-buttons-grid {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.taxi-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 5px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.taxi-action-btn.call {
+  background: #10b981;
+  color: white;
+}
+
+.taxi-action-btn.web {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+
+.taxi-action-btn:active {
+  transform: scale(0.96);
+}
+
+.taxi-container-card .card-icon-wrapper i {
+  color: #ffffff !important;
+  display: block !important;
+  opacity: 1 !important;
 }
