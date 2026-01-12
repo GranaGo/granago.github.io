@@ -59,7 +59,7 @@ let drivingModeActive = false;
 let watchId = null;
 let wakeLock = null;
 let lastAlertTime = 0;
-const ALERT_RADIUS = 0.5;
+const ALERT_RADIUS = 0.3;
 let currentDisplayedSpeed = 0;
 let targetSpeed = 0;
 let speedAnimationId = null;
@@ -7110,7 +7110,19 @@ async function toggleDrivingMode() {
       if (camarasMapInstance) {
         camarasMapInstance.setView([lat, lng], 17);
         camarasMapInstance.invalidateSize();
-        if (userMarker) userMarker.setLatLng([lat, lng]);
+        if (!userMarker) {
+          const gpsIcon = L.divIcon({
+            className: "gps-marker-container",
+            html: `<div class="gps-dot-animated"></div>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12],
+          });
+          userMarker = L.marker([lat, lng], { icon: gpsIcon }).addTo(
+            camarasMapInstance
+          );
+        } else {
+          userMarker.setLatLng([lat, lng]).addTo(camarasMapInstance);
+        }
       }
     });
 
@@ -7125,97 +7137,148 @@ function processDrivingPosition(position) {
   const heading = position.coords.heading;
   targetSpeed = speed ? speed * 3.6 : 0;
 
-  checkNearbyRadars(lat, lng);
+  checkNearbyRadars(lat, lng, heading);
 }
 
-function checkNearbyRadars(userLat, userLng) {
-  if (!window.radaresData) return;
+function checkNearbyRadars(userLat, userLng, userHeading) {
+  if (!window.radaresData && !camarasClusterGroup) return;
 
-  let closestRadar = null;
+  let closestItem = null;
   let minDistance = Infinity;
+  const currentHeading =
+    typeof userHeading !== "undefined" ? userHeading : null;
 
-  window.radaresData.features.forEach((radar) => {
-    let dist = Infinity;
-    const geom = radar.geometry;
-    let matchesHeading = true;
+  if (window.radaresData) {
+    window.radaresData.features.forEach((radar) => {
+      let dist = Infinity;
+      const geom = radar.geometry;
+      let matchesHeading = true;
 
-    if (geom.type === "Point") {
-      const rLat = geom.coordinates[1];
-      const rLng = geom.coordinates[0];
-      dist = getDistanceFromLatLonInKm(userLat, userLng, rLat, rLng);
-    } else if (geom.type === "LineString") {
-      let minDistToLine = Infinity;
-      const coords = geom.coordinates;
-      let segmentAngle = 0;
+      if (geom.type === "Point") {
+        const rLat = geom.coordinates[1];
+        const rLng = geom.coordinates[0];
+        dist = getDistanceFromLatLonInKm(userLat, userLng, rLat, rLng);
+      } else if (geom.type === "LineString") {
+        let minDistToLine = Infinity;
+        const coords = geom.coordinates;
+        let segmentAngle = 0;
 
-      for (let i = 0; i < coords.length - 1; i++) {
-        const p1 = coords[i];
-        const p2 = coords[i + 1];
-        const d = getDistanceToSegment(
+        for (let i = 0; i < coords.length - 1; i++) {
+          const p1 = coords[i];
+          const p2 = coords[i + 1];
+          const d = getDistanceToSegment(
+            userLat,
+            userLng,
+            p1[1],
+            p1[0],
+            p2[1],
+            p2[0]
+          );
+
+          if (d < 0.5) {
+            segmentAngle = getBearing(p1[1], p1[0], p2[1], p2[0]);
+
+            if (
+              currentHeading !== null &&
+              !isAngleSimilar(currentHeading, segmentAngle)
+            ) {
+              matchesHeading = false;
+            } else {
+              matchesHeading = true;
+            }
+          }
+          if (d < minDistToLine) minDistToLine = d;
+        }
+        dist = minDistToLine;
+      }
+
+      if (matchesHeading && dist < minDistance) {
+        minDistance = dist;
+        closestItem = {
+          data: radar.properties,
+          isCamera: false,
+          type: radar.properties.type,
+        };
+      }
+    });
+  }
+
+  if (camarasClusterGroup) {
+    camarasClusterGroup.eachLayer((layer) => {
+      if (layer instanceof L.Marker) {
+        const latlng = layer.getLatLng();
+        const dist = getDistanceFromLatLonInKm(
           userLat,
           userLng,
-          p1[1],
-          p1[0],
-          p2[1],
-          p2[0]
+          latlng.lat,
+          latlng.lng
         );
 
-        if (d < 0.5) {
-          segmentAngle = getBearing(p1[1], p1[0], p2[1], p2[0]);
+        if (dist < minDistance) {
+          minDistance = dist;
+          const popupContent = layer.getPopup()
+            ? layer.getPopup().getContent()
+            : "";
+          const tempDiv = document.createElement("div");
+          tempDiv.innerHTML = popupContent;
+          const name = tempDiv.querySelector("strong")
+            ? tempDiv.querySelector("strong").innerText
+            : "Cámara Tráfico";
 
-          if (
-            userHeading !== null &&
-            !isAngleSimilar(userHeading, segmentAngle)
-          ) {
-            matchesHeading = false;
-          } else {
-            matchesHeading = true;
-          }
+          closestItem = {
+            data: { road: name, desc: "Cámara de vigilancia" },
+            isCamera: true,
+            type: "camera",
+          };
         }
-
-        if (d < minDistToLine) minDistToLine = d;
       }
-      dist = minDistToLine;
-    }
+    });
+  }
 
-    if (matchesHeading && dist < minDistance) {
-      minDistance = dist;
-      closestRadar = radar;
-    }
-  });
-
-  updateHudAlert(closestRadar, minDistance);
+  updateHudAlert(closestItem, minDistance);
 }
 
-function updateHudAlert(radar, distanceKm) {
+function updateHudAlert(item, distanceKm) {
   const alertBox = document.getElementById("hud-alert");
   const now = Date.now();
 
-  if (radar && distanceKm < ALERT_RADIUS) {
-    const props = radar.properties;
-    const color = props.type === "fijo" ? "#e67e22" : "#D9281C";
+  if (item && distanceKm < ALERT_RADIUS) {
+    const isCamera = item.isCamera;
+    const props = item.data;
+    const color = isCamera
+      ? "#8b5cf6"
+      : item.type === "fijo"
+      ? "#e67e22"
+      : "#D9281C";
+    const icon = isCamera ? "ri-camera-lens-fill" : "ri-alarm-warning-fill";
+    const label = isCamera ? "CÁMARA" : item.type.toUpperCase();
 
     alertBox.innerHTML = `
-            <i class="ri-alarm-warning-fill" style="font-size: 4rem; color: ${color}; animation: pulse 1s infinite;"></i>
-            <div style="font-size: 1.5rem; font-weight:bold; margin-top: 10px; color:${color}">${props.type.toUpperCase()}</div>
-            <div>${props.road} - ${props.desc}</div>
-            <div style="font-size: 0.9rem;">A ${(distanceKm * 1000).toFixed(
-              0
-            )} metros</div>
+            <i class="${icon}" style="font-size: 4rem; color: ${color}; animation: pulse 1s infinite;"></i>
+            <div style="font-size: 1.5rem; font-weight:bold; margin-top: 10px; color:${color}">${label}</div>
+            <div class="notranslate">${props.road}</div>
+            <div style="font-size: 0.9rem;">${props.desc || ""} a ${(
+      distanceKm * 1000
+    ).toFixed(0)}m</div>
         `;
 
     if (now - lastAlertTime > 15000) {
       const msgs = getVoiceSettings().labels;
-      const type = props.type;
+      let frase = "";
 
-      let radarTypeTranslated = msgs.fixed;
-      if (type === "movil") radarTypeTranslated = msgs.mobile;
-      if (type === "tramo") radarTypeTranslated = msgs.section;
-
-      const frase = `${msgs.attention}. ${radarTypeTranslated} ${msgs.road} ${props.road}`;
+      if (isCamera) {
+        frase = `Atención, cámara de tráfico próxima en ${props.road}`;
+      } else {
+        let radarType =
+          item.type === "movil"
+            ? msgs.mobile
+            : item.type === "tramo"
+            ? msgs.section
+            : msgs.fixed;
+        frase = `${msgs.attention}. ${radarType} en ${props.road}`;
+      }
 
       speak(frase);
-
       lastAlertTime = now;
       if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
     }

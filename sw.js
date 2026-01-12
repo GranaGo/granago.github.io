@@ -35,7 +35,9 @@ const ASSETS_TO_CACHE = [
   "./data/zonas_restringidas.kml",
   "./data/radares.json",
   "./data/palabras.json",
-  "./data/trivial.json"
+  "./data/trivial.json",
+  "./data/taxi_granada.kml",
+  "./data/parkings.csv"
 ];
 
 self.addEventListener("install", (event) => {
