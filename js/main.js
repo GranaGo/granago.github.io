@@ -6639,7 +6639,7 @@ if (window.visualViewport) {
         if (board) {
           setTimeout(() => {
             board.scrollIntoView({ block: "center", behavior: "smooth" });
-          }, 100);
+          }, 150);
         }
       }
     } else {
