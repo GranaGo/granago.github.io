@@ -6615,15 +6615,13 @@ function endSudokuGame(win) {
 
 if (window.visualViewport) {
   window.visualViewport.addEventListener("resize", () => {
-    const isKeyboardOpen =
-      window.visualViewport.height < window.innerHeight - 150;
     const isWordleActive =
       document.getElementById("wordle-game-container").style.display ===
       "block";
     const isSudokuActive =
       document.getElementById("sudoku-board-wrapper").style.display === "block";
 
-    if (isKeyboardOpen && (isWordleActive || isSudokuActive)) {
+    if (isWordleActive || isSudokuActive) {
       document.body.classList.add("keyboard-open");
       const activeElement = document.activeElement;
       if (
