@@ -3985,3 +3985,21 @@ body.driving-mode-on #cookie-banner {
   display: block !important;
   opacity: 1 !important;
 }
+
+.parking-warning-note {
+  width: 100%;
+  max-width: 100%;
+  padding: 0 25px;
+  margin: 10px auto 20px auto;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  font-style: italic;
+  text-align: center;
+  opacity: 0.8;
+  display: block;
+}
+
+#parkings-table-container {
+  margin-top: 10px;
+}

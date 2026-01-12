@@ -3929,8 +3929,11 @@ async function initParkingsMap() {
 
   if (parkingInterval) clearInterval(parkingInterval);
 
-  await fetchParkingsData();
-  parkingsDataLoaded = true;
+  if (!parkingsDataLoaded) {
+    loadStaticParkingsCSV();
+    await fetchParkingsData();
+    parkingsDataLoaded = true;
+  }
 
   parkingInterval = setInterval(() => {
     console.log("Actualizando datos de parking...");
@@ -4069,6 +4072,70 @@ async function fetchParkingsData() {
     if (container.innerHTML === "") {
       container.innerHTML = `<div class="error-msg">No se pudieron cargar los datos.</div>`;
     }
+  }
+}
+
+async function loadStaticParkingsCSV() {
+  try {
+    const response = await fetch("data/parkings.csv");
+    const text = await response.text();
+    const realTimeKeys = Object.keys(PARKING_COORDS);
+    const rows = text.split("\n").slice(1);
+
+    rows.forEach((row) => {
+      if (!row.trim()) return;
+
+      const cols = row.split(";");
+      if (cols.length < 3) return;
+
+      const nombreRaw = cols[2]?.replace(/"/g, "") || "";
+      const csvKey = cleanString(nombreRaw);
+
+      if (realTimeKeys.includes(csvKey)) {
+        console.log(`Omitiendo duplicado estático: ${nombreRaw}`);
+        return;
+      }
+
+      const lon = parseFloat(cols[0]);
+      const lat = parseFloat(cols[1]);
+      const via = cols[6]?.replace(/"/g, "") || "";
+      const acc = cols[7]?.replace(/"/g, "") || "";
+      const uso = cols[11]?.replace(/"/g, "") || "";
+      const tipo = cols[12]?.replace(/"/g, "") || "";
+
+      if (!isNaN(lat) && !isNaN(lon)) {
+        const marker = L.circleMarker([lat, lon], {
+          radius: 7,
+          fillColor: "#8b5cf6",
+          color: "#ffffff",
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 0.8,
+        });
+
+        const popupContent = `
+          <div style="text-align:center; min-width:150px; padding: 5px;">
+              <strong class="notranslate" style="font-size:0.95rem; display:block; margin-bottom:5px; color:var(--color-purple);">
+                  ${nombreRaw}
+              </strong>
+              <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:10px;">
+                  ${via} ${acc}<br>
+                  <span style="text-transform: lowercase; font-weight:bold; opacity: 0.8;">
+                      ${uso} - ${tipo}
+                  </span>
+              </div>
+              <button class="btn-navigate-popup" onclick="openMapsApp(${lat}, ${lon})">
+                  <i class="ri-direction-fill"></i> Cómo llegar
+              </button>
+          </div>
+        `;
+
+        marker.bindPopup(popupContent, { closeButton: false });
+        marker.addTo(parkingsMapInstance);
+      }
+    });
+  } catch (e) {
+    console.error("Error cargando el CSV de parkings:", e);
   }
 }
 
