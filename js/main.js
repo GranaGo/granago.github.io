@@ -7769,10 +7769,12 @@ function trackRecentItem(key, item, limit = 2) {
 
 let encadenadasData = null;
 let encadenadasState = {
-  lastWord: "",
-  lastSyllable: "",
-  score: 0,
-  usedWords: new Set(),
+    lastWord: "",
+    lastSyllable: "",
+    score: 0,
+    usedWords: new Set(),
+    timeLeft: 45,
+    timerInterval: null
 };
 
 async function openEncadenadasMenu() {
@@ -7804,6 +7806,31 @@ function initEncadenadas() {
     "encadenadas-history"
   ).innerHTML = `<span class="bus-line-pill" style="background:var(--text-secondary)">${startWord}</span>`;
   trackRecentItem("granaGo_recent_games", "Granábras Encadenadas");
+  startEncadenadasTimer();
+}
+
+function stopEncadenadasTimer() {
+    if (encadenadasState.timerInterval) {
+        clearInterval(encadenadasState.timerInterval);
+    }
+}
+
+function startEncadenadasTimer() {
+    stopEncadenadasTimer();
+    encadenadasState.timeLeft = 45;
+    const timerBar = document.getElementById("encadenadas-timer-bar");
+    
+    encadenadasState.timerInterval = setInterval(() => {
+        encadenadasState.timeLeft -= 0.1;
+        
+        const percentage = (encadenadasState.timeLeft / 45) * 100;
+        if (timerBar) timerBar.style.width = `${percentage}%`;
+
+        if (encadenadasState.timeLeft <= 0) {
+            stopEncadenadasTimer();
+            endEncadenadasGame("¡Se acabó el tiempo!");
+        }
+    }, 100);
 }
 
 function updateEncadenadasUI() {
@@ -7817,48 +7844,75 @@ function updateEncadenadasUI() {
   ).innerText = `Puntuación: ${encadenadasState.score}`;
 }
 
+function normalizeGameInput(text) {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
 window.submitEncadenada = function () {
   const input = document.getElementById("encadenadas-input");
-  const word = input.value.trim().toLowerCase();
+  const rawWord = input.value.trim().toLowerCase();
+
+  if (!rawWord) return;
+
+  const wordNormalized = normalizeGameInput(rawWord);
   input.value = "";
 
-  if (!encadenadasData[word]) {
+  if (!encadenadasData[rawWord]) {
     showNotification(
       "No existe",
-      "Esa palabra no está en nuestro diccionario",
+      "Palabra no encontrada en el diccionario",
       "error"
     );
     return;
   }
-  if (encadenadasState.usedWords.has(word)) {
+
+  if (encadenadasState.usedWords.has(wordNormalized)) {
     showNotification("Repetida", "Ya has usado esa palabra", "info");
     return;
   }
-  if (!word.startsWith(encadenadasState.lastSyllable)) {
+
+  if (!wordNormalized.startsWith(encadenadasState.lastSyllable)) {
     showNotification(
       "Error",
-      `Debe empezar por ${encadenadasState.lastSyllable}`,
+      `Debe empezar por "${encadenadasState.lastSyllable.toUpperCase()}"`,
       "error"
     );
     return;
   }
 
-  encadenadasState.lastWord = word;
-  encadenadasState.lastSyllable = encadenadasData[word];
+  encadenadasState.lastWord = rawWord;
+  encadenadasState.lastSyllable = encadenadasData[rawWord];
   encadenadasState.score++;
-  encadenadasState.usedWords.add(word);
+  encadenadasState.usedWords.add(wordNormalized);
+  startEncadenadasTimer();
 
+  const historyContainer = document.getElementById("encadenadas-history");
   const span = document.createElement("span");
   span.className = "bus-line-pill fade-in-up";
   span.style.background = "var(--text-accent)";
-  span.innerText = word;
-  document.getElementById("encadenadas-history").prepend(span);
+  span.innerText = rawWord;
+
+  if (historyContainer) {
+    historyContainer.prepend(span);
+  }
 
   updateEncadenadasUI();
   if (navigator.vibrate) navigator.vibrate(50);
 };
 
+function endEncadenadasGame(reason) {
+    stopEncadenadasTimer();
+    showNotification("Fin de partida", `${reason} Puntuación final: ${encadenadasState.score}`, "info");
+    
+    document.getElementById("last-word-display").innerText = "FIN";
+    document.getElementById("next-syllable-hint").innerText = reason;
+}
+
 function closeEncadenadas() {
+  stopEncadenadasTimer();
   document.getElementById("games-menu").style.display = "flex";
   document.getElementById("encadenadas-game-container").style.display = "none";
 }

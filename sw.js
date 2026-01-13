@@ -37,7 +37,8 @@ const ASSETS_TO_CACHE = [
   "./data/palabras.json",
   "./data/trivial.json",
   "./data/taxi_granada.kml",
-  "./data/parkings.csv"
+  "./data/parkings.csv",
+  "./data/encadenadas.json",
 ];
 
 self.addEventListener("install", (event) => {
