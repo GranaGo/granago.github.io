@@ -23,11 +23,9 @@ const ASSETS_TO_CACHE = [
   "./js/leaflet.js",
   "./js/leaflet.markercluster.js",
   "./js/leaflet-omnivore.min.js",
-  "./js/panzoom.min.js",
   "./images/Logo.png",
   "./images/Logo192x192.png",
   "./images/Logo512x512.png",
-  "./images/mapa_zbe.webp",
   "./fonts/remixicon.woff2",
   "./data/metro/paradas.json",
   "./data/metro/colores.json",
@@ -51,6 +49,7 @@ const ASSETS_TO_CACHE = [
   "./data/taxi_granada.kml",
   "./data/parkings.csv",
   "./data/encadenadas.json",
+  "./data/zbe.geojson",
   ...cartasAssets
 ];
 

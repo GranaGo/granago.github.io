@@ -49,7 +49,6 @@ let repostarTileLayer = null;
 
 let restriccionesMap = null;
 let restriccionesLayer = null;
-let panzoomInstance = null;
 
 let camarasMapInstance = null;
 let camarasClusterGroup = null;
@@ -82,6 +81,10 @@ let taxiMapInstance = null;
 let taxiLayersGroup = null;
 let taxiTileLayer = null;
 let taxiDataLoaded = false;
+
+let zbeMapInstance = null;
+let zbeTileLayer = null;
+let zbeDataLoaded = false;
 
 const loadedScripts = {};
 let googleTranslateScriptLoaded = false;
@@ -513,6 +516,7 @@ window.navigateTo = async function (viewId, addToHistory = true) {
       "ora",
       "linea-detalle",
       "taxi-vtc",
+      "zbe",
     ];
 
     if (viewsWithMap.includes(viewId)) {
@@ -529,9 +533,6 @@ window.navigateTo = async function (viewId, addToHistory = true) {
         extraScripts.push(loadScript("js/leaflet-omnivore.min.js"));
       }
       await Promise.all(extraScripts);
-    }
-    if (viewId === "zbe") {
-      await loadScript("js/panzoom.min.js");
     }
   } catch (error) {
     console.error("Error cargando scripts:", error);
@@ -568,6 +569,8 @@ window.navigateTo = async function (viewId, addToHistory = true) {
     }
   } else if (viewId === "taxi-vtc") {
     setTimeout(() => initTaxiMap(), 200);
+  } else if (viewId === "zbe") {
+    setTimeout(() => initZBEMap(), 200);
   } else if (viewId === "juegos") {
     hideAllGameContainers();
   }
@@ -841,6 +844,10 @@ function checkMapTheme() {
   if (typeof taxiMapInstance !== "undefined" && taxiMapInstance) {
     taxiTileLayer = updateMapTheme(taxiMapInstance, taxiTileLayer);
   }
+
+  if (zbeMapInstance) {
+    zbeTileLayer = updateMapTheme(zbeMapInstance, zbeTileLayer);
+  }
 }
 
 function checkMapThemePlaces() {
@@ -995,6 +1002,19 @@ function destroyUnusedMaps() {
   if (cTaxi) {
     cTaxi._leaflet_id = null;
     cTaxi.innerHTML = "";
+  }
+
+  if (zbeMapInstance) {
+    zbeMapInstance.off();
+    zbeMapInstance.remove();
+    zbeMapInstance = null;
+    zbeDataLoaded = false;
+    zbeTileLayer = null;
+  }
+  const cZbe = document.getElementById("map-zbe");
+  if (cZbe) {
+    cZbe._leaflet_id = null;
+    cZbe.innerHTML = "";
   }
 }
 
@@ -4357,54 +4377,6 @@ function loadKMLData() {
       );
     });
 }
-
-window.openFullImage = function (src) {
-  const modal = document.getElementById("image-modal");
-  const img = document.getElementById("full-image-src");
-  const scene = document.getElementById("panzoom-scene");
-
-  const zoomInBtn = document.getElementById("zoom-in-btn");
-  const zoomOutBtn = document.getElementById("zoom-out-btn");
-
-  if (modal && img && scene) {
-    img.src = src;
-    modal.classList.add("visible");
-
-    if (panzoomInstance) {
-      panzoomInstance.dispose();
-      img.style.transform = "";
-    }
-
-    setTimeout(() => {
-      panzoomInstance = Panzoom(img, {
-        maxScale: 6,
-        minScale: 1,
-        contain: null,
-        startScale: 1,
-        cursor: "move",
-      });
-
-      scene.addEventListener("wheel", panzoomInstance.zoomWithWheel);
-
-      zoomInBtn.onclick = () => panzoomInstance.zoomIn();
-      zoomOutBtn.onclick = () => panzoomInstance.zoomOut();
-
-      setTimeout(() => {
-        panzoomInstance.zoom(1, { animate: true });
-      }, 50);
-    }, 200);
-  }
-};
-
-window.closeFullImage = function () {
-  const modal = document.getElementById("image-modal");
-  if (modal) {
-    modal.classList.remove("visible");
-    if (panzoomInstance) {
-      panzoomInstance.reset();
-    }
-  }
-};
 
 async function initHomeDashboard() {
   const savedLat = localStorage.getItem("granaGo_last_lat");
@@ -8164,4 +8136,61 @@ function updateBJUI() {
 function closeBlackjack() {
   document.getElementById("games-menu").style.display = "flex";
   document.getElementById("blackjack-game-container").style.display = "none";
+}
+
+async function initZBEMap() {
+  const mapId = "map-zbe";
+  if (!document.getElementById(mapId)) return;
+  ensureMapContainerIsClean(mapId);
+
+  if (!zbeMapInstance) {
+    zbeMapInstance = L.map(mapId, {
+      zoomControl: false,
+      preferCanvas: true,
+      attributionControl: false,
+    }).setView([GRANADA_COORDS.lat, GRANADA_COORDS.lon], 13);
+
+    zbeTileLayer = updateMapTheme(zbeMapInstance, zbeTileLayer);
+  } else {
+    zbeMapInstance.invalidateSize();
+  }
+
+  if (!zbeDataLoaded) {
+    try {
+      const response = await fetch("data/zbe.geojson");
+      const data = await response.json();
+
+      L.geoJSON(data, {
+        style: function (feature) {
+          return {
+            color: "#10b981",
+            fillColor: "#10b981",
+            weight: 3,
+            opacity: 0.8,
+            fillOpacity: 0.2,
+          };
+        },
+        onEachFeature: function (feature, layer) {
+          if (feature.properties) {
+            const name = feature.properties.name || "ZBE Granada";
+            const desc = feature.properties.description || "";
+            layer.bindPopup(
+              `
+                <div style="text-align:center; min-width:150px;">
+                    <strong style="color:#10b981; font-size:1rem; display:block; margin-bottom:5px;">${name}</strong>
+                    <p style="font-size:0.85rem; color:var(--text-secondary); margin:0;">${desc}</p>
+                </div>
+             `,
+              { closeButton: false }
+            );
+          }
+        },
+      }).addTo(zbeMapInstance);
+
+      zbeDataLoaded = true;
+    } catch (e) {
+      console.error("Error cargando GeoJSON ZBE:", e);
+      showNotification("Error", "No se pudo cargar el mapa de la ZBE", "error");
+    }
+  }
 }

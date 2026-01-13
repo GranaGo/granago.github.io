@@ -1356,21 +1356,21 @@
           </div>
         </div>
         <div
-          class="zbe-image-container fade-in-up"
-          onclick="openFullImage('images/mapa_zbe.webp')"
+          style="
+            height: 55vh;
+            width: 100%;
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 20px;
+          "
         >
-          <img
-            src="images/mapa_zbe.webp"
-            width="600"
-            height="400"
-            loading="lazy"
-            alt="Mapa ZBE Granada"
-            id="zbe-map-img"
-            onerror="this.src='https://placehold.co/600x400?text=Mapa+ZBE'"
-          />
-          <div class="expand-badge">
-            <i class="icon ri-fullscreen-line"></i> Ampliar
-          </div>
+          <div
+            id="map-zbe"
+            class="gpu-accelerated"
+            style="width: 100%; height: 100%"
+          ></div>
         </div>
         <div id="zbe-content" class="fade-in-up" style="padding-bottom: 40px">
           <h3 class="info-title">Normativa de Acceso</h3>
@@ -4373,35 +4373,6 @@
         <div id="realtime-content" class="modal-body">
           <div class="spinner" style="margin: 20px auto"></div>
         </div>
-      </div>
-    </div>
-
-    <div id="image-modal" class="image-modal-overlay">
-      <div class="modal-controls">
-        <button
-          class="icon-btn control-btn"
-          id="zoom-out-btn"
-          aria-label="Alejar imagen"
-        >
-          <i class="icon ri-subtract-line"></i>
-        </button>
-        <button
-          class="icon-btn control-btn"
-          id="zoom-in-btn"
-          aria-label="Acercar imagen"
-        >
-          <i class="icon ri-add-line"></i>
-        </button>
-        <button
-          class="icon-btn control-btn close-btn"
-          onclick="closeFullImage()"
-          aria-label="Cerrar imagen"
-        >
-          <i class="icon ri-close-line"></i>
-        </button>
-      </div>
-      <div class="panzoom-container" id="panzoom-scene">
-        <img id="full-image-src" src="" alt="Mapa Completo" />
       </div>
     </div>
 
