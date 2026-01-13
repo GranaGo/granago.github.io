@@ -46,5 +46,5 @@ jobs:
       - name: 💾 Guardar y subir cambios (Commit & Push)
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "🤖 Auto: Nuevos horarios y rutas generados [skip ci]"
+          commit_message: "🤖 Auto: Nuevos datos generados [skip ci]"
           file_pattern: "data/**"
