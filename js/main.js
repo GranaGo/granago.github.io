@@ -6615,30 +6615,21 @@ function endSudokuGame(win) {
 
 if (window.visualViewport) {
   window.visualViewport.addEventListener("resize", () => {
-    const isWordleActive =
-      document.getElementById("wordle-game-container").style.display ===
-      "block";
-    const isSudokuActive =
-      document.getElementById("sudoku-board-wrapper").style.display === "block";
-
-    if (isWordleActive || isSudokuActive) {
-      document.body.classList.add("keyboard-open");
+    if (window.visualViewport.height < window.innerHeight - 100) {
       const activeElement = document.activeElement;
-      if (
-        activeElement &&
-        (activeElement.id === "wordle-native-input" ||
-          activeElement.id === "sudoku-hidden-input")
-      ) {
-        const boardId =
-          activeElement.id === "wordle-native-input"
-            ? "wordle-board"
-            : "sudoku-board";
-        const board = document.getElementById(boardId);
-        if (board) {
-          setTimeout(() => {
-            board.scrollIntoView({ block: "center", behavior: "smooth" });
-          }, 150);
-        }
+
+      if (activeElement && activeElement.id === "wordle-native-input") {
+        const board = document.getElementById("wordle-board");
+        document.body.classList.add("keyboard-open");
+        if (board)
+          board.scrollIntoView({ block: "center", behavior: "smooth" });
+      }
+
+      if (activeElement && activeElement.id === "sudoku-hidden-input") {
+        const board = document.getElementById("sudoku-board");
+        document.body.classList.add("keyboard-open");
+        if (board)
+          board.scrollIntoView({ block: "center", behavior: "smooth" });
       }
     } else {
       document.body.classList.remove("keyboard-open");

@@ -4004,10 +4004,7 @@ body.driving-mode-on #cookie-banner {
   margin-top: 10px;
 }
 
-body.keyboard-open .glass-dock,
-body.keyboard-open .dock-center-wrapper {
+body.keyboard-open .glass-dock {
   display: none !important;
-  opacity: 0 !important;
   pointer-events: none !important;
-  visibility: hidden !important;
 }
