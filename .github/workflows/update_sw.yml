@@ -2,9 +2,8 @@ name: Auto Update PWA Service Worker Version
 
 on:
   workflow_run:
-    workflows: ["Procesar Datos sobre Granada", "Guardar Puntos de Interes Normalizados"]
-    types:
-      - completed
+    workflows: ["Procesar Datos sobre Granada"]
+    types: [completed]
 
   push:
     branches:
@@ -23,7 +22,7 @@ permissions:
 jobs:
   update-sw-version:
     if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
-    
+
     runs-on: ubuntu-latest
     steps:
       - name: Checkout del código
@@ -37,17 +36,19 @@ jobs:
       - name: Actualizar versión en sw.js
         run: |
           NEW_VERSION="granago-v$(date +%s)"
+          # Reemplaza la variable CACHE_NAME en sw.js
           sed -i "s/const CACHE_NAME = .*/const CACHE_NAME = '$NEW_VERSION';/" sw.js
-          echo "NEW_VER=$NEW_VERSION" >> $GITHUB_ENV
+          echo "✅ Versión actualizada a: $NEW_VERSION"
 
       - name: Guardar cambios (Commit & Push)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          # Solo hace commit si sed realmente cambió algo
           if [[ -n $(git status -s) ]]; then
             git add sw.js
-            git commit -m "🤖 Auto: Update SW a ${{ env.NEW_VER }} y lanzar deploy"
+            git commit -m "🤖 Auto-update SW version [skip ci]"
             git push
           else
             echo "No hay cambios necesarios."
