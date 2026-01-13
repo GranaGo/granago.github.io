@@ -634,6 +634,7 @@ body.dark-mode .switch-handle {
   z-index: 1000;
   padding-bottom: env(safe-area-inset-bottom, 0px);
   pointer-events: none;
+  transition: all 0.3s ease;
 }
 
 .dock-item {
@@ -4007,4 +4008,5 @@ body.driving-mode-on #cookie-banner {
 body.keyboard-open .glass-dock {
   display: none !important;
   pointer-events: none !important;
+  transition: all 0.3s ease;
 }
