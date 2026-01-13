@@ -6717,12 +6717,16 @@ if (window.visualViewport) {
       if (
         activeElement &&
         (activeElement.id === "wordle-native-input" ||
-          activeElement.id === "sudoku-hidden-input")
+          activeElement.id === "sudoku-hidden-input" ||
+          activeElement.id === "encadenadas-input")
       ) {
         const boardId =
           activeElement.id === "wordle-native-input"
             ? "wordle-board"
-            : "sudoku-board";
+            : activeElement.id === "sudoku-hidden-input"
+            ? "sudoku-board"
+            : "last-word-display";
+
         const board = document.getElementById(boardId);
         if (board)
           board.scrollIntoView({ block: "center", behavior: "smooth" });
@@ -7769,12 +7773,12 @@ function trackRecentItem(key, item, limit = 2) {
 
 let encadenadasData = null;
 let encadenadasState = {
-    lastWord: "",
-    lastSyllable: "",
-    score: 0,
-    usedWords: new Set(),
-    timeLeft: 45,
-    timerInterval: null
+  lastWord: "",
+  lastSyllable: "",
+  score: 0,
+  usedWords: new Set(),
+  timeLeft: 45,
+  timerInterval: null,
 };
 
 async function openEncadenadasMenu() {
@@ -7788,7 +7792,23 @@ async function openEncadenadasMenu() {
     encadenadasData = await res.json();
   }
   initEncadenadas();
+  trackRecentItem("granaGo_recent_games", "Granábras Encadenadas");
 }
+
+function setupEncadenadasInput() {
+  const input = document.getElementById("encadenadas-input");
+  if (input) {
+    input.onkeydown = (e) => {
+      if (e.key === "Enter") {
+        submitEncadenada();
+      }
+    };
+  }
+}
+
+window.surrenderEncadenadas = function () {
+  endEncadenadasGame("Te has rendido");
+};
 
 function initEncadenadas() {
   const keys = Object.keys(encadenadasData);
@@ -7798,39 +7818,43 @@ function initEncadenadas() {
     lastWord: startWord,
     lastSyllable: encadenadasData[startWord],
     score: 0,
-    usedWords: new Set([startWord]),
+    usedWords: new Set([normalizeGameInput(startWord)]),
+    timeLeft: 45,
   };
 
-  updateEncadenadasUI();
+  document.getElementById("encadenadas-gameplay").style.display = "block";
+  document.getElementById("encadenadas-result-card").style.display = "none";
   document.getElementById(
     "encadenadas-history"
   ).innerHTML = `<span class="bus-line-pill" style="background:var(--text-secondary)">${startWord}</span>`;
-  trackRecentItem("granaGo_recent_games", "Granábras Encadenadas");
+
+  setupEncadenadasInput();
+  updateEncadenadasUI();
   startEncadenadasTimer();
 }
 
 function stopEncadenadasTimer() {
-    if (encadenadasState.timerInterval) {
-        clearInterval(encadenadasState.timerInterval);
-    }
+  if (encadenadasState.timerInterval) {
+    clearInterval(encadenadasState.timerInterval);
+  }
 }
 
 function startEncadenadasTimer() {
-    stopEncadenadasTimer();
-    encadenadasState.timeLeft = 45;
-    const timerBar = document.getElementById("encadenadas-timer-bar");
-    
-    encadenadasState.timerInterval = setInterval(() => {
-        encadenadasState.timeLeft -= 0.1;
-        
-        const percentage = (encadenadasState.timeLeft / 45) * 100;
-        if (timerBar) timerBar.style.width = `${percentage}%`;
+  stopEncadenadasTimer();
+  encadenadasState.timeLeft = 45;
+  const timerBar = document.getElementById("encadenadas-timer-bar");
 
-        if (encadenadasState.timeLeft <= 0) {
-            stopEncadenadasTimer();
-            endEncadenadasGame("¡Se acabó el tiempo!");
-        }
-    }, 100);
+  encadenadasState.timerInterval = setInterval(() => {
+    encadenadasState.timeLeft -= 0.1;
+
+    const percentage = (encadenadasState.timeLeft / 45) * 100;
+    if (timerBar) timerBar.style.width = `${percentage}%`;
+
+    if (encadenadasState.timeLeft <= 0) {
+      stopEncadenadasTimer();
+      endEncadenadasGame("¡Se acabó el tiempo!");
+    }
+  }, 100);
 }
 
 function updateEncadenadasUI() {
@@ -7904,11 +7928,18 @@ window.submitEncadenada = function () {
 };
 
 function endEncadenadasGame(reason) {
-    stopEncadenadasTimer();
-    showNotification("Fin de partida", `${reason} Puntuación final: ${encadenadasState.score}`, "info");
-    
-    document.getElementById("last-word-display").innerText = "FIN";
-    document.getElementById("next-syllable-hint").innerText = reason;
+  stopEncadenadasTimer();
+
+  document.getElementById("encadenadas-gameplay").style.display = "none";
+  const resultCard = document.getElementById("encadenadas-result-card");
+  resultCard.style.display = "block";
+
+  document.getElementById("encadenadas-result-title").innerText = reason;
+  document.getElementById(
+    "encadenadas-result-score"
+  ).innerText = `Puntuación final: ${encadenadasState.score}`;
+
+  if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 }
 
 function closeEncadenadas() {

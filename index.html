@@ -3061,14 +3061,15 @@
         >
           <div class="section-header with-back-btn">
             <button onclick="closeEncadenadas()" class="icon-btn back-btn">
-              <i class="ri-arrow-left-line"></i>
+              <i class="icon ri-arrow-left-line"></i>
             </button>
             <div>
-              <h2>Granábras Encadenadas</h2>
+              <h2>Graná<span class="text-accent">bras</span></h2>
               <p id="encadenadas-score">Puntuación: 0</p>
             </div>
           </div>
-          <div class="info-card" style="text-align: center; padding: 20px">
+
+          <div id="encadenadas-gameplay">
             <div
               style="
                 height: 6px;
@@ -3088,53 +3089,110 @@
                 "
               ></div>
             </div>
-            <div
-              style="
-                font-size: 0.8rem;
-                color: var(--text-secondary);
-                margin-bottom: 5px;
-              "
-            >
-              Palabra anterior:
+
+            <div class="info-card" style="text-align: center; padding: 20px">
+              <div
+                style="
+                  font-size: 0.8rem;
+                  color: var(--text-secondary);
+                  margin-bottom: 5px;
+                "
+              >
+                Palabra anterior:
+              </div>
+              <div
+                id="last-word-display"
+                style="
+                  font-size: 1.8rem;
+                  font-weight: 800;
+                  color: var(--text-accent);
+                "
+              >
+                ---
+              </div>
+              <div
+                id="next-syllable-hint"
+                style="
+                  font-size: 0.9rem;
+                  color: var(--color-success);
+                  font-weight: 700;
+                  margin-top: 5px;
+                "
+              >
+                Empieza por...
+              </div>
             </div>
-            <div
-              id="last-word-display"
-              style="
-                font-size: 1.8rem;
-                font-weight: 800;
-                color: var(--text-accent);
-              "
-            >
-              ---
+
+            <div class="search-box" style="margin: 20px 0">
+              <input
+                type="text"
+                id="encadenadas-input"
+                placeholder="Escribe tu palabra..."
+                autocomplete="off"
+                style="text-align: center; font-size: 1.2rem"
+              />
             </div>
-            <div
-              id="next-syllable-hint"
-              style="
-                font-size: 0.9rem;
-                color: var(--color-success);
-                font-weight: 700;
-                margin-top: 5px;
-              "
-            >
-              Empieza por...
+
+            <div style="display: flex; gap: 10px">
+              <button
+                class="cookie-btn secondary"
+                style="
+                  flex: 1;
+                  background: var(--color-error);
+                  color: white;
+                  border: none;
+                "
+                onclick="surrenderEncadenadas()"
+              >
+                Rendirse
+              </button>
+              <button
+                class="cookie-btn primary"
+                style="flex: 2"
+                onclick="submitEncadenada()"
+              >
+                Enviar
+              </button>
             </div>
           </div>
-          <div class="search-box" style="margin: 20px 0">
-            <input
-              type="text"
-              id="encadenadas-input"
-              placeholder="Escribe tu palabra..."
-              autocomplete="off"
-              style="text-align: center; font-size: 1.2rem"
-            />
-          </div>
-          <button
-            class="cookie-btn primary"
-            style="width: 100%"
-            onclick="submitEncadenada()"
+
+          <div
+            id="encadenadas-result-card"
+            class="info-card"
+            style="
+              display: none;
+              text-align: center;
+              padding: 30px;
+              border-left: 4px solid var(--color-error);
+            "
           >
-            Enviar Palabra
-          </button>
+            <i
+              class="ri-alarm-warning-fill"
+              style="
+                font-size: 3rem;
+                color: var(--color-error);
+                margin-bottom: 15px;
+                display: block;
+              "
+            ></i>
+            <h3 id="encadenadas-result-title" style="margin-top: 0">
+              Fin de la partida
+            </h3>
+            <p
+              id="encadenadas-result-score"
+              style="font-size: 1.2rem; font-weight: 700; margin-bottom: 20px"
+            >
+              Puntuación: 0
+            </p>
+            <button
+              class="cookie-btn primary"
+              style="width: 100%"
+              onclick="initEncadenadas()"
+            >
+              Jugar de nuevo
+            </button>
+          </div>
+
           <div
             id="encadenadas-history"
             style="
