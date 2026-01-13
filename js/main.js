@@ -1,4 +1,20 @@
-﻿const GRANADA_COORDS = { lat: 37.1773, lon: -3.5986 };
+﻿/**
+ * Copyright (C) 2026 GranáGo - https://github.com/granago/granago.github.io
+ * Este programa es software libre: puedes redistribuirlo y/o modificarlo 
+ * bajo los términos de la Licencia Pública General GNU publicada por 
+ * la Free Software Foundation, ya sea la versión 3 de la Licencia, o 
+ * (a tu elección) cualquier versión posterior.
+ *
+ * Este programa se distribuye con la esperanza de que sea útil, 
+ * pero SIN NINGUNA GARANTÍA; incluso sin la garantía implícita de 
+ * COMERCIALIZACIÓN o APTITUD PARA UN PROPÓSITO PARTICULAR. 
+ * Consulte la Licencia Pública General GNU para más detalles.
+ *
+ * Deberías haber recibido una copia de la Licencia Pública General GNU 
+ * junto con este programa. Si no es así, consulte <https://www.gnu.org/licenses/>.
+ */
+
+const GRANADA_COORDS = { lat: 37.1773, lon: -3.5986 };
 const API_BASE = "https://movgr.apis.mianfg.me";
 const UNAVAILABLE_MESSAGE = "Sin llegadas próximas...";
 
