@@ -1,5 +1,17 @@
 const CACHE_NAME = 'granago-v1768313657';
 
+const palos = ['clubs', 'diamonds', 'hearts', 'spades'];
+const valores = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'jack', 'queen', 'king', 'ace'];
+const cartasAssets = [];
+
+palos.forEach(palo => {
+  valores.forEach(valor => {
+    cartasAssets.push(`./images/CartasSVG/${valor}_of_${palo}.svg`);
+  });
+});
+
+cartasAssets.push('./images/CartasSVG/red_joker.svg');
+
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -39,6 +51,7 @@ const ASSETS_TO_CACHE = [
   "./data/taxi_granada.kml",
   "./data/parkings.csv",
   "./data/encadenadas.json",
+  ...cartasAssets
 ];
 
 self.addEventListener("install", (event) => {

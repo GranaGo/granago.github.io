@@ -2539,7 +2539,20 @@
             </div>
             <div class="transport-info">
               <h3>Granábras Encadenadas</h3>
-              <p>No rompas la cadena de palabras</p>
+              <p>No rompas la cadena de palabras (Solo en Español)</p>
+            </div>
+            <i class="icon arrow-icon ri-arrow-right-s-line"></i>
+          </div>
+          <div class="transport-card" onclick="openBlackjackMenu()">
+            <div
+              class="card-icon-wrapper"
+              style="background: rgba(245, 158, 11, 0.1); color: #f59e0b"
+            >
+              <i class="icon ri-bank-card-fill"></i>
+            </div>
+            <div class="transport-info">
+              <h3>GranáJack</h3>
+              <p>Gana al crupier y acumula GranáSaldo</p>
             </div>
             <i class="icon arrow-icon ri-arrow-right-s-line"></i>
           </div>
@@ -2555,7 +2568,9 @@
               <i class="icon ri-arrow-left-line"></i>
             </button>
             <div>
-              <h2 id="wordle-mode-title">Granádle</h2>
+              <h2 id="wordle-mode-title">
+                Graná<span class="text-accent">dle</span>
+              </h2>
               <p id="wordle-stats-text">Racha: 0</p>
             </div>
           </div>
@@ -2664,7 +2679,9 @@
               <i class="icon ri-arrow-left-line"></i>
             </button>
             <div>
-              <h2 id="sudoku-mode-title">Granádoku</h2>
+              <h2 id="sudoku-mode-title">
+                Graná<span class="text-accent">doku</span>
+              </h2>
               <p id="sudoku-stats-text">Nivel: Medio (Predeterminado)</p>
             </div>
           </div>
@@ -2812,7 +2829,7 @@
               <i class="icon ri-arrow-left-line"></i>
             </button>
             <div>
-              <h2>Granámory</h2>
+              <h2>Graná<span class="text-accent">mory</span></h2>
               <p id="memory-stats-text">Movimientos: 0</p>
             </div>
           </div>
@@ -2849,7 +2866,7 @@
               <i class="icon ri-arrow-left-line"></i>
             </button>
             <div>
-              <h2>Granáquiz</h2>
+              <h2>Graná<span class="text-accent">quiz</span></h2>
               <p id="quiz-stats-text">Puntos: 0</p>
             </div>
           </div>
@@ -2971,7 +2988,7 @@
               <i class="icon ri-arrow-left-line"></i>
             </button>
             <div>
-              <h2>Granámind</h2>
+              <h2>Graná<span class="text-accent">mind</span></h2>
               <p id="mastermind-stats-text">Intentos: 0 / 10</p>
             </div>
           </div>
@@ -3064,7 +3081,7 @@
               <i class="icon ri-arrow-left-line"></i>
             </button>
             <div>
-              <h2>Graná<span class="text-accent">bras</span></h2>
+              <h2>Graná<span class="text-accent">bras Encadenadas</span></h2>
               <p id="encadenadas-score">Puntuación: 0</p>
             </div>
           </div>
@@ -3203,6 +3220,166 @@
               justify-content: center;
             "
           ></div>
+        </div>
+        <div
+          id="blackjack-game-container"
+          style="display: none; margin-top: 10px"
+          class="fade-in-up"
+        >
+          <div class="section-header with-back-btn">
+            <button onclick="closeBlackjack()" class="icon-btn back-btn">
+              <i class="icon ri-arrow-left-line"></i>
+            </button>
+            <div>
+              <h2>Graná<span class="text-accent">Jack</span></h2>
+              <p id="blackjack-balance">Saldo: 500 G$</p>
+            </div>
+          </div>
+
+          <div class="info-card" style="padding: 15px; margin-bottom: 15px">
+            <div style="text-align: center; margin-bottom: 20px">
+              <span class="location-chip" style="margin-bottom: 10px"
+                >Crupier: <span id="dealer-score">?</span></span
+              >
+              <div
+                id="dealer-cards"
+                style="
+                  display: flex;
+                  justify-content: center;
+                  gap: 5px;
+                  height: 100px;
+                "
+              ></div>
+            </div>
+
+            <div style="text-align: center">
+              <div
+                id="player-cards"
+                style="
+                  display: flex;
+                  justify-content: center;
+                  gap: 5px;
+                  height: 100px;
+                  margin-bottom: 10px;
+                "
+              ></div>
+              <span
+                class="location-chip"
+                style="
+                  background: var(--text-accent) 1A;
+                  color: var(--text-accent);
+                "
+                >Tú: <span id="player-score">0</span></span
+              >
+            </div>
+          </div>
+
+          <div
+            id="blackjack-controls"
+            style="display: flex; flex-direction: column; gap: 10px"
+          >
+            <div
+              id="betting-area"
+              style="
+                display: flex;
+                gap: 8px;
+                justify-content: center;
+                flex-wrap: wrap;
+                margin-top: 10px;
+              "
+            >
+              <button
+                class="cookie-btn bet-chip"
+                style="background: #2563eb"
+                onclick="blackjackAction('bet', 10)"
+              >
+                10
+              </button>
+              <button
+                class="cookie-btn bet-chip"
+                style="background: #1d4ed8"
+                onclick="blackjackAction('bet', 25)"
+              >
+                25
+              </button>
+              <button
+                class="cookie-btn bet-chip"
+                style="background: #10b981"
+                onclick="blackjackAction('bet', 50)"
+              >
+                50
+              </button>
+              <button
+                class="cookie-btn bet-chip"
+                style="background: #059669"
+                onclick="blackjackAction('bet', 75)"
+              >
+                75
+              </button>
+              <button
+                class="cookie-btn bet-chip"
+                style="background: #d97706"
+                onclick="blackjackAction('bet', 100)"
+              >
+                100
+              </button>
+              <button
+                class="cookie-btn bet-chip"
+                style="background: #ef4444; width: 80px"
+                onclick="blackjackAction('bet', 'all')"
+              >
+                TODO
+              </button>
+            </div>
+            <div id="play-buttons" style="display: none; gap: 10px">
+              <button
+                class="cookie-btn primary"
+                style="flex: 1"
+                onclick="blackjackAction('hit')"
+              >
+                Pedir
+              </button>
+              <button
+                class="cookie-btn secondary"
+                style="
+                  flex: 1;
+                  background: var(--color-warning);
+                  color: white;
+                  border: none;
+                "
+                onclick="blackjackAction('stand')"
+              >
+                Plantarse
+              </button>
+            </div>
+          </div>
+
+          <div
+            id="blackjack-result"
+            class="info-card"
+            style="
+              display: none;
+              text-align: center;
+              margin-top: 15px;
+              padding: 20px;
+            "
+          >
+            <h3 id="bj-msg"></h3>
+            <button
+              class="cookie-btn primary"
+              onclick="initBlackjackRound()"
+              style="width: 100%; margin-top: 10px"
+            >
+              Nueva Mano
+            </button>
+          </div>
+          <div
+            id="bj-announcement"
+            class="blackjack-toast"
+            style="display: none"
+          >
+            ¡BLACKJACK!
+          </div>
         </div>
       </div>
 

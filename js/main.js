@@ -1006,6 +1006,7 @@ function hideAllGameContainers() {
     "quiz-game-container",
     "mastermind-game-container",
     "encadenadas-game-container",
+    "blackjack-game-container",
   ];
 
   containers.forEach((id) => {
@@ -4820,6 +4821,7 @@ async function updateHomeRecentWidgets() {
     Granáquiz: "navigateTo('juegos'); openQuizMenu();",
     Granámind: "navigateTo('juegos'); openMastermindMenu();",
     "Granábras Encadenadas": "navigateTo('juegos'); openEncadenadasMenu();",
+    GranáJack: "navigateTo('juegos'); openBlackjackMenu();",
   };
 
   if (gamesContainer && recentGames.length > 0) {
@@ -7946,4 +7948,220 @@ function closeEncadenadas() {
   stopEncadenadasTimer();
   document.getElementById("games-menu").style.display = "flex";
   document.getElementById("encadenadas-game-container").style.display = "none";
+}
+
+let bjState = {
+  deck: [],
+  playerHand: [],
+  dealerHand: [],
+  balance: parseInt(localStorage.getItem("granaGo_bj_balance")) || 500,
+  currentBet: 0,
+  gameOver: false,
+};
+
+function openBlackjackMenu() {
+  hideAllGameContainers();
+  document.getElementById("games-menu").style.display = "none";
+  document.getElementById("blackjack-game-container").style.display = "block";
+  updateBJUI();
+  initBlackjackRound();
+  trackRecentItem("granaGo_recent_games", "GranáJack");
+}
+
+function initBlackjackRound() {
+  bjState.deck = createDeck();
+  bjState.playerHand = [];
+  bjState.dealerHand = [];
+  bjState.gameOver = false;
+
+  document.getElementById("blackjack-controls").style.display = "block";
+  document.getElementById("blackjack-result").style.display = "none";
+  document.getElementById("play-buttons").style.display = "none";
+  document.getElementById("betting-area").style.display = "flex";
+
+  updateBJUI();
+}
+
+function createDeck() {
+  const suits = ["clubs", "diamonds", "hearts", "spades"];
+  const values = [
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "jack",
+    "queen",
+    "king",
+    "ace",
+  ];
+  let deck = [];
+  suits.forEach((s) => values.forEach((v) => deck.push({ value: v, suit: s })));
+  return deck.sort(() => Math.random() - 0.5);
+}
+
+function getHandScore(hand) {
+  let score = 0,
+    aces = 0;
+  hand.forEach((c) => {
+    if (c.value === "ace") aces++;
+    else
+      score += ["jack", "queen", "king"].includes(c.value)
+        ? 10
+        : parseInt(c.value);
+  });
+  for (let i = 0; i < aces; i++) score += score + 11 <= 21 ? 11 : 1;
+  return score;
+}
+
+window.blackjackAction = function (action, amount) {
+  if (action === "bet") {
+    let betValue = amount === "all" ? bjState.balance : amount;
+
+    if (betValue <= 0)
+      return showNotification(
+        "Sin saldo",
+        "Pide un regalo de cortesía",
+        "error"
+      );
+    if (betValue > bjState.balance)
+      return showNotification("Saldo insuficiente", "", "error");
+
+    bjState.currentBet = betValue;
+    bjState.balance -= betValue;
+
+    bjState.playerHand = [bjState.deck.pop(), bjState.deck.pop()];
+    bjState.dealerHand = [bjState.deck.pop(), bjState.deck.pop()];
+
+    document.getElementById("betting-area").style.display = "none";
+    document.getElementById("play-buttons").style.display = "flex";
+
+    if (getHandScore(bjState.playerHand) === 21) {
+      triggerBlackjackAnim();
+      setTimeout(() => blackjackAction("stand"), 1600);
+    }
+  } else if (action === "hit") {
+    bjState.playerHand.push(bjState.deck.pop());
+    if (getHandScore(bjState.playerHand) >= 21) blackjackAction("stand");
+  } else if (action === "stand") {
+    bjState.gameOver = true;
+    while (getHandScore(bjState.dealerHand) < 17) {
+      bjState.dealerHand.push(bjState.deck.pop());
+    }
+    updateBJUI();
+    setTimeout(() => resolveBJWinner(), 600);
+  }
+  updateBJUI();
+};
+
+function triggerBlackjackAnim() {
+  const el = document.getElementById("bj-announcement");
+  if (el) {
+    el.style.display = "block";
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 300]);
+    setTimeout(() => {
+      el.style.display = "none";
+    }, 1500);
+  }
+}
+
+function resolveBJWinner() {
+  const p = getHandScore(bjState.playerHand);
+  const d = getHandScore(bjState.dealerHand);
+  let resultMsg = "";
+
+  let win = false;
+  let push = false;
+
+  if (p > 21) {
+    resultMsg = "Te has pasado";
+  } else if (d > 21 || p > d) {
+    win = true;
+    resultMsg =
+      p === 21 && bjState.playerHand.length === 2 ? "¡BLACKJACK!" : "¡Ganaste!";
+  } else if (p === d) {
+    push = true;
+    resultMsg = "Empate";
+  } else {
+    resultMsg = "Perdiste";
+  }
+
+  if (win) {
+    bjState.balance += bjState.currentBet * 2;
+  } else if (push) {
+    bjState.balance += bjState.currentBet;
+  }
+
+  if (bjState.balance <= 0) {
+    bjState.balance = 50;
+    showNotification(
+      "Cortesía de GranáGo",
+      "Has recibido 50 G$ para seguir jugando",
+      "success"
+    );
+  }
+
+  localStorage.setItem("granaGo_bj_balance", bjState.balance);
+
+  document.getElementById("blackjack-result").style.display = "block";
+  document.getElementById("bj-msg").innerText = resultMsg;
+  document.getElementById("blackjack-controls").style.display = "none";
+}
+
+function updateBJUI() {
+  const balEl = document.getElementById("blackjack-balance");
+  if (!balEl) return;
+
+  const displayValue = parseInt(balEl.innerText.replace(/[^0-9]/g, "")) || 0;
+
+  if (bjState.balance > displayValue && displayValue !== 0) {
+    balEl.classList.remove("animate-gain", "animate-loss");
+    void balEl.offsetWidth;
+    balEl.classList.add("animate-gain");
+  } else if (bjState.balance < displayValue) {
+    balEl.classList.remove("animate-gain", "animate-loss");
+    void balEl.offsetWidth;
+    balEl.classList.add("animate-loss");
+  }
+
+  balEl.innerHTML = `Saldo: <span class="notranslate">${bjState.balance}</span> G$`;
+
+  const renderCards = (hand, el, hideFirst) => {
+    el.innerHTML = hand
+      .map((c, i) => {
+        const src =
+          hideFirst && i === 0 && !bjState.gameOver
+            ? `images/Logo.png`
+            : `images/CartasSVG/${c.value}_of_${c.suit}.svg`;
+        return `<img src="${src}" class="fade-in-up" style="height:100%; border-radius:8px; box-shadow: var(--shadow-soft);">`;
+      })
+      .join("");
+  };
+
+  renderCards(
+    bjState.playerHand,
+    document.getElementById("player-cards"),
+    false
+  );
+  renderCards(
+    bjState.dealerHand,
+    document.getElementById("dealer-cards"),
+    true
+  );
+
+  document.getElementById("player-score").innerText = getHandScore(
+    bjState.playerHand
+  );
+  document.getElementById("dealer-score").innerText = bjState.gameOver
+    ? getHandScore(bjState.dealerHand)
+    : "?";
+}
+
+function closeBlackjack() {
+  document.getElementById("games-menu").style.display = "flex";
+  document.getElementById("blackjack-game-container").style.display = "none";
 }

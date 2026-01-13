@@ -11,7 +11,7 @@ def normalizar_texto(texto):
                   if unicodedata.category(c) != 'Mn').lower()
 
 def obtener_vinculo_encadenada(palabra):
-    palabra = palabra.lower().strip()
+    palabra = unicodedata.normalize('NFC', palabra.lower().strip())
     if not palabra: return ""
     
     vocales_fuertes = "aeoáéó"
@@ -19,7 +19,7 @@ def obtener_vinculo_encadenada(palabra):
     vocales = vocales_fuertes + vocales_debiles
     
     pos_vocales = [i for i, char in enumerate(palabra) if char in vocales]
-    if len(pos_vocales) < 2: return palabra
+    if len(pos_vocales) < 2: return normalizar_texto(palabra)
 
     v_ultima = pos_vocales[-1]
     v_penultima = pos_vocales[-2]
@@ -28,6 +28,7 @@ def obtener_vinculo_encadenada(palabra):
         c1, c2 = palabra[idx1], palabra[idx2]
         if c1 in vocales_fuertes and c2 in vocales_fuertes: return True
         if (c1 in "íú" and c2 in vocales_fuertes) or (c2 in "íú" and c1 in vocales_fuertes): return True
+        if c1 == c2: return True
         return False
 
     corte = 0
@@ -36,6 +37,8 @@ def obtener_vinculo_encadenada(palabra):
             corte = v_ultima
         else:
             corte = v_penultima - 1 if v_penultima > 0 else 0
+            if corte > 0 and palabra[corte-1:corte+1] in ['ll','ch','rr','qu','gu']:
+                corte -= 1
     else:
         entre = palabra[v_penultima+1 : v_ultima]
         grupos = ['br','cr','dr','gr','fr','pr','tr','bl','cl','fl','gl','pl','ch','ll']
@@ -63,14 +66,13 @@ def procesar():
         
     for p in datos:
         palabra = p if isinstance(p, str) else p.get('palabra', '')
-        palabra = palabra.lower().strip()
+        palabra = palabra.strip()
         
-        if len(palabra) < 3 or not palabra.isalpha():
+        if len(palabra) < 3 or not palabra.replace(" ","").isalpha():
             continue
             
         vinculo = obtener_vinculo_encadenada(palabra)
-        # Guardamos: {"palabra_original": "vinculo_normalizado"}
-        encadenadas[palabra] = vinculo
+        encadenadas[palabra.lower()] = vinculo
 
     os.makedirs(os.path.dirname(ARCHIVO_SALIDA), exist_ok=True)
     with open(ARCHIVO_SALIDA, 'w', encoding='utf-8') as f:
