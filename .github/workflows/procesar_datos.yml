@@ -7,6 +7,7 @@ on:
       - "scripts/procesar_gtfs.py"
       - "scripts/procesar_radares.py"
       - "scripts/procesar_palabras.py"
+      - "scripts/procesar_encadenadas.py"
   workflow_dispatch:
 
 jobs:
@@ -35,6 +36,9 @@ jobs:
 
       - name: 📚 Procesar Diccionario Wordle
         run: python scripts/procesar_palabras.py
+
+      - name: 🔗 Procesar Palabras Encadenadas
+        run: python scripts/procesar_encadenadas.py
 
       - name: 🔄 Sincronizar repositorio antes de subir
         run: git pull origin main --rebase --autostash

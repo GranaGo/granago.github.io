@@ -539,7 +539,9 @@ window.navigateTo = async function (viewId, addToHistory = true) {
     return;
   }
 
-  if (viewId === "paradas") {
+  if (viewId === "home") {
+    updateHomeRecentWidgets();
+  } else if (viewId === "paradas") {
     showLoader(true);
     setTimeout(() => initMapParadas(), 400);
   } else if (viewId === "lineas") {
@@ -566,6 +568,8 @@ window.navigateTo = async function (viewId, addToHistory = true) {
     }
   } else if (viewId === "taxi-vtc") {
     setTimeout(() => initTaxiMap(), 200);
+  } else if (viewId === "juegos") {
+    hideAllGameContainers();
   }
 };
 
@@ -992,6 +996,25 @@ function destroyUnusedMaps() {
     cTaxi._leaflet_id = null;
     cTaxi.innerHTML = "";
   }
+}
+
+function hideAllGameContainers() {
+  const containers = [
+    "wordle-game-container",
+    "sudoku-game-container",
+    "memory-game-container",
+    "quiz-game-container",
+    "mastermind-game-container",
+    "encadenadas-game-container",
+  ];
+
+  containers.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "none";
+  });
+
+  const menu = document.getElementById("games-menu");
+  if (menu) menu.style.display = "flex";
 }
 
 async function initMapParadas() {
@@ -1994,6 +2017,13 @@ window.openRealTimeModal = function (apiId, type, stopName) {
   title.innerText = stopName;
   content.innerHTML = '<div class="spinner" style="margin: 30px auto;"></div>';
   modal.classList.add("visible");
+  if (type === "urbano" || type === "metro") {
+    trackRecentItem("granaGo_recent_stops", {
+      id: apiId,
+      type,
+      name: stopName,
+    });
+  }
 
   fetchRealTimeData(apiId, type);
 };
@@ -4415,6 +4445,7 @@ async function initHomeDashboard() {
     updateHomeBusWidget(),
     updateHomeParking(),
     updateHomeFuel(),
+    updateHomeRecentWidgets(),
   ]);
 }
 
@@ -4746,6 +4777,66 @@ function extractLinesToSet(text, setObj) {
         setObj.add(cleanN);
       }
     });
+  }
+}
+
+async function updateHomeRecentWidgets() {
+  const stopsContainer = document.getElementById("home-recent-stops");
+  const recentStops = JSON.parse(
+    localStorage.getItem("granaGo_recent_stops") || "[]"
+  );
+
+  if (stopsContainer && recentStops.length > 0) {
+    stopsContainer.innerHTML = recentStops
+      .map((s) => {
+        const icon = s.type === "metro" ? "ri-train-fill" : "ri-bus-fill";
+        const color = s.type === "metro" ? "#009a44" : "#D9281C";
+        const safeName = s.name.replace(/'/g, "\\'");
+
+        return `
+                <button class="transport-card" 
+                        style="width: 100%; padding: 10px; margin: 0; border-radius: 12px; border: 1px solid var(--border-subtle); justify-content: flex-start; gap: 10px; background: var(--bg-app); color: var(--text-primary);"
+                        onclick="event.stopPropagation(); openRealTimeModal('${s.id}', '${s.type}', '${safeName}')">
+                    <div class="card-icon-wrapper" style="width: 32px; height: 32px; min-width: 32px; background: ${color}1A; color: ${color};">
+                        <i class="${icon}" style="font-size: 14px;"></i>
+                    </div>
+                    <span style="font-size: 0.85rem; font-weight: 600; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-primary);">
+                        ${s.name}
+                    </span>
+                </button>`;
+      })
+      .join("");
+  }
+
+  const gamesContainer = document.getElementById("home-recent-games");
+  const recentGames = JSON.parse(
+    localStorage.getItem("granaGo_recent_games") || "[]"
+  );
+
+  const gameActions = {
+    Granádle: "navigateTo('juegos'); openWordleMenu();",
+    Granádoku: "navigateTo('juegos'); openSudokuMenu();",
+    Granámory: "navigateTo('juegos'); openMemoryMenu();",
+    Granáquiz: "navigateTo('juegos'); openQuizMenu();",
+    Granámind: "navigateTo('juegos'); openMastermindMenu();",
+    "Granábras Encadenadas": "navigateTo('juegos'); openEncadenadasMenu();",
+  };
+
+  if (gamesContainer && recentGames.length > 0) {
+    gamesContainer.innerHTML = recentGames
+      .map((game) => {
+        const action = gameActions[game] || "navigateTo('juegos')";
+        return `
+                <button class="transport-card" 
+                        style="width: 100%; padding: 10px; margin: 0; border-radius: 12px; border: 1px solid var(--border-subtle); justify-content: flex-start; gap: 10px; background: var(--bg-app); color: var(--text-primary);"
+                        onclick="event.stopPropagation(); ${action}">
+                    <div class="card-icon-wrapper" style="width: 32px; height: 32px; min-width: 32px; background: var(--text-accent)1A; color: var(--text-accent);">
+                        <i class="ri-play-fill" style="font-size: 14px;"></i>
+                    </div>
+                    <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">${game}</span>
+                </button>`;
+      })
+      .join("");
   }
 }
 
@@ -5749,7 +5840,7 @@ function openWordleMenu() {
   if (!wordleSetupHTML) {
     wordleSetupHTML = setupContainer.innerHTML;
   }
-
+  trackRecentItem("granaGo_recent_games", "Granádle");
   document.getElementById("games-menu").style.display = "none";
   document.getElementById("wordle-game-container").style.display = "block";
 
@@ -6296,7 +6387,7 @@ function mulberry32(a) {
 window.openSudokuMenu = function () {
   document.getElementById("games-menu").style.display = "none";
   document.getElementById("sudoku-game-container").style.display = "block";
-
+  trackRecentItem("granaGo_recent_games", "Granádoku");
   document.getElementById("sudoku-setup").style.display = "block";
   document.getElementById("sudoku-board-wrapper").style.display = "none";
   document.getElementById("sudoku-message").style.display = "none";
@@ -6666,6 +6757,7 @@ const memoryIcons = [
 function openMemoryMenu() {
   document.getElementById("games-menu").style.display = "none";
   document.getElementById("memory-game-container").style.display = "block";
+  trackRecentItem("granaGo_recent_games", "Granámory");
   initMemoryGame();
 }
 
@@ -6791,7 +6883,7 @@ let quizConfig = {
 async function openQuizMenu() {
   document.getElementById("games-menu").style.display = "none";
   document.getElementById("quiz-game-container").style.display = "block";
-
+  trackRecentItem("granaGo_recent_games", "Granáquiz");
   if (quizConfig.allQuestions.length === 0) {
     const setup = document.getElementById("quiz-setup");
     const game = document.getElementById("quiz-gameplay");
@@ -7437,3 +7529,336 @@ window.openTaxiApp = function (service) {
     window.open("https://pidetaxi.es", "_blank");
   }
 };
+
+let mastermindConfig = {
+  target: [],
+  currentGuess: [],
+  attempts: 0,
+  maxAttempts: 10,
+  gameOver: false,
+  icons: [
+    "ri-bus-fill",
+    "ri-train-fill",
+    "ri-taxi-fill",
+    "ri-parking-box-fill",
+    "ri-gas-station-fill",
+    "ri-camera-lens-fill",
+  ],
+};
+
+window.openMastermindMenu = function () {
+  document.getElementById("games-menu").style.display = "none";
+  document.getElementById("mastermind-game-container").style.display = "block";
+  trackRecentItem("granaGo_recent_games", "Granámind");
+  initMastermindGame();
+};
+
+window.closeMastermind = function () {
+  document.getElementById("games-menu").style.display = "flex";
+  document.getElementById("mastermind-game-container").style.display = "none";
+};
+
+window.initMastermindGame = function () {
+  mastermindConfig.target = [];
+  mastermindConfig.currentGuess = [];
+  mastermindConfig.attempts = 0;
+  mastermindConfig.gameOver = false;
+
+  for (let i = 0; i < 4; i++) {
+    mastermindConfig.target.push(
+      mastermindConfig.icons[
+        Math.floor(Math.random() * mastermindConfig.icons.length)
+      ]
+    );
+  }
+
+  document.getElementById("mastermind-history").innerHTML = "";
+  document.getElementById("mastermind-message").style.display = "none";
+  document.getElementById("mastermind-controls").style.display = "block";
+  document.getElementById(
+    "mastermind-stats-text"
+  ).innerText = `Intentos: 0 / ${mastermindConfig.maxAttempts}`;
+
+  renderMastermindPalette();
+  renderMastermindBoard();
+};
+
+function renderMastermindPalette() {
+  const palette = document.getElementById("mastermind-palette");
+  palette.innerHTML = "";
+  mastermindConfig.icons.forEach((icon) => {
+    const btn = document.createElement("button");
+    btn.className = "icon-btn";
+    btn.style.width = "48px";
+    btn.style.height = "48px";
+    btn.style.background = "var(--bg-app)";
+    btn.style.border = "1px solid var(--border-subtle)";
+    btn.innerHTML = `<i class="${icon}" style="font-size: 1.3rem; color: var(--text-primary);"></i>`;
+    btn.onclick = () => selectMastermindIcon(icon);
+    palette.appendChild(btn);
+  });
+}
+
+function renderMastermindBoard() {
+  const board = document.getElementById("mastermind-board");
+  board.innerHTML = "";
+
+  for (let i = 0; i < 4; i++) {
+    const slot = document.createElement("div");
+    slot.style.width = "55px";
+    slot.style.height = "55px";
+    slot.style.borderRadius = "14px";
+    slot.style.background = "var(--bg-app)";
+    slot.style.display = "flex";
+    slot.style.alignItems = "center";
+    slot.style.justifyContent = "center";
+    slot.style.fontSize = "1.8rem";
+    slot.style.border = "1px solid var(--border-subtle)";
+
+    if (mastermindConfig.currentGuess[i]) {
+      slot.innerHTML = `<i class="${mastermindConfig.currentGuess[i]}"></i>`;
+      slot.classList.add("pop");
+    }
+    board.appendChild(slot);
+  }
+}
+
+window.selectMastermindIcon = function (icon) {
+  if (mastermindConfig.gameOver || mastermindConfig.currentGuess.length >= 4)
+    return;
+  mastermindConfig.currentGuess.push(icon);
+  renderMastermindBoard();
+  document.getElementById("btn-submit-mastermind").disabled =
+    mastermindConfig.currentGuess.length < 4;
+};
+
+window.removeMastermindIcon = function () {
+  mastermindConfig.currentGuess.pop();
+  renderMastermindBoard();
+  document.getElementById("btn-submit-mastermind").disabled = true;
+};
+
+window.checkMastermindGuess = function () {
+  if (mastermindConfig.currentGuess.length < 4) return;
+
+  const guess = [...mastermindConfig.currentGuess];
+  const target = [...mastermindConfig.target];
+  let correctPos = 0;
+  let correctIcon = 0;
+  let targetUsed = [false, false, false, false];
+  let guessUsed = [false, false, false, false];
+
+  for (let i = 0; i < 4; i++) {
+    if (guess[i] === target[i]) {
+      correctPos++;
+      targetUsed[i] = true;
+      guessUsed[i] = true;
+    }
+  }
+
+  for (let i = 0; i < 4; i++) {
+    if (guessUsed[i]) continue;
+    for (let j = 0; j < 4; j++) {
+      if (!targetUsed[j] && guess[i] === target[j]) {
+        correctIcon++;
+        targetUsed[j] = true;
+        break;
+      }
+    }
+  }
+
+  addMastermindHistoryRow(
+    mastermindConfig.currentGuess,
+    correctPos,
+    correctIcon
+  );
+
+  mastermindConfig.attempts++;
+  mastermindConfig.currentGuess = [];
+  document.getElementById(
+    "mastermind-stats-text"
+  ).innerText = `Intentos: ${mastermindConfig.attempts} / ${mastermindConfig.maxAttempts}`;
+  document.getElementById("btn-submit-mastermind").disabled = true;
+
+  if (correctPos === 4) {
+    endMastermind(true);
+  } else if (mastermindConfig.attempts >= mastermindConfig.maxAttempts) {
+    endMastermind(false);
+  } else {
+    renderMastermindBoard();
+  }
+};
+
+function addMastermindHistoryRow(guess, pos, icon) {
+  const history = document.getElementById("mastermind-history");
+  const row = document.createElement("div");
+  row.className = "fade-in-up";
+  row.style.display = "flex";
+  row.style.alignItems = "center";
+  row.style.justifyContent = "space-between";
+  row.style.padding = "12px";
+  row.style.background = "var(--bg-card)";
+  row.style.borderRadius = "14px";
+  row.style.border = "1px solid var(--border-subtle)";
+
+  let iconsHtml = '<div style="display:flex; gap:8px;">';
+  guess.forEach((g) => {
+    iconsHtml += `<i class="${g}" style="font-size:1.3rem; color:var(--text-primary); opacity:0.8;"></i>`;
+  });
+  iconsHtml += "</div>";
+
+  let feedbackHtml =
+    '<div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px; background:rgba(0,0,0,0.05); padding:5px; border-radius:8px;">';
+  for (let i = 0; i < 4; i++) {
+    let color = "rgba(255,255,255,0.1)";
+    if (pos > 0) {
+      color = "#10b981";
+      pos--;
+    } else if (icon > 0) {
+      color = "#f59e0b";
+      icon--;
+    }
+    feedbackHtml += `<div style="width:10px; height:10px; background:${color}; border-radius:50%;"></div>`;
+  }
+  feedbackHtml += "</div>";
+
+  row.innerHTML = `${iconsHtml} ${feedbackHtml}`;
+  history.appendChild(row);
+  history.scrollTop = history.scrollHeight;
+}
+
+function endMastermind(win) {
+  mastermindConfig.gameOver = true;
+  document.getElementById("mastermind-controls").style.display = "none";
+  const msg = document.getElementById("mastermind-message");
+  msg.style.display = "block";
+  msg.style.borderLeft = `4px solid ${win ? "#10b981" : "#ef4444"}`;
+
+  document.getElementById("mastermind-result-title").innerText = win
+    ? "¡Código Descifrado!"
+    : "Fin de los intentos";
+
+  let targetHtml =
+    '<div style="display:flex; justify-content:center; gap:12px; margin:20px 0;">';
+  mastermindConfig.target.forEach((icon) => {
+    targetHtml += `<div style="width:50px; height:50px; background:var(--bg-app); border-radius:12px; display:flex; align-items:center; justify-content:center; border:2px solid var(--text-accent);"><i class="${icon}" style="font-size:1.5rem;"></i></div>`;
+  });
+  targetHtml += "</div>";
+
+  document.getElementById("mastermind-result-text").innerHTML = `
+    <p style="text-align:center;">${
+      win
+        ? "Enhorabuena, tienes un sentido de la orientación envidiable."
+        : "No has dado con la combinación. El código correcto era:"
+    }</p>
+    ${targetHtml}
+  `;
+}
+
+function trackRecentItem(key, item, limit = 2) {
+  let items = JSON.parse(localStorage.getItem(key) || "[]");
+
+  const itemID = typeof item === "object" ? item.id : item;
+  items = items.filter((i) => (typeof i === "object" ? i.id : i) !== itemID);
+
+  items.unshift(item);
+  if (items.length > limit) items.pop();
+
+  localStorage.setItem(key, JSON.stringify(items));
+}
+
+let encadenadasData = null;
+let encadenadasState = {
+  lastWord: "",
+  lastSyllable: "",
+  score: 0,
+  usedWords: new Set(),
+};
+
+async function openEncadenadasMenu() {
+  hideAllGameContainers();
+  document.getElementById("games-menu").style.display = "none";
+  document.getElementById("encadenadas-game-container").style.display = "block";
+
+  if (!encadenadasData) {
+    showNotification("Cargando", "Preparando diccionario...", "info");
+    const res = await fetch("data/encadenadas.json");
+    encadenadasData = await res.json();
+  }
+  initEncadenadas();
+}
+
+function initEncadenadas() {
+  const keys = Object.keys(encadenadasData);
+  const startWord = keys[Math.floor(Math.random() * keys.length)];
+
+  encadenadasState = {
+    lastWord: startWord,
+    lastSyllable: encadenadasData[startWord],
+    score: 0,
+    usedWords: new Set([startWord]),
+  };
+
+  updateEncadenadasUI();
+  document.getElementById(
+    "encadenadas-history"
+  ).innerHTML = `<span class="bus-line-pill" style="background:var(--text-secondary)">${startWord}</span>`;
+  trackRecentItem("granaGo_recent_games", "Granábras Encadenadas");
+}
+
+function updateEncadenadasUI() {
+  document.getElementById("last-word-display").innerText =
+    encadenadasState.lastWord.toUpperCase();
+  document.getElementById(
+    "next-syllable-hint"
+  ).innerText = `Debe empezar por: "${encadenadasState.lastSyllable.toUpperCase()}"`;
+  document.getElementById(
+    "encadenadas-score"
+  ).innerText = `Puntuación: ${encadenadasState.score}`;
+}
+
+window.submitEncadenada = function () {
+  const input = document.getElementById("encadenadas-input");
+  const word = input.value.trim().toLowerCase();
+  input.value = "";
+
+  if (!encadenadasData[word]) {
+    showNotification(
+      "No existe",
+      "Esa palabra no está en nuestro diccionario",
+      "error"
+    );
+    return;
+  }
+  if (encadenadasState.usedWords.has(word)) {
+    showNotification("Repetida", "Ya has usado esa palabra", "info");
+    return;
+  }
+  if (!word.startsWith(encadenadasState.lastSyllable)) {
+    showNotification(
+      "Error",
+      `Debe empezar por ${encadenadasState.lastSyllable}`,
+      "error"
+    );
+    return;
+  }
+
+  encadenadasState.lastWord = word;
+  encadenadasState.lastSyllable = encadenadasData[word];
+  encadenadasState.score++;
+  encadenadasState.usedWords.add(word);
+
+  const span = document.createElement("span");
+  span.className = "bus-line-pill fade-in-up";
+  span.style.background = "var(--text-accent)";
+  span.innerText = word;
+  document.getElementById("encadenadas-history").prepend(span);
+
+  updateEncadenadasUI();
+  if (navigator.vibrate) navigator.vibrate(50);
+};
+
+function closeEncadenadas() {
+  document.getElementById("games-menu").style.display = "flex";
+  document.getElementById("encadenadas-game-container").style.display = "none";
+}
