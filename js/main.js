@@ -1,16 +1,16 @@
 ﻿/**
  * Copyright (C) 2026 GranáGo - https://github.com/granago/granago.github.io
- * Este programa es software libre: puedes redistribuirlo y/o modificarlo 
- * bajo los términos de la Licencia Pública General GNU publicada por 
- * la Free Software Foundation, ya sea la versión 3 de la Licencia, o 
+ * Este programa es software libre: puedes redistribuirlo y/o modificarlo
+ * bajo los términos de la Licencia Pública General GNU publicada por
+ * la Free Software Foundation, ya sea la versión 3 de la Licencia, o
  * (a tu elección) cualquier versión posterior.
  *
- * Este programa se distribuye con la esperanza de que sea útil, 
- * pero SIN NINGUNA GARANTÍA; incluso sin la garantía implícita de 
- * COMERCIALIZACIÓN o APTITUD PARA UN PROPÓSITO PARTICULAR. 
+ * Este programa se distribuye con la esperanza de que sea útil,
+ * pero SIN NINGUNA GARANTÍA; incluso sin la garantía implícita de
+ * COMERCIALIZACIÓN o APTITUD PARA UN PROPÓSITO PARTICULAR.
  * Consulte la Licencia Pública General GNU para más detalles.
  *
- * Deberías haber recibido una copia de la Licencia Pública General GNU 
+ * Deberías haber recibido una copia de la Licencia Pública General GNU
  * junto con este programa. Si no es así, consulte <https://www.gnu.org/licenses/>.
  */
 
@@ -92,6 +92,7 @@ let oraTileLayer = null;
 
 let wordleSetupHTML = "";
 let isMuted = false;
+let speedLimitsData = null;
 
 let taxiMapInstance = null;
 let taxiLayersGroup = null;
@@ -743,15 +744,44 @@ async function fetchWeatherData(lat, lon, locationName) {
   if (!container) return;
 
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("Error API");
-    const data = await res.json();
+    const [weatherRes, aqiRes] = await Promise.all([
+      fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto`
+      ),
+      fetch(
+        `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`
+      ),
+    ]);
+
+    if (!weatherRes.ok || !aqiRes.ok) throw new Error("Error API");
+
+    const data = await weatherRes.json();
+    const aqiData = await aqiRes.json();
 
     const temp = Math.round(data.current.temperature_2m);
     const code = data.current.weather_code;
     const humidity = data.current.relative_humidity_2m;
+    const aqi = aqiData.current.european_aqi;
     const weatherIconName = getWeatherIconName(code);
+
+    let aqiText = "Excelente",
+      aqiColor = "#10b981";
+    if (aqi > 20) {
+      aqiText = "Bueno";
+      aqiColor = "#84cc16";
+    }
+    if (aqi > 40) {
+      aqiText = "Regular";
+      aqiColor = "#f59e0b";
+    }
+    if (aqi > 60) {
+      aqiText = "Pobre";
+      aqiColor = "#ef4444";
+    }
+    if (aqi > 80) {
+      aqiText = "Muy Pobre";
+      aqiColor = "#991b1b";
+    }
 
     container.innerHTML = `
             <div class="weather-card-premium fade-in-up">
@@ -760,7 +790,12 @@ async function fetchWeatherData(lat, lon, locationName) {
                         <i class="icon ri-map-pin-user-fill"></i> ${locationName}
                     </div>
                     <div class="weather-temp notranslate">${temp}°</div>
-                    <div class="weather-desc">${getWeatherDesc(code)}</div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="weather-desc">${getWeatherDesc(code)}</div>
+                        <div style="font-size: 0.7rem; font-weight: 800; background: ${aqiColor}; color: white; padding: 2px 8px; border-radius: 20px; text-transform: uppercase;">
+                            Aire: ${aqiText}
+                        </div>
+                    </div>
                 </div>
                 <div class="weather-right">
                     <i class="icon weather-icon-lg ${weatherIconName}"></i>
@@ -770,10 +805,10 @@ async function fetchWeatherData(lat, lon, locationName) {
                 </div>
             </div>`;
   } catch (e) {
-    console.error("Error clima", e);
+    console.error("Error clima y aire", e);
     container.innerHTML = `
             <div class="weather-card-premium" style="background: var(--bg-card); color: var(--text-secondary); justify-content: center;">
-                <span class="text-sm flex items-center gap-2"><span class="icon">cloud_off</span> Sin conexión</span>
+                <span class="text-sm flex items-center gap-2"><span class="icon">ri-cloud-off-line</span> Sin conexión</span>
             </div>`;
   }
 }
@@ -7081,6 +7116,26 @@ const VOICE_CONFIG = {
   },
 };
 
+const ESP_FALLBACK_LIMITS = {
+  motorway: "120",
+  trunk: "120",
+  primary: "90",
+  secondary: "90",
+  tertiary: "90",
+  residential: "30",
+  living_street: "20",
+};
+
+async function loadSpeedLimits() {
+  if (speedLimitsData) return;
+  try {
+    const res = await fetch("data/velocidad.json");
+    speedLimitsData = await res.json();
+  } catch (e) {
+    console.error("Error cargando límites de velocidad:", e);
+  }
+}
+
 function getVoiceSettings() {
   const lang = localStorage.getItem("granaGo_selected_lang") || "es";
   return VOICE_CONFIG[lang] || VOICE_CONFIG["es"];
@@ -7150,7 +7205,7 @@ async function toggleDrivingMode() {
   const hud = document.getElementById("driving-hud");
 
   if (!drivingModeActive) {
-    if (!camarasDataLoaded) await initCamarasMap();
+    await Promise.all([loadSpeedLimits(), initCamarasMap()]);
 
     drivingModeActive = true;
 
@@ -7233,6 +7288,7 @@ function processDrivingPosition(position) {
   targetSpeed = speed ? speed * 3.6 : 0;
 
   checkNearbyRadars(lat, lng, heading);
+  checkCurrentSpeedLimit(lat, lng);
 }
 
 function checkNearbyRadars(userLat, userLng, userHeading) {
@@ -7331,6 +7387,80 @@ function checkNearbyRadars(userLat, userLng, userHeading) {
   }
 
   updateHudAlert(closestItem, minDistance);
+}
+
+function checkCurrentSpeedLimit(userLat, userLng) {
+  if (!speedLimitsData) return;
+
+  let closestFeature = null;
+  let minDistance = Infinity;
+  const DETECTION_RADIUS = 0.035;
+
+  const nearby = speedLimitsData.features.filter((f) => {
+    const firstCoord = f.geometry.coordinates[0];
+    return (
+      Math.abs(firstCoord[1] - userLat) < 0.01 &&
+      Math.abs(firstCoord[0] - userLng) < 0.01
+    );
+  });
+
+  nearby.forEach((feature) => {
+    const coords = feature.geometry.coordinates;
+    for (let i = 0; i < coords.length - 1; i++) {
+      const p1 = coords[i];
+      const p2 = coords[i + 1];
+      const dist = getDistanceToSegment(
+        userLat,
+        userLng,
+        p1[1],
+        p1[0],
+        p2[1],
+        p2[0]
+      );
+
+      if (dist < minDistance && dist < DETECTION_RADIUS) {
+        minDistance = dist;
+        closestFeature = feature;
+      }
+    }
+  });
+
+  updateSpeedUI(closestFeature);
+}
+
+function updateSpeedUI(feature) {
+  const container = document.getElementById("hud-speed-limit");
+  if (!feature) {
+    container.style.display = "none";
+    return;
+  }
+
+  let limit = feature.properties.maxspeed;
+  let isEstimated = false;
+
+  if (!limit) {
+    const type = feature.properties.highway;
+    limit = ESP_FALLBACK_LIMITS[type];
+    isEstimated = true;
+  }
+
+  if (limit) {
+    container.innerHTML = `
+      <div class="speed-sign ${isEstimated ? "estimated" : ""}">
+        ${limit}
+        ${isEstimated ? '<span class="est-label">EST.</span>' : ""}
+      </div>`;
+    container.style.display = "block";
+
+    const speedText = document.getElementById("hud-speed");
+    if (targetSpeed > parseInt(limit) + 5) {
+      speedText.style.color = "#ef4444";
+    } else {
+      speedText.style.color = "white";
+    }
+  } else {
+    container.style.display = "none";
+  }
 }
 
 function updateHudAlert(item, distanceKm) {

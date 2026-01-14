@@ -50,6 +50,7 @@ const ASSETS_TO_CACHE = [
   "./data/parkings.csv",
   "./data/encadenadas.json",
   "./data/zbe.geojson",
+  "./data/velocidad.json",
   ...cartasAssets
 ];
 
