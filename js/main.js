@@ -8584,60 +8584,53 @@ async function loadSostenibleData() {
   sostenibleDataLoaded = true;
 }
 
-function locateUserSostenible(isInitial = false) {
+window.locateUserSostenible = function (isInitial = false) {
   if (!sostenibleMap) return;
 
+  // Solo mostramos la notificación si el usuario pulsa el botón (no en carga inicial)
   if (!isInitial) {
-    showNotification("Buscando GPS", "Obteniendo tu ubicación...", "info");
+    showNotification("GPS", "Localizando...", "info");
   }
 
-  sostenibleMap.locate({
-    setView: true,
-    maxZoom: 16,
-    enableHighAccuracy: true,
-  });
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const latlng = [position.coords.latitude, position.coords.longitude];
 
-  sostenibleMap.off("locationfound");
-  sostenibleMap.off("locationerror");
+      sostenibleMap.flyTo(latlng, 16);
 
-  sostenibleMap.on("locationfound", (e) => {
-    if (!isInitial) {
-      showNotification(
-        "Ubicación encontrada",
-        "Te hemos localizado",
-        "success"
-      );
-    }
-
-    if (sostenibleUserMarker) {
-      sostenibleUserMarker.setLatLng(e.latlng);
-    } else {
-      sostenibleUserMarker = L.marker(e.latlng, {
-        icon: L.divIcon({
-          className: "gps-marker-container",
-          html: '<div class="gps-dot-animated"></div>',
-          iconSize: [24, 24],
-          iconAnchor: [12, 12],
-        }),
-      }).addTo(sostenibleMap);
-    }
-
-    if (!isInitial) {
-      sostenibleMap.flyTo(e.latlng, 16);
-    }
-  });
-
-  sostenibleMap.on("locationerror", (e) => {
-    if (!isInitial) {
-      let msg = "No pudimos acceder a tu ubicación. Revisa los permisos.";
-      if (e.message.toLowerCase().includes("denied")) {
-        msg = "Permiso denegado. Por favor, activa el GPS en tu navegador.";
+      if (sostenibleUserMarker) {
+        sostenibleUserMarker.setLatLng(latlng);
+        if (!sostenibleMap.hasLayer(sostenibleUserMarker)) {
+          sostenibleUserMarker.addTo(sostenibleMap);
+        }
+      } else {
+        sostenibleUserMarker = L.marker(latlng, {
+          icon: L.divIcon({
+            className: "gps-marker-container",
+            html: `<div class="gps-dot-animated"></div>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12],
+          }),
+        }).addTo(sostenibleMap);
       }
-      showNotification("Error GPS", msg, "error");
-    }
-    console.warn("Error Geolocation Sostenible:", e.message);
-  });
-}
+
+      if (!isInitial) {
+        showNotification(
+          "Ubicación encontrada",
+          "Te hemos localizado",
+          "success"
+        );
+      }
+    },
+    (error) => {
+      if (!isInitial) {
+        showNotification("Error", "No se pudo obtener la ubicación", "error");
+      }
+      console.warn("Error Geolocation Sostenible:", error.message);
+    },
+    { enableHighAccuracy: true, timeout: 5000 }
+  );
+};
 
 window.toggleSostenibleLayer = function (type, btn) {
   if (!sostenibleMap) return;
