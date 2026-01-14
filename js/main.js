@@ -7121,7 +7121,7 @@ const ESP_FALLBACK_LIMITS = {
   trunk: "120",
   primary: "90",
   secondary: "90",
-  tertiary: "90",
+  tertiary: "80",
   residential: "30",
   living_street: "20",
 };
