@@ -347,6 +347,22 @@
             </div>
             <i class="icon arrow-icon ri-arrow-right-s-line"></i>
           </div>
+          <div
+            class="transport-card"
+            onclick="navigateTo('movilidad-sostenible')"
+          >
+            <div
+              class="card-icon-wrapper"
+              style="background: rgba(16, 185, 129, 0.1); color: #10b981"
+            >
+              <i class="icon ri-riding-fill"></i>
+            </div>
+            <div class="transport-info">
+              <h3>Movilidad Sostenible</h3>
+              <p>Carriles y parkings bici</p>
+            </div>
+            <i class="icon arrow-icon ri-arrow-right-s-line"></i>
+          </div>
         </div>
       </div>
 
@@ -650,6 +666,65 @@
             <p>Cargando lugares...</p>
           </div>
           <div id="map-lugares" style="width: 100%; height: 100%"></div>
+        </div>
+      </div>
+
+      <div
+        id="movilidad-sostenible-view"
+        class="view-section"
+        style="height: 100%"
+      >
+        <div
+          style="
+            position: relative;
+            height: 100%;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+          "
+        >
+          <div class="map-header-bar">
+            <button
+              onclick="navigateTo('movilidad')"
+              class="icon-btn back-btn-floating"
+            >
+              <i class="icon ri-arrow-left-line"></i>
+            </button>
+
+            <div class="center-content">
+              <button
+                id="btn-carriles"
+                class="filter-chip active"
+                onclick="toggleSostenibleLayer('carriles', this)"
+                style="--chip-color: #10b981"
+              >
+                <i class="icon ri-direction-fill"></i> Carriles
+              </button>
+              <button
+                id="btn-parkings-bici"
+                class="filter-chip"
+                onclick="toggleSostenibleLayer('parkings', this)"
+                style="--chip-color: #ef4444"
+              >
+                <i class="icon ri-parking-box-fill"></i> Parkings
+              </button>
+            </div>
+
+            <button
+              onclick="locateUserSostenible()"
+              class="icon-btn gps-btn-floating"
+              aria-label="Localizar mi posición"
+            >
+              <i class="icon ri-crosshair-2-line"></i>
+            </button>
+          </div>
+
+          <div id="sostenible-loader" class="map-loader visible">
+            <div class="spinner"></div>
+            <p>Cargando datos...</p>
+          </div>
+
+          <div id="map-sostenible" style="height: 100%; width: 100%"></div>
         </div>
       </div>
 

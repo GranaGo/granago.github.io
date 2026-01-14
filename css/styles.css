@@ -724,7 +724,8 @@ body.dark-mode .switch-handle {
 #paradas-view.active,
 #lugares-view.active,
 #camaras-view.active,
-#repostar-map-view.active {
+#repostar-map-view.active,
+#movilidad-sostenible-view.active {
   position: fixed !important;
   top: 0;
   left: 0;
@@ -1014,7 +1015,8 @@ body.dark-mode .switch-handle {
 }
 
 #paradas-view > div,
-#lugares-view > div {
+#lugares-view > div,
+#movilidad-sostenible-view > div {
   width: 100%;
   height: 100%;
   position: relative !important;
@@ -1022,7 +1024,8 @@ body.dark-mode .switch-handle {
 
 #map-paradas,
 #map-lugares,
-#map-repostar {
+#map-repostar,
+#map-sostenible {
   position: absolute;
   top: 0;
   left: 0;

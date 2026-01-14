@@ -92,6 +92,13 @@ let motoParkingsLayerGroup = null;
 let oraTileLayer = null;
 let staticParkingsLayerGroup = null;
 
+let sostenibleMap = null;
+let sostenibleTileLayer = null;
+let carrilBiciLayer = null;
+let parkingBiciLayer = null;
+let sostenibleDataLoaded = false;
+let sostenibleUserMarker = null;
+
 let wordleSetupHTML = "";
 let isMuted = false;
 let speedLimitsData = null;
@@ -510,6 +517,7 @@ window.navigateTo = async function (viewId, addToHistory = true) {
     "zonas-restringidas",
     "zbe",
     "taxi-vtc",
+    "movilidad-sostenible",
   ];
   if (fullScreenMapViews.includes(viewId)) {
     document.body.classList.add("noscroll");
@@ -536,6 +544,7 @@ window.navigateTo = async function (viewId, addToHistory = true) {
       "linea-detalle",
       "taxi-vtc",
       "zbe",
+      "movilidad-sostenible",
     ];
 
     if (viewsWithMap.includes(viewId)) {
@@ -553,6 +562,7 @@ window.navigateTo = async function (viewId, addToHistory = true) {
           "zonas-restringidas",
           "taxi-vtc",
           "parkings",
+          "movilidad-sostenible",
         ].includes(viewId)
       ) {
         extraScripts.push(loadScript("js/leaflet-omnivore.min.js"));
@@ -598,6 +608,8 @@ window.navigateTo = async function (viewId, addToHistory = true) {
     setTimeout(() => initZBEMap(), 200);
   } else if (viewId === "juegos") {
     hideAllGameContainers();
+  } else if (viewId === "movilidad-sostenible") {
+    setTimeout(() => initSostenibleMap(), 200);
   }
 };
 
@@ -907,6 +919,10 @@ function checkMapTheme() {
   if (zbeMapInstance) {
     zbeTileLayer = updateMapTheme(zbeMapInstance, zbeTileLayer);
   }
+
+  if (sostenibleMap) {
+    sostenibleTileLayer = updateMapTheme(sostenibleMap, sostenibleTileLayer);
+  }
 }
 
 function checkMapThemePlaces() {
@@ -1077,8 +1093,21 @@ function destroyUnusedMaps() {
     cZbe._leaflet_id = null;
     cZbe.innerHTML = "";
   }
-}
 
+  if (sostenibleMap) {
+    sostenibleMap.off();
+    sostenibleMap.remove();
+    sostenibleMap = null;
+    sostenibleDataLoaded = false;
+    sostenibleTileLayer = null;
+    sostenibleUserMarker = null;
+  }
+  const cSM = document.getElementById("map-sostenible");
+  if (cSM) {
+    cSM._leaflet_id = null;
+    cSM.innerHTML = "";
+  }
+}
 function hideAllGameContainers() {
   const containers = [
     "wordle-game-container",
@@ -8409,3 +8438,212 @@ async function initZBEMap() {
     }
   }
 }
+
+async function initSostenibleMap() {
+  const mapId = "map-sostenible";
+  const container = document.getElementById(mapId);
+  if (!container) return;
+
+  ensureMapContainerIsClean(mapId);
+
+  if (!sostenibleMap) {
+    sostenibleMap = L.map(mapId, {
+      zoomControl: false,
+      attributionControl: false,
+      preferCanvas: true,
+    }).setView([GRANADA_COORDS.lat, GRANADA_COORDS.lon], 14);
+
+    sostenibleTileLayer = updateMapTheme(sostenibleMap, sostenibleTileLayer);
+
+    setTimeout(() => {
+      if (sostenibleMap) {
+        sostenibleMap.invalidateSize();
+        locateUserSostenible(true);
+      }
+    }, 400);
+  }
+
+  if (!sostenibleDataLoaded) {
+    loadSostenibleData();
+  }
+}
+
+async function loadSostenibleData() {
+  const loader = document.getElementById("sostenible-loader");
+  if (loader) loader.classList.add("visible");
+
+  carrilBiciLayer = L.featureGroup();
+  parkingBiciLayer = L.featureGroup();
+
+  omnivore
+    .kml(
+      "data/carrilbici.kml",
+      null,
+      L.geoJson(null, {
+        style: (f) => {
+          const type = (f.properties.name || "").toUpperCase();
+          let color = "#10b981";
+
+          if (type.includes("PACIFICADO")) {
+            color = "#8b5cf6";
+          } else if (type.includes("CICLO CALLE")) {
+            color = "#f59e0b";
+          } else if (type.includes("CICLO-CARRIL-BUS-VMP")) {
+            color = "#3b82f6";
+          } else if (type.includes("OTROS MUNICIPIOS")) {
+            color = "#94a3b8";
+          }
+
+          return {
+            color: color,
+            weight: 4,
+            opacity: 0.8,
+          };
+        },
+      })
+    )
+    .on("ready", function () {
+      this.eachLayer((layer) => {
+        const name =
+          layer.feature.properties.name || "Infraestructura ciclista";
+        layer.bindPopup(`<strong>${name}</strong>`, { closeButton: false });
+        layer.addTo(carrilBiciLayer);
+      });
+
+      if (
+        document.getElementById("btn-carriles").classList.contains("active")
+      ) {
+        carrilBiciLayer.addTo(sostenibleMap);
+      }
+    });
+
+  try {
+    const response = await fetch("data/parkingbici.kml");
+    const kmlText = await response.text();
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(kmlText, "text/xml");
+    const folders = xmlDoc.getElementsByTagName("Folder");
+
+    for (let i = 0; i < folders.length; i++) {
+      const folder = folders[i];
+
+      const folderName =
+        folder.getElementsByTagName("name")[0]?.textContent || "";
+      const isExterior = folderName.toLowerCase().includes("exterior");
+
+      const colorHex = isExterior ? "#10b981" : "#ef4444";
+      const tipoNombre = isExterior ? "Exterior" : "Interior";
+
+      const placemarks = folder.getElementsByTagName("Placemark");
+      for (let j = 0; j < placemarks.length; j++) {
+        const pm = placemarks[j];
+        const name =
+          pm.getElementsByTagName("name")[0]?.textContent || "Aparcabicis";
+        const coordText = pm
+          .getElementsByTagName("coordinates")[0]
+          ?.textContent.trim();
+
+        if (coordText) {
+          const coords = coordText.split(",");
+          const lng = parseFloat(coords[0]);
+          const lat = parseFloat(coords[1]);
+
+          if (!isNaN(lat) && !isNaN(lng)) {
+            const marker = L.marker([lat, lng], {
+              icon: L.divIcon({
+                className: "transport-marker-container",
+                html: `<div style="background:${colorHex}; border:2px solid white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; color:white; box-shadow: var(--shadow-soft);"><i class="ri-parking-box-fill"></i></div>`,
+                iconSize: [28, 28],
+              }),
+            });
+
+            marker.bindPopup(
+              `<strong>Parking ${tipoNombre}</strong><br>${name}`,
+              { closeButton: false }
+            );
+            marker.addTo(parkingBiciLayer);
+          }
+        }
+      }
+    }
+
+    if (
+      document.getElementById("btn-parkings-bici").classList.contains("active")
+    ) {
+      parkingBiciLayer.addTo(sostenibleMap);
+    }
+    if (loader) loader.classList.remove("visible");
+  } catch (e) {
+    console.error(
+      "Error procesando estructura de carpetas en parkingbici.kml:",
+      e
+    );
+    if (loader) loader.classList.remove("visible");
+  }
+
+  sostenibleDataLoaded = true;
+}
+
+function locateUserSostenible(isInitial = false) {
+  if (!sostenibleMap) return;
+
+  if (!isInitial) {
+    showNotification("Buscando GPS", "Obteniendo tu ubicación...", "info");
+  }
+
+  sostenibleMap.locate({ setView: isInitial, maxZoom: 16 });
+  sostenibleMap.off("locationfound");
+  sostenibleMap.off("locationerror");
+
+  sostenibleMap.on("locationfound", (e) => {
+    if (!isInitial) {
+      showNotification("Ubicación encontrada", "Te hemos localizado", "success");
+    }
+    
+    if (sostenibleUserMarker) {
+      sostenibleUserMarker.setLatLng(e.latlng);
+    } else {
+      sostenibleUserMarker = L.marker(e.latlng, {
+        icon: L.divIcon({
+          className: "gps-marker-container",
+          html: '<div class="gps-dot-animated"></div>',
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
+        }),
+      }).addTo(sostenibleMap);
+    }
+  });
+
+  sostenibleMap.on("locationerror", (e) => {
+    if (!isInitial) {
+      let msg = "No pudimos acceder a tu ubicación. Revisa los permisos.";
+      if (e.message.toLowerCase().includes("denied")) {
+        msg = "Permiso denegado. Por favor, activa el GPS en tu navegador.";
+      }
+      showNotification("Error GPS", msg, "error");
+    }
+    console.warn("Error Geolocation Sostenible:", e.message);
+  });
+}
+
+window.toggleSostenibleLayer = function (type, btn) {
+  if (!sostenibleMap) return;
+
+  const isActive = btn.classList.toggle("active");
+
+  if (type === "carriles") {
+    if (isActive) carrilBiciLayer.addTo(sostenibleMap);
+    else sostenibleMap.removeLayer(carrilBiciLayer);
+  } else if (type === "parkings") {
+    if (isActive) {
+      parkingBiciLayer.addTo(sostenibleMap);
+      showNotification(
+        "Parkings Bici",
+        "Verde: Exterior | Rojo: Interior",
+        "info"
+      );
+    } else {
+      sostenibleMap.removeLayer(parkingBiciLayer);
+    }
+  }
+};
