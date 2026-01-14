@@ -88,7 +88,9 @@ let oraMapInstance = null;
 let oraLayerGroup = null;
 let oraDataLoaded = false;
 let parkingsTileLayer = null;
+let motoParkingsLayerGroup = null;
 let oraTileLayer = null;
+let staticParkingsLayerGroup = null;
 
 let wordleSetupHTML = "";
 let isMuted = false;
@@ -545,7 +547,13 @@ window.navigateTo = async function (viewId, addToHistory = true) {
         extraScripts.push(loadScript("js/leaflet.markercluster.js"));
       }
       if (
-        ["camaras", "ora", "zonas-restringidas", "taxi-vtc"].includes(viewId)
+        [
+          "camaras",
+          "ora",
+          "zonas-restringidas",
+          "taxi-vtc",
+          "parkings",
+        ].includes(viewId)
       ) {
         extraScripts.push(loadScript("js/leaflet-omnivore.min.js"));
       }
@@ -991,6 +999,8 @@ function destroyUnusedMaps() {
     parkingsMapInstance.remove();
     parkingsMapInstance = null;
     parkingsLayerGroup = null;
+    motoParkingsLayerGroup = null;
+    staticParkingsLayerGroup = null;
     parkingsDataLoaded = false;
     if (parkingInterval) clearInterval(parkingInterval);
     parkingsTileLayer = null;
@@ -4023,8 +4033,7 @@ async function initParkingsMap() {
     checkMapTheme();
 
     parkingsLayerGroup = L.layerGroup().addTo(parkingsMapInstance);
-
-    parkingsMapInstance.locate({ setView: true, maxZoom: 14 });
+    staticParkingsLayerGroup = L.layerGroup().addTo(parkingsMapInstance);
   } else {
     parkingsMapInstance.invalidateSize();
   }
@@ -4033,6 +4042,7 @@ async function initParkingsMap() {
 
   if (!parkingsDataLoaded) {
     loadStaticParkingsCSV();
+    loadMotoParkingsKML();
     await fetchParkingsData();
     parkingsDataLoaded = true;
   }
@@ -4233,13 +4243,81 @@ async function loadStaticParkingsCSV() {
         `;
 
         marker.bindPopup(popupContent, { closeButton: false });
-        marker.addTo(parkingsMapInstance);
+        marker.addTo(staticParkingsLayerGroup);
       }
     });
   } catch (e) {
     console.error("Error cargando el CSV de parkings:", e);
   }
 }
+
+async function loadMotoParkingsKML() {
+  if (!parkingsMapInstance) return;
+
+  const kmlPath = "data/parkingmotos.kml";
+  const motoIcon = L.divIcon({
+    className: "",
+    html: `
+      <div class="transport-marker-container" style="background-color: #6366f1; border: 2px solid white;">
+        <i class="ri-motorbike-fill" style="font-size: 16px; color: white;"></i>
+      </div>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+    popupAnchor: [0, -10],
+  });
+
+  const customLayer = L.geoJson(null, {
+    pointToLayer: function (feature, latlng) {
+      return L.marker(latlng, { icon: motoIcon });
+    },
+    onEachFeature: function (feature, layer) {
+      const name = feature.properties.name || "Parking de Motos";
+      let desc = feature.properties.description || "";
+
+      const content = `
+        <div style="text-align:center; min-width:150px;">
+            <strong class="notranslate" style="color:#6366f1; font-size:0.95rem; display:block; margin-bottom:5px;">
+                ${name}
+            </strong>
+            <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:8px;">
+                Reserva para motocicletas
+            </div>
+            <button class="btn-navigate-popup" onclick="openMapsApp(${
+              layer.getLatLng().lat
+            }, ${layer.getLatLng().lng})">
+                <i class="ri-direction-fill"></i> Ir ahora
+            </button>
+        </div>
+      `;
+      layer.bindPopup(content, { closeButton: false });
+    },
+  });
+
+  motoParkingsLayerGroup = omnivore
+    .kml(kmlPath, null, customLayer)
+    .on("ready", function () {
+      console.log("Capa de motos cargada");
+    })
+    .addTo(parkingsMapInstance);
+}
+
+window.toggleParkingLayer = function (type, btnElement) {
+  if (!parkingsMapInstance) return;
+
+  const isActive = btnElement.classList.contains("active");
+  let layer =
+    type === "moto" ? motoParkingsLayerGroup : staticParkingsLayerGroup;
+
+  if (!layer) return;
+
+  if (isActive) {
+    parkingsMapInstance.removeLayer(layer);
+    btnElement.classList.remove("active");
+  } else {
+    parkingsMapInstance.addLayer(layer);
+    btnElement.classList.add("active");
+  }
+};
 
 function cleanString(str) {
   return str
@@ -5231,6 +5309,7 @@ async function updateHomeFuel() {
     container.innerHTML = `<div class="summary-sub">Datos no disponibles</div>`;
   }
 }
+
 window.googleTranslateElementInit = function () {
   new google.translate.TranslateElement(
     {
@@ -5245,14 +5324,12 @@ window.googleTranslateElementInit = function () {
 function loadGoogleTranslateScript() {
   return new Promise((resolve, reject) => {
     if (googleTranslateScriptLoaded) {
-      resolve();
-      return;
+      return resolve();
     }
 
     if (document.querySelector('script[src*="translate.google.com"]')) {
       googleTranslateScriptLoaded = true;
-      resolve();
-      return;
+      return resolve();
     }
 
     const script = document.createElement("script");
@@ -5263,13 +5340,11 @@ function loadGoogleTranslateScript() {
 
     script.onload = () => {
       googleTranslateScriptLoaded = true;
-      resolve();
+      setTimeout(resolve, 100);
     };
 
-    script.onerror = () => {
+    script.onerror = () =>
       reject(new Error("Error al cargar Google Translate"));
-    };
-
     document.body.appendChild(script);
   });
 }
@@ -5309,7 +5384,9 @@ window.changeLanguage = async function (lang) {
     return;
   }
 
-  if (!googleTranslateScriptLoaded) {
+  const isFirstLoad = !googleTranslateScriptLoaded;
+
+  if (isFirstLoad) {
     showNotification("Cargando idiomas", "Preparando traducción...", "info");
     try {
       await loadGoogleTranslateScript();
@@ -5324,6 +5401,10 @@ window.changeLanguage = async function (lang) {
     const googleSelect = await waitForGoogleDropdown();
 
     if (googleSelect) {
+      if (isFirstLoad) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
       googleSelect.value = lang;
       googleSelect.dispatchEvent(new Event("change"));
       googleSelect.dispatchEvent(new Event("input"));
@@ -5344,20 +5425,8 @@ window.changeLanguage = async function (lang) {
       updateLangButtonActiveState(lang);
     }
   } catch (e) {
-    console.warn("No se encontró el combo de Google Translate:", e);
-    setTimeout(() => {
-      const retrySelect = document.querySelector(".goog-te-combo");
-      if (retrySelect) {
-        retrySelect.value = lang;
-        retrySelect.dispatchEvent(new Event("change"));
-      } else {
-        showNotification(
-          "Error",
-          "Inténtalo de nuevo en unos segundos",
-          "error"
-        );
-      }
-    }, 1000);
+    console.warn("No se pudo activar el traductor:", e);
+    showNotification("Error", "Inténtalo de nuevo en un segundo", "error");
   }
 };
 
