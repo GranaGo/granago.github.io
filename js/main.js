@@ -8460,7 +8460,7 @@ async function initSostenibleMap() {
         sostenibleMap.invalidateSize();
         locateUserSostenible(true);
       }
-    }, 400);
+    }, 500);
   }
 
   if (!sostenibleDataLoaded) {
@@ -8591,15 +8591,24 @@ function locateUserSostenible(isInitial = false) {
     showNotification("Buscando GPS", "Obteniendo tu ubicación...", "info");
   }
 
-  sostenibleMap.locate({ setView: isInitial, maxZoom: 16 });
+  sostenibleMap.locate({
+    setView: true,
+    maxZoom: 16,
+    enableHighAccuracy: true,
+  });
+
   sostenibleMap.off("locationfound");
   sostenibleMap.off("locationerror");
 
   sostenibleMap.on("locationfound", (e) => {
     if (!isInitial) {
-      showNotification("Ubicación encontrada", "Te hemos localizado", "success");
+      showNotification(
+        "Ubicación encontrada",
+        "Te hemos localizado",
+        "success"
+      );
     }
-    
+
     if (sostenibleUserMarker) {
       sostenibleUserMarker.setLatLng(e.latlng);
     } else {
@@ -8611,6 +8620,10 @@ function locateUserSostenible(isInitial = false) {
           iconAnchor: [12, 12],
         }),
       }).addTo(sostenibleMap);
+    }
+
+    if (!isInitial) {
+      sostenibleMap.flyTo(e.latlng, 16);
     }
   });
 
