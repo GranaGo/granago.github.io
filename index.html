@@ -2562,10 +2562,32 @@
       <div id="juegos-view" class="view-section">
         <div class="section-header">
           <h2>Zona de Juegos</h2>
-          <p>Entrena tu mente</p>
+          <p id="games-main-balance">
+            Saldo: <span class="notranslate">0</span> G$
+          </p>
         </div>
 
         <div id="games-menu" class="transport-grid fade-in-up">
+          <div
+            class="transport-card tienda-card"
+            onclick="navigateTo('tienda')"
+            style="
+              border: 2px solid var(--text-accent);
+              background: rgba(251, 191, 36, 0.05);
+            "
+          >
+            <div
+              class="card-icon-wrapper"
+              style="background: rgba(251, 191, 36, 0.1); color: #fbbf24"
+            >
+              <i class="icon ri-store-3-fill"></i>
+            </div>
+            <div class="transport-info">
+              <h3 style="color: #fbbf24">GranáTienda</h3>
+              <p>Canjea tu saldo por mejoras y personalización</p>
+            </div>
+            <i class="icon arrow-icon ri-arrow-right-s-line"></i>
+          </div>
           <div class="transport-card" onclick="openWordleMenu()">
             <div
               class="card-icon-wrapper"
@@ -2758,7 +2780,21 @@
               </button>
             </div>
           </div>
-
+          <button
+            id="btn-pwr-wordle"
+            onclick="useWordlePowerup()"
+            class="cookie-btn primary"
+            style="
+              margin-bottom: 15px;
+              width: 100%;
+              display: none;
+              align-items: center;
+              justify-content: center;
+              gap: 8px;
+            "
+          >
+            <i class="ri-search-eye-line"></i> Usar Lupa (Revelar letra)
+          </button>
           <div
             id="wordle-board"
             class="wordle-board"
@@ -2773,6 +2809,7 @@
             autocapitalize="characters"
           />
         </div>
+
         <div
           id="sudoku-game-container"
           style="display: none; margin-top: 10px"
@@ -2890,6 +2927,19 @@
           <div id="sudoku-board-wrapper" style="display: none">
             <div class="sudoku-stats-bar">
               <span id="sudoku-timer">00:00</span>
+              <button
+                id="btn-pwr-sudoku"
+                onclick="useSudokuPowerup()"
+                class="cookie-btn primary"
+                style="
+                  display: none;
+                  font-size: 0.7rem;
+                  padding: 4px 10px;
+                  margin: 0 10px;
+                "
+              >
+                <i class="ri-lightbulb-flash-line"></i> Revelar Celda
+              </button>
               <span id="sudoku-mistakes">Errores: 0/3</span>
             </div>
 
@@ -2937,7 +2987,21 @@
               <p id="memory-stats-text">Movimientos: 0</p>
             </div>
           </div>
-
+          <button
+            id="btn-pwr-memory"
+            onclick="useMemoryPowerup()"
+            class="cookie-btn primary"
+            style="
+              margin-bottom: 15px;
+              width: 100%;
+              display: none;
+              align-items: center;
+              justify-content: center;
+              gap: 8px;
+            "
+          >
+            <i class="ri-eye-fill"></i> Usar Ojo de Lince (Ver todas)
+          </button>
           <div id="memory-board" class="memory-board"></div>
 
           <div
@@ -3032,6 +3096,19 @@
                   "
                   >PREGUNTA 1/10</span
                 >
+                <button
+                  id="btn-pwr-quiz"
+                  onclick="useQuizPowerup()"
+                  class="cookie-btn primary"
+                  style="
+                    display: none;
+                    font-size: 0.65rem;
+                    padding: 4px 10px;
+                    border-radius: 8px;
+                  "
+                >
+                  <i class="ri-scissors-2-fill"></i> Usar 50%
+                </button>
                 <h3
                   id="quiz-question"
                   style="
@@ -3096,7 +3173,21 @@
               <p id="mastermind-stats-text">Intentos: 0 / 10</p>
             </div>
           </div>
-
+          <button
+            id="btn-pwr-mastermind"
+            onclick="useMastermindPowerup()"
+            class="cookie-btn primary"
+            style="
+              margin-bottom: 15px;
+              width: 100%;
+              display: none;
+              align-items: center;
+              justify-content: center;
+              gap: 8px;
+            "
+          >
+            <i class="ri-radar-line"></i> Usar Eco-Código (Revelar posición)
+          </button>
           <div
             id="mastermind-history"
             style="
@@ -3210,6 +3301,41 @@
                 "
               ></div>
             </div>
+
+            <button
+              id="btn-pwr-encadenadas"
+              onclick="useEncadenadasPowerup()"
+              class="cookie-btn primary"
+              style="
+                margin-bottom: 15px;
+                width: 100%;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+              "
+            >
+              <i class="ri-hourglass-2-fill"></i> Usar Reloj (+15s extra)
+            </button>
+
+            <button
+              id="btn-auto-encadenadas"
+              onclick="useAutoEncadenadasPowerup()"
+              class="cookie-btn secondary"
+              style="
+                margin-bottom: 15px;
+                width: 100%;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                border: 1px solid var(--text-accent);
+                background: transparent;
+                color: var(--text-accent);
+              "
+            >
+              <i class="ri-magic-line"></i> Usar Auto-Cadena (Rellenar palabra)
+            </button>
 
             <div class="info-card" style="text-align: center; padding: 20px">
               <div
@@ -3336,7 +3462,9 @@
             </button>
             <div>
               <h2>Graná<span class="text-accent">Jack</span></h2>
-              <p id="blackjack-balance">Saldo: 500 G$</p>
+              <p id="blackjack-balance">
+                Saldo: <span class="notranslate">0</span> G$
+              </p>
             </div>
           </div>
 
@@ -3444,6 +3572,23 @@
                 Pedir
               </button>
               <button
+                id="btn-pwr-blackjack"
+                onclick="useBlackjackPowerup()"
+                class="cookie-btn secondary"
+                style="
+                  flex: 1;
+                  background: var(--color-primary);
+                  color: white;
+                  border: none;
+                  display: none;
+                  align-items: center;
+                  justify-content: center;
+                  gap: 5px;
+                "
+              >
+                <i class="ri-shield-check-fill"></i> Seguro
+              </button>
+              <button
                 class="cookie-btn secondary"
                 style="
                   flex: 1;
@@ -3484,6 +3629,34 @@
           >
             ¡BLACKJACK!
           </div>
+        </div>
+      </div>
+
+      <div id="tienda-view" class="view-section">
+        <div class="section-header with-back-btn">
+          <button
+            onclick="navigateTo('juegos')"
+            class="icon-btn back-btn"
+            aria-label="Volver atrás"
+          >
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div>
+            <h2>GranáTienda</h2>
+            <p id="tienda-balance-display">
+              Tu saldo: <span class="notranslate">0</span> G$
+            </p>
+          </div>
+        </div>
+
+        <div class="fade-in-up" style="padding-bottom: 120px">
+          <h3 class="info-title" style="margin-left: 5px">Personalización</h3>
+          <div id="shop-colors-container" class="transport-grid"></div>
+
+          <h3 class="info-title" style="margin: 25px 0 10px 5px">
+            Ventajas en Juegos
+          </h3>
+          <div id="shop-powerups-container" class="dashboard-grid"></div>
         </div>
       </div>
 

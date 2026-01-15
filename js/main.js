@@ -112,6 +112,141 @@ let zbeMapInstance = null;
 let zbeTileLayer = null;
 let zbeDataLoaded = false;
 
+const SHOP_ITEMS = {
+  colors: [
+    { id: "color-default", name: "GranáGo", hex: "#2563eb", price: 0 },
+    {
+      id: "color-alhambra",
+      name: "Atardecer Alhambra",
+      hex: "#d97706",
+      price: 5000,
+    },
+    { id: "color-sierra", name: "Nieve Sierra", hex: "#06b6d4", price: 6500 },
+    {
+      id: "color-generalife",
+      name: "Verde Generalife",
+      hex: "#10b981",
+      price: 7000,
+    },
+    {
+      id: "color-sacromonte",
+      name: "Cueva Sacromonte",
+      hex: "#8b5cf6",
+      price: 8000,
+    },
+    {
+      id: "color-albaicin",
+      name: "Oro Albaicín",
+      hex: "#f59e0b",
+      price: 10000,
+    },
+    { id: "color-darro", name: "Río Darro", hex: "#14b8a6", price: 15000 },
+    {
+      id: "color-realejo",
+      name: "Barrio Realejo",
+      hex: "#ec4899",
+      price: 20000,
+    },
+  ],
+  powerups: [
+    {
+      id: "pista-wordle",
+      name: "Lupa Granádle",
+      desc: "Revela una letra",
+      price: 500,
+      icon: "ri-search-eye-line",
+      game: "wordle",
+    },
+    {
+      id: "celda-sudoku",
+      name: "Saber-doku",
+      desc: "Resuelve una celda",
+      price: 500,
+      icon: "ri-lightbulb-flash-line",
+      game: "sudoku",
+    },
+    {
+      id: "ojo-memory",
+      name: "Ojo de Lince",
+      desc: "Mira las cartas 2s",
+      price: 750,
+      icon: "ri-eye-fill",
+      game: "memory",
+    },
+    {
+      id: "mitad-quiz",
+      name: "Cincuenta%",
+      desc: "Quita 2 respuestas",
+      price: 500,
+      icon: "ri-scissors-2-fill",
+      game: "quiz",
+    },
+    {
+      id: "codigo-mind",
+      name: "Eco-Código",
+      desc: "Revela 1 posición",
+      price: 500,
+      icon: "ri-radar-line",
+      game: "mastermind",
+    },
+    {
+      id: "tiempo-encadenadas",
+      name: "Reloj de Arena",
+      desc: "+15s extra",
+      price: 750,
+      icon: "ri-hourglass-2-fill",
+      game: "encadenadas",
+    },
+    {
+      id: "auto-encadenadas",
+      name: "Auto-Cadena",
+      desc: "Encuentra una palabra por ti",
+      price: 1000,
+      icon: "ri-magic-line",
+      game: "encadenadas",
+    },
+    {
+      id: "seguro-bj",
+      name: "Seguro GranáJack",
+      desc: "Recupera 50% si pierdes",
+      price: 1000,
+      icon: "ri-shield-check-fill",
+      game: "blackjack",
+    },
+  ],
+};
+
+window.useInventoryItem = function (itemId) {
+  let inventory = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+  if (inventory[itemId] > 0) {
+    inventory[itemId]--;
+    localStorage.setItem("granaGo_inventory", JSON.stringify(inventory));
+    if (document.getElementById("tienda-view").classList.contains("active"))
+      renderShop();
+    return true;
+  }
+  showNotification(
+    "Sin existencias",
+    "Compra este objeto en la GranáTienda",
+    "error"
+  );
+  return false;
+};
+
+window.applyAccentColor = function (hex) {
+  document.documentElement.style.setProperty("--text-accent", hex);
+  document.documentElement.style.setProperty("--color-primary", hex);
+  localStorage.setItem("granaGo_accent_color", hex);
+  showNotification(
+    "Estilo actualizado",
+    "Nuevo color de acento aplicado",
+    "success"
+  );
+};
+
+const savedColor = localStorage.getItem("granaGo_accent_color");
+if (savedColor) applyAccentColor(savedColor);
+
 const loadedScripts = {};
 let googleTranslateScriptLoaded = false;
 let linesDataCache = {
@@ -608,8 +743,17 @@ window.navigateTo = async function (viewId, addToHistory = true) {
     setTimeout(() => initZBEMap(), 200);
   } else if (viewId === "juegos") {
     hideAllGameContainers();
+    updateGamesMenuBalance();
   } else if (viewId === "movilidad-sostenible") {
     setTimeout(() => initSostenibleMap(), 200);
+  } else if (viewId === "tienda") {
+    hideAllGameContainers();
+    updateGamesMenuBalance();
+    renderShop();
+    const juegosBtn = document.querySelector(
+      '.dock-item[data-target="juegos"]'
+    );
+    if (juegosBtn) juegosBtn.classList.add("active");
   }
 };
 
@@ -6156,7 +6300,11 @@ function startGameUI(isRestoring = false) {
   }
 
   document.getElementById("wordle-setup").style.display = "none";
-
+  const inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+  const btnPwr = document.getElementById("btn-pwr-wordle");
+  if (btnPwr) {
+    btnPwr.style.display = inv["pista-wordle"] > 0 ? "flex" : "none";
+  }
   const input = document.getElementById("wordle-native-input");
   input.type = "text";
   input.setAttribute("inputmode", "text");
@@ -6199,6 +6347,20 @@ function startGameUI(isRestoring = false) {
     }
   };
 }
+
+window.useWordlePowerup = function () {
+  if (wordleConfig.gameOver) return;
+  if (useInventoryItem("pista-wordle")) {
+    const letters = wordleConfig.originalTarget.split("");
+    const randomChar = letters[Math.floor(Math.random() * letters.length)];
+    showNotification(
+      "Pista",
+      `La palabra contiene la letra: ${randomChar}`,
+      "info"
+    );
+    document.getElementById("btn-pwr-wordle").style.display = "none";
+  }
+};
 
 function updateCurrentRow(text) {
   const start = wordleConfig.currentAttempt * wordleConfig.len;
@@ -6340,6 +6502,8 @@ function endGame(win) {
 
     if (wordleConfig.mode === "daily") stats.daily++;
     else stats.infinite++;
+    const reward = wordleConfig.mode === "daily" ? 100 : 20;
+    addGranaSaldo(reward, "palabra encontrada");
 
     showNotification("¡Conseguido!", "Palabra encontrada", "success");
   } else {
@@ -6365,10 +6529,20 @@ function endGame(win) {
 function showWordleResult(win) {
   const setup = document.getElementById("wordle-setup");
   setup.style.display = "block";
+
+  let shareButtonHTML = "";
+  if (wordleConfig.mode === "daily") {
+    shareButtonHTML = `
+      <button class="cookie-btn primary" onclick="shareWordleResult(${win})" style="width:100%; margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:8px;">
+        <i class="ri-share-line"></i> Compartir resultado
+      </button>`;
+  }
+
   const buttonHTML =
     wordleConfig.mode === "infinite"
       ? `<button class="cookie-btn primary" onclick="startWordleGame()">Jugar otra vez</button>`
-      : `<p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:10px;">Reto diario completado. ¡Vuelve mañana!</p>
+      : `${shareButtonHTML}
+       <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:10px;">Reto diario completado. ¡Vuelve mañana!</p>
        <button class="cookie-btn secondary" onclick="closeWordle()">Volver a Juegos</button>`;
 
   setup.innerHTML = `
@@ -6416,6 +6590,57 @@ function loadWordleState() {
     return null;
   }
   return state;
+}
+
+window.shareWordleResult = function (win) {
+  const attempts = win ? wordleConfig.currentAttempt + 1 : "X";
+  let grid = "";
+
+  const rowsPlayed = win
+    ? wordleConfig.currentAttempt + 1
+    : wordleConfig.attempts;
+
+  for (let r = 0; r < rowsPlayed; r++) {
+    for (let c = 0; c < wordleConfig.len; c++) {
+      const tile = document.getElementById(`tile-${r * wordleConfig.len + c}`);
+      if (tile) {
+        if (tile.classList.contains("correct")) grid += "🟩";
+        else if (tile.classList.contains("present")) grid += "🟨";
+        else grid += "⬜";
+      }
+    }
+    grid += "\n";
+  }
+
+  const shareText = `Granádle (${wordleConfig.len} letras) ${attempts}/${wordleConfig.attempts}\n\n${grid}\n#GranáGo`;
+
+  if (navigator.share) {
+    navigator
+      .share({
+        title: "Mi resultado en Granádle",
+        text: shareText,
+      })
+      .catch(() => {
+        copyToClipboard(shareText);
+      });
+  } else {
+    copyToClipboard(shareText);
+  }
+};
+
+function copyToClipboard(text) {
+  navigator.clipboard
+    .writeText(text)
+    .then(() => {
+      showNotification(
+        "¡Copiado!",
+        "Resultado copiado al portapapeles",
+        "success"
+      );
+    })
+    .catch(() => {
+      showNotification("Error", "No se pudo copiar el resultado", "error");
+    });
 }
 
 let sudokuConfig = {
@@ -6588,6 +6813,12 @@ window.startSudokuGame = function () {
   document.getElementById("sudoku-setup").style.display = "none";
   document.getElementById("sudoku-board-wrapper").style.display = "block";
 
+  const inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+  const btnPwr = document.getElementById("btn-pwr-sudoku");
+  if (btnPwr) {
+    btnPwr.style.display = inv["celda-sudoku"] > 0 ? "flex" : "none";
+  }
+
   renderSudokuBoard();
   startSudokuTimer();
 };
@@ -6636,6 +6867,28 @@ function renderSudokuBoard() {
     boardEl.appendChild(cell);
   }
 }
+
+window.useSudokuPowerup = function () {
+  if (sudokuConfig.gameOver || sudokuConfig.selectedCell === null) {
+    showNotification("Aviso", "Selecciona primero una casilla vacía", "info");
+    return;
+  }
+
+  const idx = sudokuConfig.selectedCell;
+  if (
+    sudokuConfig.fixed[idx] ||
+    sudokuConfig.board[idx] === sudokuConfig.solution[idx]
+  ) {
+    return;
+  }
+
+  if (useInventoryItem("celda-sudoku")) {
+    const correctNum = sudokuConfig.solution[idx];
+    handleSudokuLogic(correctNum);
+    document.getElementById("btn-pwr-sudoku").style.display = "none";
+    showNotification("Saber-doku", "Celda resuelta correctamente", "success");
+  }
+};
 
 let sudokuInputInitialized = false;
 
@@ -6807,6 +7060,9 @@ function endSudokuGame(win) {
         document.getElementById("sudoku-timer").innerText
       }`;
     }, 1000);
+
+    const reward = sudokuConfig.mode === "daily" ? 150 : 30;
+    addGranaSaldo(reward, "completar Sudoku");
   } else {
     showNotification("Fin del juego", "Demasiados errores", "error");
 
@@ -6900,6 +7156,12 @@ function initMemoryGame() {
   board.innerHTML = "";
   msg.style.display = "none";
 
+  const inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+  const btnPwr = document.getElementById("btn-pwr-memory");
+  if (btnPwr) {
+    btnPwr.style.display = inv["ojo-memory"] > 0 ? "flex" : "none";
+  }
+
   memoryConfig.moves = 0;
   memoryConfig.pairsFound = 0;
   memoryConfig.hasFlippedCard = false;
@@ -6975,6 +7237,7 @@ function disableCards() {
       document.getElementById("memory-message").style.display = "block";
       showNotification("¡Genial!", "Has completado el Memory", "success");
     }, 500);
+    addGranaSaldo(25, "completar el Memory");
   }
 }
 
@@ -6997,6 +7260,40 @@ function updateMemoryStats() {
   const el = document.getElementById("memory-stats-text");
   if (el) el.innerText = `Movimientos: ${memoryConfig.moves}`;
 }
+
+window.useMemoryPowerup = function () {
+  if (
+    memoryConfig.lockBoard ||
+    memoryConfig.pairsFound === memoryConfig.totalPairs
+  )
+    return;
+
+  if (useInventoryItem("ojo-memory")) {
+    memoryConfig.lockBoard = true;
+
+    const allCards = document.querySelectorAll(".memory-card:not(.matched)");
+
+    allCards.forEach((c) => c.classList.add("flip"));
+
+    setTimeout(() => {
+      allCards.forEach((c) => {
+        if (c !== memoryConfig.firstCard) {
+          c.classList.remove("flip");
+        }
+      });
+
+      memoryConfig.lockBoard = false;
+      document.getElementById("btn-pwr-memory").style.display = "none";
+      showNotification(
+        "Ojo de Lince",
+        "¡Espero que las hayas memorizado!",
+        "info"
+      );
+    }, 2000);
+
+    showNotification("Power-up", "Visualizando tablero...", "info");
+  }
+};
 
 let quizConfig = {
   allQuestions: [],
@@ -7065,6 +7362,12 @@ function showQuestion() {
   container.classList.remove("fade-in-right");
   void container.offsetWidth;
   container.classList.add("fade-in-right");
+  const inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+  const btnPwr = document.getElementById("btn-pwr-quiz");
+  if (btnPwr) {
+    btnPwr.style.display =
+      inv["mitad-quiz"] > 0 && !quizConfig.isAnswered ? "block" : "none";
+  }
   counterEl.innerText = `PREGUNTA ${quizConfig.currentIdx + 1} / ${
     quizConfig.questionsPerRound
   }`;
@@ -7121,6 +7424,38 @@ function handleQuizAnswer(selectedText, correctText, btnElement) {
   }, 1500);
 }
 
+window.useQuizPowerup = function () {
+  if (quizConfig.isAnswered) return;
+
+  if (useInventoryItem("mitad-quiz")) {
+    const qData = quizConfig.roundQuestions[quizConfig.currentIdx];
+    const btns = Array.from(document.querySelectorAll(".quiz-btn"));
+
+    const incorrectBtns = btns.filter((btn) => {
+      const btnText = btn.querySelector("span").innerText.trim();
+      return btnText !== qData.respuesta_correcta;
+    });
+
+    incorrectBtns.sort(() => 0.5 - Math.random());
+
+    for (let i = 0; i < 2; i++) {
+      if (incorrectBtns[i]) {
+        incorrectBtns[i].style.opacity = "0.2";
+        incorrectBtns[i].style.pointerEvents = "none";
+        incorrectBtns[i].querySelector("i").className =
+          "icon ri-close-circle-line";
+      }
+    }
+
+    document.getElementById("btn-pwr-quiz").style.display = "none";
+    showNotification(
+      "Power-up",
+      "Se han eliminado dos respuestas incorrectas",
+      "info"
+    );
+  }
+};
+
 function finishQuizGame() {
   document.getElementById("quiz-question-box").style.display = "none";
   document.getElementById("quiz-progress-bar").style.width = "100%";
@@ -7158,6 +7493,10 @@ function finishQuizGame() {
     title.style.color = "var(--color-error)";
     icon.className = "icon ri-emotion-sad-line";
     icon.style.color = "var(--color-error)";
+  }
+
+  if (score > 0) {
+    addGranaSaldo(score * 5, "aciertos en el Quiz");
   }
 }
 
@@ -7797,6 +8136,11 @@ window.initMastermindGame = function () {
   document.getElementById("mastermind-history").innerHTML = "";
   document.getElementById("mastermind-message").style.display = "none";
   document.getElementById("mastermind-controls").style.display = "block";
+  const inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+  const btnPwr = document.getElementById("btn-pwr-mastermind");
+  if (btnPwr) {
+    btnPwr.style.display = inv["codigo-mind"] > 0 ? "flex" : "none";
+  }
   document.getElementById(
     "mastermind-stats-text"
   ).innerText = `Intentos: 0 / ${mastermindConfig.maxAttempts}`;
@@ -7949,9 +8293,43 @@ function addMastermindHistoryRow(guess, pos, icon) {
   history.scrollTop = history.scrollHeight;
 }
 
+window.useMastermindPowerup = function () {
+  if (mastermindConfig.gameOver) return;
+
+  if (useInventoryItem("codigo-mind")) {
+    const pos = Math.floor(Math.random() * 4);
+    const iconClass = mastermindConfig.target[pos];
+
+    const iconNames = {
+      "ri-bus-fill": "Autobús",
+      "ri-train-fill": "Metro",
+      "ri-taxi-fill": "Taxi",
+      "ri-parking-box-fill": "Parking",
+      "ri-gas-station-fill": "Gasolinera",
+      "ri-camera-lens-fill": "Cámara",
+    };
+
+    const name = iconNames[iconClass] || "icono desconocido";
+
+    showNotification(
+      "Eco-Código",
+      `En la posición ${pos + 1} hay un: ${name}`,
+      "info"
+    );
+
+    document.getElementById("btn-pwr-mastermind").style.display = "none";
+  }
+};
+
 function endMastermind(win) {
   mastermindConfig.gameOver = true;
   document.getElementById("mastermind-controls").style.display = "none";
+  if (win) {
+    const bonus =
+      (mastermindConfig.maxAttempts - mastermindConfig.attempts) * 10;
+    const totalReward = 40 + bonus;
+    addGranaSaldo(totalReward, "descifrar el código");
+  }
   const msg = document.getElementById("mastermind-message");
   msg.style.display = "block";
   msg.style.borderLeft = `4px solid ${win ? "#10b981" : "#ef4444"}`;
@@ -8031,6 +8409,15 @@ window.surrenderEncadenadas = function () {
 function initEncadenadas() {
   const keys = Object.keys(encadenadasData);
   const startWord = keys[Math.floor(Math.random() * keys.length)];
+  const inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+  const btnPwr = document.getElementById("btn-pwr-encadenadas");
+  if (btnPwr) {
+    btnPwr.style.display = inv["tiempo-encadenadas"] > 0 ? "flex" : "none";
+  }
+  const btnAuto = document.getElementById("btn-auto-encadenadas");
+  if (btnAuto) {
+    btnAuto.style.display = inv["auto-encadenadas"] > 0 ? "flex" : "none";
+  }
 
   encadenadasState = {
     lastWord: startWord,
@@ -8085,6 +8472,63 @@ function updateEncadenadasUI() {
     "encadenadas-score"
   ).innerText = `Puntuación: ${encadenadasState.score}`;
 }
+
+window.useEncadenadasPowerup = function () {
+  if (encadenadasState.timeLeft <= 0) return;
+
+  if (useInventoryItem("tiempo-encadenadas")) {
+    encadenadasState.timeLeft += 15;
+
+    if (encadenadasState.timeLeft > 45) encadenadasState.timeLeft = 45;
+
+    showNotification("Tiempo Extra", "¡Has ganado 15 segundos!", "success");
+
+    document.getElementById("btn-pwr-encadenadas").style.display = "none";
+
+    if (navigator.vibrate) navigator.vibrate(100);
+  }
+};
+
+window.useAutoEncadenadasPowerup = function () {
+  if (encadenadasState.timeLeft <= 0) return;
+
+  if (useInventoryItem("auto-encadenadas")) {
+    const targetSyllable = encadenadasState.lastSyllable;
+    const dictionary = Object.keys(encadenadasData);
+    const foundWord = dictionary.find((word) => {
+      const normalized = normalizeGameInput(word);
+      return (
+        normalized.startsWith(targetSyllable) &&
+        !encadenadasState.usedWords.has(normalized)
+      );
+    });
+
+    if (foundWord) {
+      const input = document.getElementById("encadenadas-input");
+      input.value = foundWord;
+
+      showNotification(
+        "Auto-Cadena",
+        `Palabra encontrada: ${foundWord.toUpperCase()}`,
+        "success"
+      );
+
+      setTimeout(() => {
+        submitEncadenada();
+
+        document.getElementById("btn-auto-encadenadas").style.display = "none";
+      }, 500);
+
+      if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+    } else {
+      showNotification(
+        "Error",
+        "No se encontró ninguna palabra disponible",
+        "error"
+      );
+    }
+  }
+};
 
 function normalizeGameInput(text) {
   return text
@@ -8157,6 +8601,10 @@ function endEncadenadasGame(reason) {
     "encadenadas-result-score"
   ).innerText = `Puntuación final: ${encadenadasState.score}`;
 
+  if (encadenadasState.score > 0) {
+    addGranaSaldo(encadenadasState.score * 2, "palabras encadenadas");
+  }
+
   if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 }
 
@@ -8170,7 +8618,7 @@ let bjState = {
   deck: [],
   playerHand: [],
   dealerHand: [],
-  balance: parseInt(localStorage.getItem("granaGo_bj_balance")) || 500,
+  balance: 0,
   currentBet: 0,
   gameOver: false,
 };
@@ -8179,6 +8627,22 @@ function openBlackjackMenu() {
   hideAllGameContainers();
   document.getElementById("games-menu").style.display = "none";
   document.getElementById("blackjack-game-container").style.display = "block";
+
+  const savedBalance = localStorage.getItem("granaGo_bj_balance");
+  let currentBalance = savedBalance === null ? 500 : parseInt(savedBalance);
+
+  if (currentBalance <= 0) {
+    currentBalance = 50;
+    localStorage.setItem("granaGo_bj_balance", 50);
+    showNotification(
+      "Regalo de bienvenida",
+      "Has recibido 50 G$ de cortesía",
+      "success"
+    );
+  }
+
+  bjState.balance = currentBalance;
+
   updateBJUI();
   initBlackjackRound();
   trackRecentItem("granaGo_recent_games", "GranáJack");
@@ -8195,6 +8659,8 @@ function initBlackjackRound() {
   document.getElementById("play-buttons").style.display = "none";
   document.getElementById("betting-area").style.display = "flex";
 
+  const btnPwr = document.getElementById("btn-pwr-blackjack");
+  if (btnPwr) btnPwr.style.display = "none";
   updateBJUI();
 }
 
@@ -8256,6 +8722,12 @@ window.blackjackAction = function (action, amount) {
     document.getElementById("betting-area").style.display = "none";
     document.getElementById("play-buttons").style.display = "flex";
 
+    const inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+    const btnPwr = document.getElementById("btn-pwr-blackjack");
+    if (btnPwr && inv["seguro-bj"] > 0) {
+      btnPwr.style.display = "flex";
+    }
+
     if (getHandScore(bjState.playerHand) === 21) {
       triggerBlackjackAnim();
       setTimeout(() => blackjackAction("stand"), 1600);
@@ -8310,6 +8782,16 @@ function resolveBJWinner() {
     bjState.balance += bjState.currentBet * 2;
   } else if (push) {
     bjState.balance += bjState.currentBet;
+  }
+
+  if (bjState.hasInsurance) {
+    const refund = Math.floor(bjState.currentBet * 0.5);
+    bjState.balance += refund;
+    showNotification(
+      "Seguro aplicado",
+      `Has recuperado ${refund} G$ (50%)`,
+      "success"
+    );
   }
 
   if (bjState.balance <= 0) {
@@ -8375,7 +8857,26 @@ function updateBJUI() {
   document.getElementById("dealer-score").innerText = bjState.gameOver
     ? getHandScore(bjState.dealerHand)
     : "?";
+
+  updateGamesMenuBalance();
 }
+
+window.useBlackjackPowerup = function () {
+  if (bjState.gameOver || bjState.hasInsurance) return;
+
+  if (useInventoryItem("seguro-bj")) {
+    bjState.hasInsurance = true;
+    showNotification(
+      "Seguro Activado",
+      "Recuperarás el 50% de tu apuesta si pierdes.",
+      "info"
+    );
+
+    document.getElementById("btn-pwr-blackjack").style.display = "none";
+
+    if (navigator.vibrate) navigator.vibrate(50);
+  }
+};
 
 function closeBlackjack() {
   document.getElementById("games-menu").style.display = "flex";
@@ -8587,7 +9088,6 @@ async function loadSostenibleData() {
 window.locateUserSostenible = function (isInitial = false) {
   if (!sostenibleMap) return;
 
-  // Solo mostramos la notificación si el usuario pulsa el botón (no en carga inicial)
   if (!isInitial) {
     showNotification("GPS", "Localizando...", "info");
   }
@@ -8652,4 +9152,159 @@ window.toggleSostenibleLayer = function (type, btn) {
       sostenibleMap.removeLayer(parkingBiciLayer);
     }
   }
+};
+
+window.addGranaSaldo = function (amount, reason) {
+  const savedBalance = localStorage.getItem("granaGo_bj_balance");
+  let currentBalance = savedBalance === null ? 500 : parseInt(savedBalance);
+  currentBalance += amount;
+  localStorage.setItem("granaGo_bj_balance", currentBalance);
+
+  if (typeof updateBJUI === "function") updateBJUI();
+  if (typeof updateGamesMenuBalance === "function") updateGamesMenuBalance();
+
+  showNotification("¡GranáSaldo!", `+${amount} G$ por ${reason}`, "success");
+};
+
+window.updateGamesMenuBalance = function () {
+  const savedBalance = localStorage.getItem("granaGo_bj_balance");
+  const balance = savedBalance === null ? 500 : parseInt(savedBalance);
+
+  const el = document.getElementById("games-main-balance");
+  if (el) {
+    el.innerHTML = `Saldo: <span class="notranslate" style="font-weight:800; color:var(--text-accent);">${balance}</span> G$`;
+  }
+};
+
+window.renderShop = function () {
+  const savedBalance = localStorage.getItem("granaGo_bj_balance");
+  const balance = savedBalance === null ? 500 : parseInt(savedBalance);
+  const balDisplay = document.getElementById("tienda-balance-display");
+  if (balDisplay)
+    balDisplay.innerHTML = `Saldo actual: <span class="text-accent" style="font-weight:800;">${balance}</span> G$`;
+
+  const colorsContainer = document.getElementById("shop-colors-container");
+  const pwrContainer = document.getElementById("shop-powerups-container");
+
+  const ownedColors = JSON.parse(
+    localStorage.getItem("granaGo_owned_colors") || '["color-default"]'
+  );
+  const inventory = JSON.parse(
+    localStorage.getItem("granaGo_inventory") || "{}"
+  );
+  const activeColor = localStorage.getItem("granaGo_accent_color") || "#2563eb";
+
+  if (colorsContainer) {
+    colorsContainer.innerHTML = SHOP_ITEMS.colors
+      .map((c) => {
+        const isOwned = ownedColors.includes(c.id);
+        const isActive = activeColor === c.hex;
+
+        return `
+        <div class="transport-card" style="justify-content: space-between; border-left: 4px solid ${
+          c.hex
+        }; align-items: center; padding: 12px 15px;">
+          <div style="display: flex; align-items: center; gap: 15px">
+            <div class="card-icon-wrapper" style="background: ${
+              c.hex
+            }1A; color: ${c.hex}; width: 42px; height: 42px; min-width: 42px;">
+              <i class="ri-palette-fill"></i>
+            </div>
+            <div class="transport-info">
+              <h3 style="font-size: 0.95rem; margin:0;">${c.name}</h3>
+              <p style="margin:0; opacity: 0.7;">${
+                isOwned ? "Propiedad" : c.price + " G$"
+              }</p>
+            </div>
+          </div>
+          <div style="flex-shrink: 0; margin-left: 10px;">
+            ${
+              isOwned
+                ? `<button class="cookie-btn ${
+                    isActive ? "secondary" : "primary"
+                  }" 
+                       style="min-width: 100px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;" 
+                       onclick="applyAccentColor('${c.hex}')" ${
+                    isActive ? "disabled" : ""
+                  }>
+                 ${isActive ? "Activo" : "Usar"}
+               </button>`
+                : `<button class="cookie-btn secondary" 
+                       style="min-width: 100px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;" 
+                       onclick="buyItem('${c.id}', 'color')">
+                 Comprar
+               </button>`
+            }
+          </div>
+        </div>`;
+      })
+      .join("");
+  }
+
+  if (pwrContainer) {
+    pwrContainer.innerHTML = SHOP_ITEMS.powerups
+      .map((p) => {
+        const count = inventory[p.id] || 0;
+        return `
+        <div class="square-card" style="height: auto; min-height: 185px; padding: 18px 15px 15px 15px; display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+          <div class="square-icon" style="background: var(--text-accent)1A; color: var(--text-accent); margin: 0 auto 8px auto; width: 44px; height: 44px;">
+            <i class="${p.icon}" style="font-size: 1.3rem;"></i>
+          </div>
+          <div style="text-align:center; flex: 1; display:flex; flex-direction:column; justify-content:center; width: 100%; margin-bottom: 12px;">
+             <span style="font-size:0.85rem; font-weight:800; display:block; line-height:1.2; margin-bottom: 3px;">${p.name}</span>
+             <p style="font-size:0.65rem; opacity:0.6; margin:0; line-height: 1.3;">${p.desc}</p>
+          </div>
+          <button class="cookie-btn secondary" 
+                  style="width: 100%; height: 42px; padding: 0; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0;" 
+                  onclick="buyItem('${p.id}', 'powerup')">
+            <span style="font-weight: 800;">${p.price} G$</span>
+            <span style="opacity: 0.5; font-size: 0.7rem; font-weight: 400;">(${count})</span>
+          </button>
+        </div>`;
+      })
+      .join("");
+  }
+};
+
+window.buyItem = function (id, type) {
+  const item =
+    type === "color"
+      ? SHOP_ITEMS.colors.find((c) => c.id === id)
+      : SHOP_ITEMS.powerups.find((p) => p.id === id);
+
+  const savedBalance = localStorage.getItem("granaGo_bj_balance");
+  let balance = savedBalance === null ? 500 : parseInt(savedBalance);
+
+  if (balance < item.price) {
+    showNotification(
+      "Saldo insuficiente",
+      "¡Sigue jugando para ganar más G$!",
+      "error"
+    );
+    return;
+  }
+
+  balance -= item.price;
+  localStorage.setItem("granaGo_bj_balance", balance);
+
+  if (type === "color") {
+    let owned = JSON.parse(
+      localStorage.getItem("granaGo_owned_colors") || '["color-default"]'
+    );
+    if (!owned.includes(id)) owned.push(id);
+    localStorage.setItem("granaGo_owned_colors", JSON.stringify(owned));
+    applyAccentColor(item.hex);
+  } else {
+    let inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+    inv[id] = (inv[id] || 0) + 1;
+    localStorage.setItem("granaGo_inventory", JSON.stringify(inv));
+  }
+
+  renderShop();
+  updateGamesMenuBalance();
+  showNotification(
+    "¡Compra realizada!",
+    `Has adquirido: ${item.name}`,
+    "success"
+  );
 };
