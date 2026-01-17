@@ -5654,7 +5654,7 @@ if ("serviceWorker" in navigator) {
           () => {
             reg.update();
           },
-          5 * 60 * 1000,
+          15 * 60 * 1000,
         );
 
         reg.addEventListener("updatefound", () => {
@@ -5667,7 +5667,7 @@ if ("serviceWorker" in navigator) {
             ) {
               setTimeout(() => {
                 showUpdateNotification();
-              }, 3750);
+              }, 1500);
             }
           });
         });
