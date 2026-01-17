@@ -102,6 +102,8 @@ let sostenibleUserMarker = null;
 let wordleSetupHTML = "";
 let isMuted = false;
 let speedLimitsData = null;
+let slotBet = 10;
+let slotsSpinning = false;
 
 let taxiMapInstance = null;
 let taxiLayersGroup = null;
@@ -744,6 +746,7 @@ window.navigateTo = async function (viewId, addToHistory = true) {
   } else if (viewId === "juegos") {
     hideAllGameContainers();
     updateGamesMenuBalance();
+    checkDailyReward();
   } else if (viewId === "movilidad-sostenible") {
     setTimeout(() => initSostenibleMap(), 200);
   } else if (viewId === "tienda") {
@@ -8632,17 +8635,23 @@ function openBlackjackMenu() {
   let currentBalance = savedBalance === null ? 500 : parseInt(savedBalance);
 
   if (currentBalance <= 0) {
-    currentBalance = 50;
-    localStorage.setItem("granaGo_bj_balance", 50);
-    showNotification(
-      "Regalo de bienvenida",
-      "Has recibido 50 G$ de cortesía",
-      "success"
+    let courtesyCount = parseInt(
+      localStorage.getItem("granaGo_bj_courtesy_count") || "0"
     );
+    if (courtesyCount < 3) {
+      currentBalance = 50;
+      courtesyCount++;
+      localStorage.setItem("granaGo_bj_balance", 50);
+      localStorage.setItem("granaGo_bj_courtesy_count", courtesyCount);
+      showNotification(
+        "Regalo de cortesía",
+        `Has recibido 50 G$ (${courtesyCount}/3)`,
+        "success"
+      );
+    }
   }
 
   bjState.balance = currentBalance;
-
   updateBJUI();
   initBlackjackRound();
   trackRecentItem("granaGo_recent_games", "GranáJack");
@@ -8795,12 +8804,25 @@ function resolveBJWinner() {
   }
 
   if (bjState.balance <= 0) {
-    bjState.balance = 50;
-    showNotification(
-      "Cortesía de GranáGo",
-      "Has recibido 50 G$ para seguir jugando",
-      "success"
+    let courtesyCount = parseInt(
+      localStorage.getItem("granaGo_bj_courtesy_count") || "0"
     );
+    if (courtesyCount < 3) {
+      bjState.balance = 50;
+      courtesyCount++;
+      localStorage.setItem("granaGo_bj_courtesy_count", courtesyCount);
+      showNotification(
+        "Cortesía de GranáGo",
+        `Has recibido 50 G$ para seguir jugando (${courtesyCount}/3)`,
+        "success"
+      );
+    } else {
+      showNotification(
+        "Sin saldo",
+        "Has agotado tus regalos de cortesía.",
+        "error"
+      );
+    }
   }
 
   localStorage.setItem("granaGo_bj_balance", bjState.balance);
@@ -9308,3 +9330,211 @@ window.buyItem = function (id, type) {
     "success"
   );
 };
+
+window.checkDailyReward = function () {
+  const lastClaim = localStorage.getItem("granaGo_last_reward_date");
+  const today = new Date().toDateString();
+  const banner = document.getElementById("daily-reward-banner");
+
+  if (lastClaim !== today) {
+    banner.style.display = "block";
+  } else {
+    banner.style.display = "none";
+  }
+};
+
+window.claimDailyReward = function () {
+  const today = new Date().toDateString();
+  localStorage.setItem("granaGo_last_reward_date", today);
+
+  addGranaSaldo(50, "recompensa diaria");
+  document.getElementById("daily-reward-banner").style.display = "none";
+
+  if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+};
+
+const slotIcons = [
+  "ri-bus-fill",
+  "ri-train-fill",
+  "ri-taxi-fill",
+  "ri-parking-box-fill",
+  "ri-gas-station-fill",
+  "ri-camera-lens-fill",
+];
+
+const PAYLINES = [
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [0, 4, 8],
+  [2, 4, 6],
+];
+
+window.openSlotsMenu = function () {
+  document.getElementById("games-menu").style.display = "none";
+  document.getElementById("slots-game-container").style.display = "block";
+
+  let balance = parseInt(localStorage.getItem("granaGo_bj_balance") || 500);
+
+  if (balance <= 0) {
+    let courtesyCount = parseInt(
+      localStorage.getItem("granaGo_slots_courtesy_count") || "0"
+    );
+    if (courtesyCount < 3) {
+      balance = 50;
+      courtesyCount++;
+      localStorage.setItem("granaGo_bj_balance", 50);
+      localStorage.setItem("granaGo_slots_courtesy_count", courtesyCount);
+      showNotification(
+        "Regalo de cortesía",
+        `50 G$ para probar suerte (${courtesyCount}/3)`,
+        "success"
+      );
+    }
+  }
+
+  updateSlotsUI();
+  trackRecentItem("granaGo_recent_games", "GranáSlots");
+};
+
+window.closeSlots = function () {
+  if (slotsSpinning) return;
+  document.getElementById("games-menu").style.display = "flex";
+  document.getElementById("slots-game-container").style.display = "none";
+};
+
+window.setSlotBet = function (amount) {
+  if (slotsSpinning) return;
+  const balance = parseInt(localStorage.getItem("granaGo_bj_balance") || 500);
+  slotBet = amount === "all" ? balance : amount;
+  document.getElementById("current-slot-bet").innerText = slotBet;
+};
+
+window.spinSlots = function () {
+  let balance = parseInt(localStorage.getItem("granaGo_bj_balance") || 500);
+
+  if (balance < slotBet || slotBet <= 0) {
+    showNotification("Saldo insuficiente", "Ajusta tu apuesta", "error");
+    return;
+  }
+
+  if (slotsSpinning) return;
+  slotsSpinning = true;
+
+  balance -= slotBet;
+  localStorage.setItem("granaGo_bj_balance", balance);
+  updateSlotsUI();
+
+  const wrappers = document.querySelectorAll(".slot-icon-wrapper");
+  const cells = document.querySelectorAll(".slot-cell");
+
+  cells.forEach((c) => c.classList.remove("win-pulse"));
+  wrappers.forEach((w) => w.classList.add("reel-spinning"));
+
+  const finalResults = [];
+  for (let i = 0; i < 9; i++) {
+    finalResults.push(slotIcons[Math.floor(Math.random() * slotIcons.length)]);
+  }
+
+  setTimeout(() => {
+    for (let col = 0; col < 3; col++) {
+      setTimeout(() => {
+        const cellsInCol = [col, col + 3, col + 6];
+
+        cellsInCol.forEach((cellIndex) => {
+          const wrapper = document
+            .getElementById(`s-${cellIndex}`)
+            .querySelector(".slot-icon-wrapper");
+          wrapper.classList.remove("reel-spinning");
+          wrapper.innerHTML = `<i class="${finalResults[cellIndex]}"></i>`;
+          void wrapper.offsetWidth;
+          wrapper.classList.add("reel-stopping");
+          if (navigator.vibrate && cellIndex % 3 === 0) navigator.vibrate(30);
+        });
+
+        if (col === 2) {
+          setTimeout(() => {
+            wrappers.forEach((w) => w.classList.remove("reel-stopping"));
+            resolve3x3Results(finalResults);
+          }, 600);
+        }
+      }, col * 400);
+    }
+  }, 1200);
+};
+
+function resolve3x3Results(grid) {
+  slotsSpinning = false;
+  let totalWin = 0;
+  let winningCells = new Set();
+
+  PAYLINES.forEach((line) => {
+    const [a, b, c] = line;
+    const icons = [grid[a], grid[b], grid[c]];
+
+    if (icons[0] === icons[1] && icons[1] === icons[2]) {
+      const mult = icons[0] === "ri-train-fill" ? 15 : 8;
+      totalWin += Math.floor(slotBet * mult);
+      line.forEach((idx) => winningCells.add(idx));
+    } else if (
+      icons[0] === icons[1] ||
+      icons[1] === icons[2] ||
+      icons[0] === icons[2]
+    ) {
+      totalWin += Math.floor(slotBet * 0.5);
+    }
+  });
+
+  if (totalWin > 0) {
+    winningCells.forEach((idx) => {
+      document.getElementById(`s-${idx}`).classList.add("win-pulse");
+    });
+
+    addGranaSaldo(totalWin, "Premio GranáSlots");
+    showNotification("¡Premio!", `Has ganado ${totalWin} G$`, "success");
+    if (navigator.vibrate) navigator.vibrate([80, 50, 80, 50, 150]);
+  }
+
+  const currentBalance = parseInt(
+    localStorage.getItem("granaGo_bj_balance") || 500
+  );
+
+  if (currentBalance <= 0) {
+    let courtesyCount = parseInt(
+      localStorage.getItem("granaGo_slots_courtesy_count") || "0"
+    );
+    if (courtesyCount < 3) {
+      currentBalance = 50;
+      courtesyCount++;
+      localStorage.setItem("granaGo_bj_balance", currentBalance);
+      localStorage.setItem("granaGo_slots_courtesy_count", courtesyCount);
+      showNotification(
+        "Cortesía de GranáGo",
+        `Créditos añadidos (${courtesyCount}/3)`,
+        "success"
+      );
+    }
+  }
+
+  if (currentBalance < slotBet) {
+    slotBet = currentBalance;
+
+    const betDisplay = document.getElementById("current-slot-bet");
+    if (betDisplay) {
+      betDisplay.innerText = slotBet;
+    }
+
+    if (slotBet > 0) {
+      console.log("Apuesta ajustada al saldo disponible: " + slotBet);
+    }
+  }
+
+  updateSlotsUI();
+}
+
+function updateSlotsUI() {
+  const bal = localStorage.getItem("granaGo_bj_balance") || 500;
+  const el = document.getElementById("slots-balance");
+  if (el) el.innerHTML = `Saldo: <span class="notranslate">${bal}</span> G$`;
+  updateGamesMenuBalance();
+}

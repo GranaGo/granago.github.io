@@ -2585,6 +2585,44 @@
         </div>
       </div>
 
+      <div
+        id="daily-reward-banner"
+        class="info-card"
+        style="
+          display: none;
+          margin-bottom: 15px;
+          border-left: 4px solid var(--color-star);
+          background: rgba(251, 191, 36, 0.05);
+        "
+      >
+        <div style="display: flex; align-items: center; gap: 15px">
+          <div
+            class="card-icon-wrapper"
+            style="
+              background: rgba(251, 191, 36, 0.1);
+              color: #fbbf24;
+              width: 42px;
+              height: 42px;
+            "
+          >
+            <i class="ri-gift-fill"></i>
+          </div>
+          <div style="flex: 1">
+            <h3 style="margin: 0; font-size: 0.95rem">¡Regalo Diario!</h3>
+            <p style="margin: 0; font-size: 0.8rem; opacity: 0.8">
+              Reclama tus 50 G$ por volver hoy.
+            </p>
+          </div>
+          <button
+            class="cookie-btn primary"
+            onclick="claimDailyReward()"
+            style="padding: 8px 15px; font-size: 0.8rem; width: auto"
+          >
+            Reclamar
+          </button>
+        </div>
+      </div>
+
       <div id="juegos-view" class="view-section">
         <div class="section-header">
           <h2>Zona de Juegos</h2>
@@ -2705,6 +2743,19 @@
             <div class="transport-info">
               <h3>GranáJack</h3>
               <p>Gana al crupier y acumula GranáSaldo</p>
+            </div>
+            <i class="icon arrow-icon ri-arrow-right-s-line"></i>
+          </div>
+          <div class="transport-card" onclick="openSlotsMenu()">
+            <div
+              class="card-icon-wrapper"
+              style="background: rgba(236, 72, 153, 0.1); color: #ec4899"
+            >
+              <i class="icon ri-funds-box-fill"></i>
+            </div>
+            <div class="transport-info">
+              <h3>GranáSlots</h3>
+              <p>Prueba tu suerte con los iconos de la ciudad</p>
             </div>
             <i class="icon arrow-icon ri-arrow-right-s-line"></i>
           </div>
@@ -3654,6 +3705,172 @@
             style="display: none"
           >
             ¡BLACKJACK!
+          </div>
+        </div>
+        <div
+          id="slots-game-container"
+          style="display: none; margin-top: 10px"
+          class="fade-in-up"
+        >
+          <div class="section-header with-back-btn">
+            <button onclick="closeSlots()" class="icon-btn back-btn">
+              <i class="icon ri-arrow-left-line"></i>
+            </button>
+            <div>
+              <h2>Graná<span class="text-accent">Slots</span></h2>
+              <p id="slots-balance">
+                Saldo: <span class="notranslate">0</span> G$
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="info-card"
+            style="padding: 20px 10px; text-align: center; margin-bottom: 15px"
+          >
+            <div id="slots-grid" class="slots-3x3 notranslate">
+              <div class="slot-cell" id="s-0">
+                <div class="slot-icon-wrapper"><i class="ri-bus-fill"></i></div>
+              </div>
+              <div class="slot-cell" id="s-1">
+                <div class="slot-icon-wrapper">
+                  <i class="ri-train-fill"></i>
+                </div>
+              </div>
+              <div class="slot-cell" id="s-2">
+                <div class="slot-icon-wrapper">
+                  <i class="ri-taxi-fill"></i>
+                </div>
+              </div>
+              <div class="slot-cell" id="s-3">
+                <div class="slot-icon-wrapper">
+                  <i class="ri-parking-box-fill"></i>
+                </div>
+              </div>
+              <div class="slot-cell" id="s-4">
+                <div class="slot-icon-wrapper">
+                  <i class="ri-gas-station-fill"></i>
+                </div>
+              </div>
+              <div class="slot-cell" id="s-5">
+                <div class="slot-icon-wrapper">
+                  <i class="ri-camera-lens-fill"></i>
+                </div>
+              </div>
+              <div class="slot-cell" id="s-6">
+                <div class="slot-icon-wrapper"><i class="ri-bus-fill"></i></div>
+              </div>
+              <div class="slot-cell" id="s-7">
+                <div class="slot-icon-wrapper">
+                  <i class="ri-train-fill"></i>
+                </div>
+              </div>
+              <div class="slot-cell" id="s-8">
+                <div class="slot-icon-wrapper">
+                  <i class="ri-taxi-fill"></i>
+                </div>
+              </div>
+            </div>
+
+            <div id="slots-betting-area" style="margin-top: 20px">
+              <div
+                style="
+                  font-size: 0.8rem;
+                  color: var(--text-secondary);
+                  margin-bottom: 10px;
+                "
+              >
+                Apuesta actual:
+                <strong id="current-slot-bet" style="color: var(--text-accent)"
+                  >10</strong
+                >
+                G$
+              </div>
+              <div
+                style="
+                  display: flex;
+                  gap: 8px;
+                  justify-content: center;
+                  flex-wrap: wrap;
+                  margin-bottom: 15px;
+                "
+              >
+                <button
+                  class="cookie-btn bet-chip"
+                  style="background: #2563eb"
+                  onclick="setSlotBet(10)"
+                >
+                  10
+                </button>
+                <button
+                  class="cookie-btn bet-chip"
+                  style="background: #1d4ed8"
+                  onclick="setSlotBet(25)"
+                >
+                  25
+                </button>
+                <button
+                  class="cookie-btn bet-chip"
+                  style="background: #10b981"
+                  onclick="setSlotBet(50)"
+                >
+                  50
+                </button>
+                <button
+                  class="cookie-btn bet-chip"
+                  style="background: #059669"
+                  onclick="setSlotBet(75)"
+                >
+                  75
+                </button>
+                <button
+                  class="cookie-btn bet-chip"
+                  style="background: #d97706"
+                  onclick="setSlotBet(100)"
+                >
+                  100
+                </button>
+                <button
+                  class="cookie-btn bet-chip"
+                  style="background: #ef4444; width: 70px"
+                  onclick="setSlotBet('all')"
+                >
+                  TODO
+                </button>
+              </div>
+
+              <button
+                id="btn-spin-slots"
+                class="cookie-btn primary"
+                style="width: 100%; height: 55px; font-size: 1.1rem"
+                onclick="spinSlots()"
+              >
+                <i class="ri-refresh-line"></i> ¡GIRAR!
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="info-card"
+            style="font-size: 0.75rem; color: var(--text-secondary)"
+          >
+            <h4 style="margin: 0 0 8px 0; color: var(--text-primary)">
+              Líneas de Pago (x5): Horizontales y Diagonales
+            </h4>
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
+            >
+              <div>
+                3x <i class="ri-train-fill"></i>: <strong>x10 apuesta</strong>
+              </div>
+              <div>3x Iguales: <strong>x5 apuesta</strong></div>
+              <div>2x Iguales: <strong>x1.5 apuesta</strong></div>
+              <div
+                style="grid-column: span 2; opacity: 0.7; font-style: italic"
+              >
+                * Los premios de varias líneas se acumulan.
+              </div>
+            </div>
           </div>
         </div>
       </div>
