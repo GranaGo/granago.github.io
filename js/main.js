@@ -5806,22 +5806,31 @@ window.addEventListener("appinstalled", () => {
 window.hardReload = async function () {
   showNotification(
     "Reiniciando...",
-    "Borrando caché y actualizando...",
-    "info",
+    "Limpiando caché y forzando actualización...",
+    "info"
   );
 
-  if ("serviceWorker" in navigator) {
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    for (const registration of registrations) {
-      await registration.unregister();
+  try {
+    if ("serviceWorker" in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const registration of registrations) {
+        await registration.unregister();
+      }
     }
-  }
 
-  if ("caches" in window) {
-    const keys = await caches.keys();
-    await Promise.all(keys.map((key) => caches.delete(key)));
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((key) => caches.delete(key)));
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('t', Date.now());
+    window.location.href = url.toString();
+
+  } catch (error) {
+    console.error("Error durante la recarga forzada:", error);
+    window.location.reload();
   }
-  window.location.reload(true);
 };
 
 window.toggleNearbyPanel = function () {
