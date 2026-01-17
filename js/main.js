@@ -218,6 +218,29 @@ const SHOP_ITEMS = {
   ],
 };
 
+function hexToHSL(hex) {
+  let r = parseInt(hex.substring(1, 3), 16) / 255;
+  let g = parseInt(hex.substring(3, 5), 16) / 255;
+  let b = parseInt(hex.substring(5, 7), 16) / 255;
+
+  let max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+
+  if (max === min) {
+    h = s = 0;
+  } else {
+    let d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+  return { h: h * 360, s: s * 100, l: l * 100 };
+}
+
 window.useInventoryItem = function (itemId) {
   let inventory = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
   if (inventory[itemId] > 0) {
@@ -236,14 +259,29 @@ window.useInventoryItem = function (itemId) {
 };
 
 window.applyAccentColor = function (hex) {
-  document.documentElement.style.setProperty("--text-accent", hex);
-  document.documentElement.style.setProperty("--color-primary", hex);
   localStorage.setItem("granaGo_accent_color", hex);
-  showNotification(
-    "Estilo actualizado",
-    "Nuevo color de acento aplicado",
-    "success",
-  );
+
+  const isDark = document.body.classList.contains("dark-mode");
+  const hsl = hexToHSL(hex);
+
+  const root = document.documentElement;
+
+  root.style.setProperty("--text-accent", hex);
+  root.style.setProperty("--color-primary", hex);
+
+  if (isDark) {
+    root.style.setProperty("--bg-app", `hsl(${hsl.h}, ${Math.min(hsl.s, 30)}%, 8%)`);
+    root.style.setProperty("--bg-surface", `hsla(${hsl.h}, ${Math.min(hsl.s, 25)}%, 12%, 0.85)`);
+    root.style.setProperty("--bg-card", `hsl(${hsl.h}, ${Math.min(hsl.s, 20)}%, 15%)`);
+  } else {
+    root.style.setProperty("--bg-app", `hsl(${hsl.h}, ${Math.min(hsl.s, 20)}%, 96%)`);
+    root.style.setProperty("--bg-surface", `hsla(${hsl.h}, ${Math.min(hsl.s, 15)}%, 98%, 0.85)`);
+    root.style.setProperty("--bg-card", `#ffffff`);
+  }
+
+  if (document.getElementById("tienda-view")?.classList.contains("active")) renderShop();
+  const metaColor = document.querySelector('meta[name="theme-color"]');
+  if (metaColor) metaColor.content = getComputedStyle(root).getPropertyValue('--bg-app');
 };
 
 const savedColor = localStorage.getItem("granaGo_accent_color");
@@ -862,8 +900,8 @@ function initTheme() {
       const isDark = body.classList.contains("dark-mode");
       localStorage.setItem("theme", isDark ? "dark" : "light");
 
-      const metaColor = document.querySelector('meta[name="theme-color"]');
-      if (metaColor) metaColor.content = isDark ? "#0f172a" : "#f0f2f5";
+      const currentThemeHex = localStorage.getItem("granaGo_accent_color") || "#2563eb";
+      applyAccentColor(currentThemeHex);
 
       checkMapTheme();
       checkMapThemePlaces();
@@ -9520,9 +9558,9 @@ function initSupportTimers() {
   setTimeout(
     () => {
       showSupportNotification();
-      setInterval(showSupportNotification, 30 * 60 * 1000);
+      setInterval(showSupportNotification, 20 * 60 * 1000);
     },
-    5 * 60 * 1000,
+    2 * 60 * 1000,
   );
 }
 
