@@ -230,7 +230,7 @@ window.useInventoryItem = function (itemId) {
   showNotification(
     "Sin existencias",
     "Compra este objeto en la GranáTienda",
-    "error"
+    "error",
   );
   return false;
 };
@@ -242,7 +242,7 @@ window.applyAccentColor = function (hex) {
   showNotification(
     "Estilo actualizado",
     "Nuevo color de acento aplicado",
-    "success"
+    "success",
   );
 };
 
@@ -600,6 +600,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initWeather();
   initHomeDashboard();
   initCookieConsent();
+  initSupportTimers();
   const savedLang = localStorage.getItem("granaGo_selected_lang");
   const consent = localStorage.getItem("granaGo_cookie_consent");
 
@@ -754,7 +755,7 @@ window.navigateTo = async function (viewId, addToHistory = true) {
     updateGamesMenuBalance();
     renderShop();
     const juegosBtn = document.querySelector(
-      '.dock-item[data-target="juegos"]'
+      '.dock-item[data-target="juegos"]',
     );
     if (juegosBtn) juegosBtn.classList.add("active");
   }
@@ -807,10 +808,10 @@ window.showNotification = function (title, message, type = "info") {
   const lastToast = container.lastElementChild;
   if (lastToast) {
     const lastTitle = lastToast.querySelector(
-      ".notification-title"
+      ".notification-title",
     )?.textContent;
     const lastMessage = lastToast.querySelector(
-      ".notification-message"
+      ".notification-message",
     )?.textContent;
 
     if (lastTitle === title && lastMessage === message) {
@@ -880,7 +881,7 @@ function initWeather() {
     fetchWeatherData(
       parseFloat(savedLat),
       parseFloat(savedLng),
-      "Tu Ubicación"
+      "Tu Ubicación",
     );
   } else {
     fetchWeatherData(GRANADA_COORDS.lat, GRANADA_COORDS.lon, "Granada");
@@ -895,13 +896,13 @@ function initWeather() {
         fetchWeatherData(
           position.coords.latitude,
           position.coords.longitude,
-          "Tu Ubicación"
+          "Tu Ubicación",
         );
       },
       (error) => {
         console.warn("GPS clima no disponible, manteniendo datos anteriores.");
       },
-      { timeout: 5000, maximumAge: 600000 }
+      { timeout: 5000, maximumAge: 600000 },
     );
   }
 }
@@ -913,10 +914,10 @@ async function fetchWeatherData(lat, lon, locationName) {
   try {
     const [weatherRes, aqiRes] = await Promise.all([
       fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto`
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto`,
       ),
       fetch(
-        `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`
+        `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`,
       ),
     ]);
 
@@ -1032,7 +1033,7 @@ function checkMapTheme() {
   if (typeof placesMapInstance !== "undefined") {
     currentPlacesTileLayer = updateMapTheme(
       placesMapInstance,
-      currentPlacesTileLayer
+      currentPlacesTileLayer,
     );
   }
 
@@ -1075,7 +1076,7 @@ function checkMapTheme() {
 function checkMapThemePlaces() {
   currentPlacesTileLayer = updateMapTheme(
     placesMapInstance,
-    currentPlacesTileLayer
+    currentPlacesTileLayer,
   );
 }
 
@@ -1282,7 +1283,7 @@ async function initMapParadas() {
 
   try {
     const minimumTimePromise = new Promise((resolve) =>
-      setTimeout(resolve, 1000)
+      setTimeout(resolve, 1000),
     );
 
     if (!mapInstance) {
@@ -1325,7 +1326,7 @@ async function initMapParadas() {
         (e) => {
           console.log("Auto-gps no disponible o denegado");
         },
-        { enableHighAccuracy: true, timeout: 3000 }
+        { enableHighAccuracy: true, timeout: 3000 },
       );
 
       mapInstance.on("popupopen", (e) => {
@@ -1367,13 +1368,13 @@ async function initMapParadas() {
       };
 
       mapLayers.metro = createTransportCluster("cluster-metro-theme").addTo(
-        mapInstance
+        mapInstance,
       );
       mapLayers.urbano = createTransportCluster("cluster-urbano-theme").addTo(
-        mapInstance
+        mapInstance,
       );
       mapLayers.interurbano = createTransportCluster(
-        "cluster-inter-theme"
+        "cluster-inter-theme",
       ).addTo(mapInstance);
     }
 
@@ -1438,7 +1439,7 @@ window.locateUser = function () {
       showNotification(
         "Ubicación encontrada",
         "Te hemos localizado",
-        "success"
+        "success",
       );
     },
     (error) => {
@@ -1450,7 +1451,7 @@ window.locateUser = function () {
 
       showNotification("Error GPS", msg, "error");
     },
-    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
   );
 };
 
@@ -1495,7 +1496,7 @@ async function loadAndProcessStops() {
       "#009a44",
       "ri-train-fill",
       "popup-border-metro",
-      "metro"
+      "metro",
     );
     processStops(
       urbanoStops,
@@ -1504,7 +1505,7 @@ async function loadAndProcessStops() {
       "#D9281C",
       "ri-bus-fill",
       "popup-border-urbano",
-      "urbano"
+      "urbano",
     );
     processStops(
       interStops,
@@ -1513,7 +1514,7 @@ async function loadAndProcessStops() {
       "#2757f5",
       "ri-bus-2-fill",
       "popup-border-inter",
-      "interurbano"
+      "interurbano",
     );
   } catch (e) {
     console.error("Error cargando paradas:", e);
@@ -1528,7 +1529,7 @@ function processStops(
   mainColor,
   iconName,
   popupClass,
-  layerKey
+  layerKey,
 ) {
   const uniqueStops = new Map();
 
@@ -1620,7 +1621,7 @@ function processStops(
         autoPan: true,
         closeButton: false,
         offset: [0, -10],
-      }
+      },
     );
 
     marker.addTo(layerGroup);
@@ -1661,7 +1662,7 @@ if (searchInput) {
       .filter(
         (stop) =>
           stop.name.toLowerCase().includes(term) ||
-          stop.lines.toLowerCase().includes(term)
+          stop.lines.toLowerCase().includes(term),
       )
       .slice(0, 10);
     renderSearchResults(results);
@@ -1702,13 +1703,13 @@ function renderSearchResults(results) {
         if (!mapInstance.hasLayer(mapLayers[layerKey])) {
           mapInstance.addLayer(mapLayers[layerKey]);
           const filterBtn = document.querySelector(
-            `.filter-chip[data-layer="${layerKey}"]`
+            `.filter-chip[data-layer="${layerKey}"]`,
           );
           if (filterBtn) filterBtn.classList.add("active");
           showNotification(
             "Filtro activado",
             `Se ha activado la capa ${layerKey} para mostrar la parada.`,
-            "info"
+            "info",
           );
         }
         mapInstance.flyTo([stop.lat, stop.lon], 18, { duration: 1.5 });
@@ -1790,7 +1791,7 @@ function restoreTabState(type) {
   });
   if (!targetBtn) {
     targetBtn = Array.from(tabs).find((t) =>
-      t.innerText.toLowerCase().includes(type)
+      t.innerText.toLowerCase().includes(type),
     );
   }
   if (targetBtn) {
@@ -1840,11 +1841,11 @@ window.filterLines = async function (type, btn) {
 
   if (type === "metro") {
     filteredIds = allIds.filter(
-      (id) => id === "1" || id.toUpperCase().includes("M")
+      (id) => id === "1" || id.toUpperCase().includes("M"),
     );
   } else if (type === "interurbano") {
     filteredIds = allIds.filter(
-      (id) => !isNaN(id) && id.length >= 3 && id !== "111" && id !== "121"
+      (id) => !isNaN(id) && id.length >= 3 && id !== "111" && id !== "121",
     );
   } else {
     filteredIds = allIds.filter((id) => {
@@ -1908,11 +1909,10 @@ window.filterLines = async function (type, btn) {
 
     row.innerHTML = `
             <div class="line-icon-box" style="--line-color: ${color}">
-                ${
-                  type === "metro"
-                    ? '<i class="ri-train-fill" style="font-size:1.2rem"></i>'
-                    : id
-                }
+                ${type === "metro"
+        ? '<i class="ri-train-fill" style="font-size:1.2rem"></i>'
+        : id
+      }
             </div>
             <div class="line-info-col">
                 <span class="line-info-title notranslate">${nombreLinea}</span>
@@ -2100,7 +2100,7 @@ function renderLineStopsList() {
       if (matchIda || matchVuelta) connections.push(otherLineId);
     });
     return connections.sort((a, b) =>
-      a.localeCompare(b, undefined, { numeric: true })
+      a.localeCompare(b, undefined, { numeric: true }),
     );
   };
 
@@ -2259,7 +2259,7 @@ function renderLineSchedule() {
   const colVuelta = createScheduleCard(
     "VUELTA",
     scheduleData.vuelta,
-    "#64748b"
+    "#64748b",
   );
 
   gridDiv.appendChild(colIda);
@@ -2325,11 +2325,10 @@ async function fetchRealTimeData(id, type) {
       <div class="status-message" style="text-align:center; padding:20px; color:var(--text-secondary);">
          <span style="font-size:2rem; display:block; margin-bottom:10px;">${errorIcon}</span>
          <span style="font-weight:600;">${errorMsg}</span>
-         ${
-           isNightTime
-             ? '<p style="font-size:0.8rem; margin-top:5px;">Sin estimaciones en este horario</p>'
-             : ""
-         }
+         ${isNightTime
+        ? '<p style="font-size:0.8rem; margin-top:5px;">Sin estimaciones en este horario</p>'
+        : ""
+      }
       </div>`;
   }
 }
@@ -2368,7 +2367,7 @@ function renderRealTimeResults(data, type) {
           "M",
           "#009a44",
           "ri-train-fill",
-          "Metro"
+          "Metro",
         );
       });
       html += `</div>`;
@@ -2379,14 +2378,14 @@ function renderRealTimeResults(data, type) {
       const lineId = (p.linea?.id || p.linea || "?").toString();
       const regexRedundancy = new RegExp(
         `^(L[íi]nea\\s+)?${lineId}\\s*[-]?\\s*`,
-        "i"
+        "i",
       );
       const destinoClean = p.destino.replace(regexRedundancy, "").trim();
       const timeObj = formatTime(p.minutos, "urbano");
       const realColor =
         window.appColors &&
-        window.appColors.urbano &&
-        window.appColors.urbano[lineId]
+          window.appColors.urbano &&
+          window.appColors.urbano[lineId]
           ? window.appColors.urbano[lineId]
           : "#D9281C";
       html += createRowHTML(timeObj, lineId, realColor, null, destinoClean);
@@ -2402,7 +2401,7 @@ function createRowHTML(
   badgeText,
   badgeColor,
   iconClass,
-  destinationName
+  destinationName,
 ) {
   const leftContent = iconClass
     ? `<i class="icon ${iconClass}" style="color: ${badgeColor}; font-size: 1.4rem;"></i>
@@ -2466,7 +2465,7 @@ window.toggleFavorite = function (id, type, name, linesStr, btnElement) {
 window.toggleCurrentLineFav = function () {
   let favs = getFavoriteLines();
   const index = favs.findIndex(
-    (f) => f.id === currentLineId && f.type === currentTransportType
+    (f) => f.id === currentLineId && f.type === currentTransportType,
   );
 
   if (index !== -1) {
@@ -2501,7 +2500,7 @@ function updateLineFavIcon() {
   if (!btn) return;
   const favs = getFavoriteLines();
   const isFav = favs.some(
-    (f) => f.id === currentLineId && f.type === currentTransportType
+    (f) => f.id === currentLineId && f.type === currentTransportType,
   );
   if (isFav) {
     btn.innerHTML = '<i class="icon ri-star-fill" style="color:#fbbf24"></i>';
@@ -2540,17 +2539,14 @@ function renderFavoritesList() {
       const card = document.createElement("div");
       card.className = "fav-card";
       card.innerHTML = `
-                <div class="fav-info" onclick="openLineDetail('${l.id}', '${
-        l.type
-      }', '${l.color}', '${l.name}')" style="cursor:pointer; flex:1;">
-                    <div class="fav-icon-box" style="background-color:${
-                      l.color
-                    }; color:white; width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.1rem;">
-                        ${
-                          l.type === "metro"
-                            ? '<i class="ri-train-fill"></i>'
-                            : l.id
-                        }
+                <div class="fav-info" onclick="openLineDetail('${l.id}', '${l.type
+        }', '${l.color}', '${l.name}')" style="cursor:pointer; flex:1;">
+                    <div class="fav-icon-box" style="background-color:${l.color
+        }; color:white; width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.1rem;">
+                        ${l.type === "metro"
+          ? '<i class="ri-train-fill"></i>'
+          : l.id
+        }
                     </div>
                     <div class="fav-text">
                         <h4>Línea ${l.id}</h4>
@@ -2558,9 +2554,8 @@ function renderFavoritesList() {
                     </div>
                 </div>
                 <div class="fav-actions">
-                    <button class="icon-btn-small" onclick="deleteFavLine('${
-                      l.id
-                    }', '${l.type}')">
+                    <button class="icon-btn-small" onclick="deleteFavLine('${l.id
+        }', '${l.type}')">
                          <i class="icon ri-delete-bin-line" style="color:#ef4444; font-size:1.2rem;"></i>
                     </button>
                 </div>`;
@@ -2587,30 +2582,26 @@ function renderFavoritesList() {
       const card = document.createElement("div");
       card.className = "fav-card";
       card.innerHTML = `
-                <div class="fav-info" onclick="openRealTimeModal('${f.id}', '${
-        f.type
-      }', '${safeName}')" style="cursor:pointer; flex:1;">
+                <div class="fav-info" onclick="openRealTimeModal('${f.id}', '${f.type
+        }', '${safeName}')" style="cursor:pointer; flex:1;">
                     <div class="fav-icon-box" style="${bgStyle}">
                         <i class="icon ${iconClass}"></i>
                     </div>
                     <div class="fav-text">
                         <h4>${f.name}</h4>
-                        <p>${
-                          f.type === "metro"
-                            ? "Metro de Granada"
-                            : "Líneas: " + f.lines
-                        }</p>
+                        <p>${f.type === "metro"
+          ? "Metro de Granada"
+          : "Líneas: " + f.lines
+        }</p>
                     </div>
                 </div>
                 <div class="fav-actions">
-                    <button class="icon-btn-small" onclick="openRealTimeModal('${
-                      f.id
-                    }', '${f.type}', '${safeName}')">
+                    <button class="icon-btn-small" onclick="openRealTimeModal('${f.id
+        }', '${f.type}', '${safeName}')">
                          <i class="icon ri-time-line" style="color:var(--text-accent); font-size:1.2rem;"></i>
                     </button>
-                    <button class="icon-btn-small" onclick="toggleFavorite('${
-                      f.id
-                    }', '${f.type}', '${safeName}', '', null)">
+                    <button class="icon-btn-small" onclick="toggleFavorite('${f.id
+        }', '${f.type}', '${safeName}', '', null)">
                          <i class="icon ri-delete-bin-line" style="color:#ef4444; font-size:1.2rem;"></i>
                     </button>
                 </div>`;
@@ -2719,8 +2710,8 @@ async function initLugaresMap() {
         });
         L.marker(latlng, { icon: gpsIcon }).addTo(placesMapInstance);
       },
-      () => {},
-      { enableHighAccuracy: true, timeout: 3000 }
+      () => { },
+      { enableHighAccuracy: true, timeout: 3000 },
     );
   }
 
@@ -2740,7 +2731,7 @@ async function initLugaresMap() {
           if (lat < 35 || lat > 44 || lon < -10 || lon > 4) {
             console.warn(
               "Punto descartado por estar fuera de España:",
-              feature.properties.name
+              feature.properties.name,
             );
             return null;
           }
@@ -2768,7 +2759,7 @@ async function initLugaresMap() {
           <i class="icon ri-direction-fill"></i> IR
       </button>
   </div>`,
-            { closeButton: false }
+            { closeButton: false },
           );
 
           if (!placesLayers[category]) {
@@ -2797,7 +2788,7 @@ async function initLugaresMap() {
       showNotification(
         "Error",
         "No se pudieron cargar los puntos de interés",
-        "error"
+        "error",
       );
     }
   }
@@ -2826,11 +2817,11 @@ function createFilterItem(category, config, container) {
     `;
   label.addEventListener(
     "touchstart",
-    () => (label.style.transform = "scale(0.96)")
+    () => (label.style.transform = "scale(0.96)"),
   );
   label.addEventListener(
     "touchend",
-    () => (label.style.transform = "scale(1)")
+    () => (label.style.transform = "scale(1)"),
   );
   container.appendChild(label);
 }
@@ -2867,7 +2858,7 @@ window.toggleCategoryLayer = function (category, isVisible) {
 
 window.setAllFilters = function (state) {
   const checkboxes = document.querySelectorAll(
-    '#filters-container-list input[type="checkbox"]'
+    '#filters-container-list input[type="checkbox"]',
   );
   checkboxes.forEach((cb) => {
     const category = cb.getAttribute("data-cat");
@@ -2877,7 +2868,7 @@ window.setAllFilters = function (state) {
   showNotification(
     state ? "Capas activadas" : "Capas ocultas",
     state ? "Mostrando todos los puntos" : "Mapa despejado",
-    "info"
+    "info",
   );
 };
 
@@ -2898,7 +2889,7 @@ function setupPlacesSearch() {
       .filter(
         (p) =>
           p.name.toLowerCase().includes(val) ||
-          p.category.toLowerCase().includes(val)
+          p.category.toLowerCase().includes(val),
       )
       .slice(0, 6);
 
@@ -2911,7 +2902,7 @@ function setupPlacesSearch() {
                     <strong>${p.name}</strong>
                     <span>${p.category}</span>
                 </div>
-            </div>`
+            </div>`,
       )
       .join("");
     results.classList.add("visible");
@@ -2956,10 +2947,10 @@ window.locateUserPlaces = function () {
       showNotification(
         "Error GPS",
         "Revisa los permisos de ubicación",
-        "error"
+        "error",
       );
     },
-    { enableHighAccuracy: true, timeout: 5000 }
+    { enableHighAccuracy: true, timeout: 5000 },
   );
 };
 
@@ -2970,12 +2961,12 @@ window.openMapsApp = function (lat, lng) {
   if (isIOS) {
     window.open(
       `http://maps.apple.com/?daddr=${lat},${lng}&dirflg=d`,
-      "_system"
+      "_system",
     );
   } else {
     window.open(
       `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
-      "_system"
+      "_system",
     );
   }
 };
@@ -3022,7 +3013,7 @@ window.setCortesFilter = function (mode, btn) {
     mode === "active"
       ? "Mostrando incidencias vigentes en este momento"
       : "Mostrando agenda completa",
-    "info"
+    "info",
   );
 };
 
@@ -3088,11 +3079,11 @@ async function renderMobilityEvents() {
       const descriptionHTML = item.querySelector("description").textContent;
 
       const coordsMatch = descriptionHTML.match(
-        /Ubicación.*?\(([\d.-]+),\s*([\d.-]+)\)/i
+        /Ubicación.*?\(([\d.-]+),\s*([\d.-]+)\)/i,
       );
       const typeMatch = descriptionHTML.match(/Tipo de corte:\s*(.*?)<\/p>/i);
       const endDateMatch = descriptionHTML.match(
-        /Fin de la publicación:\s*([\d-]+)/i
+        /Fin de la publicación:\s*([\d-]+)/i,
       );
 
       let cleanDesc = descriptionHTML
@@ -3423,14 +3414,14 @@ function initRepostarMap() {
             iconSize: [24, 24],
           });
           repostarUserMarker = L.marker(latlng, { icon: gpsIcon }).addTo(
-            repostarMap
+            repostarMap,
           );
         } else {
           repostarUserMarker.setLatLng(latlng);
         }
       },
-      () => {},
-      { enableHighAccuracy: true, timeout: 3000 }
+      () => { },
+      { enableHighAccuracy: true, timeout: 3000 },
     );
   } else {
     repostarMap.invalidateSize();
@@ -3456,7 +3447,7 @@ async function fetchFuelDataForMap(type) {
   try {
     const PROXY = "https://proxy.contacto-granago.workers.dev/?url=";
     const TARGET = encodeURIComponent(
-      "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroProvincia/18"
+      "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroProvincia/18",
     );
     const res = await fetch(PROXY + TARGET);
     const data = await res.json();
@@ -3526,9 +3517,8 @@ function renderFuelMarkers(list, isRanking) {
 
     const icon = L.divIcon({
       className: "",
-      html: `<div class="${markerClass}" style="background-color: ${bgColor}; border: 2px solid white; width: ${
-        isRanking ? 40 : 32
-      }px; height: ${isRanking ? 40 : 32}px; font-weight:800;">
+      html: `<div class="${markerClass}" style="background-color: ${bgColor}; border: 2px solid white; width: ${isRanking ? 40 : 32
+        }px; height: ${isRanking ? 40 : 32}px; font-weight:800;">
                      ${iconHtml}
                    </div>`,
       iconSize: [isRanking ? 40 : 32, isRanking ? 40 : 32],
@@ -3553,7 +3543,7 @@ function renderFuelMarkers(list, isRanking) {
                 </button>
             </div>
         `,
-      { closeButton: false }
+      { closeButton: false },
     );
 
     repostarLayerGroup.addLayer(marker);
@@ -3580,7 +3570,7 @@ window.filterFuelMap = function (mode, btn) {
 
   if (mode === "top3") {
     const sorted = [...allStationsData].sort(
-      (a, b) => a._priceVal - b._priceVal
+      (a, b) => a._priceVal - b._priceVal,
     );
     const top3 = sorted.slice(0, 3);
     renderFuelMarkers(top3, true);
@@ -3607,7 +3597,7 @@ window.filterFuelMap = function (mode, btn) {
       showNotification(
         "Nada cerca",
         "No hay gasolineras a menos de 5km",
-        "info"
+        "info",
       );
       return;
     }
@@ -3617,7 +3607,7 @@ window.filterFuelMap = function (mode, btn) {
     renderFuelMarkers(top5Near, true);
 
     const group = L.featureGroup(
-      top5Near.map((s) => L.marker([s._lat, s._lng]))
+      top5Near.map((s) => L.marker([s._lat, s._lng])),
     );
     repostarMap.fitBounds(group.getBounds(), { padding: [50, 50] });
     showNotification("Cerca de ti", "Las 5 más baratas en tu radio", "success");
@@ -3656,7 +3646,7 @@ function setupFuelSearch() {
         (s) =>
           s._cleanName.toLowerCase().includes(val) ||
           s["Dirección"].toLowerCase().includes(val) ||
-          s["Municipio"].toLowerCase().includes(val)
+          s["Municipio"].toLowerCase().includes(val),
       )
       .slice(0, 5);
 
@@ -3757,21 +3747,18 @@ function renderEVMarkers(list) {
     marker.bindPopup(
       `
              <div style="text-align:center;">
-                <strong style="color:${color}">${
-        isFree ? "GRATIS" : "DE PAGO"
+                <strong style="color:${color}">${isFree ? "GRATIS" : "DE PAGO"
       }</strong>
-                <p style="margin:5px 0;">${
-                  el.tags.operator || "Cargador Público"
-                }</p>
+                <p style="margin:5px 0;">${el.tags.operator || "Cargador Público"
+      }</p>
                 <small>${details}</small>
-                <button class="btn-navigate-popup" onclick="openMapsApp(${
-                  el.lat
-                }, ${el.lon})">
+                <button class="btn-navigate-popup" onclick="openMapsApp(${el.lat
+      }, ${el.lon})">
                     <i class="ri-direction-fill"></i> Ir
                 </button>
              </div>
         `,
-      { closeButton: false }
+      { closeButton: false },
     );
 
     repostarLayerGroup.addLayer(marker);
@@ -3802,7 +3789,7 @@ window.filterEVMap = function (mode, btn) {
   showNotification(
     "Filtro aplicado",
     `Mostrando cargadores ${mode === "free" ? "gratuitos" : "de pago"}`,
-    "info"
+    "info",
   );
 };
 
@@ -3822,7 +3809,7 @@ window.locateUserFuel = function () {
           iconSize: [24, 24],
         });
         repostarUserMarker = L.marker(latlng, { icon: gpsIcon }).addTo(
-          repostarMap
+          repostarMap,
         );
       } else {
         repostarUserMarker.setLatLng(latlng);
@@ -3832,7 +3819,7 @@ window.locateUserFuel = function () {
     (error) => {
       showNotification("Error", "No se pudo obtener la ubicación", "error");
     },
-    { enableHighAccuracy: true, timeout: 5000 }
+    { enableHighAccuracy: true, timeout: 5000 },
   );
 };
 
@@ -3889,8 +3876,8 @@ async function initCamarasMap() {
           }),
         }).addTo(camarasMapInstance);
       },
-      () => {},
-      { enableHighAccuracy: true, timeout: 3000 }
+      () => { },
+      { enableHighAccuracy: true, timeout: 3000 },
     );
   } else {
     camarasMapInstance.invalidateSize();
@@ -4005,7 +3992,7 @@ async function loadDGTXMLCameras() {
       if (!isGranada) {
         const dist = Math.sqrt(
           Math.pow(lat - GRANADA_COORDS.lat, 2) +
-            Math.pow(lon - GRANADA_COORDS.lon, 2)
+          Math.pow(lon - GRANADA_COORDS.lon, 2),
         );
         if (dist < 0.5) isGranada = true;
       }
@@ -4183,7 +4170,7 @@ window.locateUserCamaras = function () {
       }).addTo(camarasMapInstance);
     },
     () => showNotification("Error", "Fallo al localizar", "error"),
-    { enableHighAccuracy: true }
+    { enableHighAccuracy: true },
   );
 };
 
@@ -4329,7 +4316,7 @@ async function fetchParkingsData() {
                         </button>
                     </div>
                 `,
-          { closeButton: false }
+          { closeButton: false },
         );
 
         parkingsLayerGroup.addLayer(marker);
@@ -4458,9 +4445,8 @@ async function loadMotoParkingsKML() {
             <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:8px;">
                 Reserva para motocicletas
             </div>
-            <button class="btn-navigate-popup" onclick="openMapsApp(${
-              layer.getLatLng().lat
-            }, ${layer.getLatLng().lng})">
+            <button class="btn-navigate-popup" onclick="openMapsApp(${layer.getLatLng().lat
+        }, ${layer.getLatLng().lng})">
                 <i class="ri-direction-fill"></i> Ir ahora
             </button>
         </div>
@@ -4678,7 +4664,7 @@ function loadKMLData() {
       showNotification(
         "Error",
         "No se pudo cargar el archivo KML local",
-        "error"
+        "error",
       );
     });
 }
@@ -4693,7 +4679,7 @@ async function initHomeDashboard() {
     console.log(
       "Usando ubicación guardada:",
       window.currentLat,
-      window.currentLng
+      window.currentLng,
     );
   }
 
@@ -4714,7 +4700,7 @@ async function initHomeDashboard() {
       (err) => {
         console.log("GPS no permitido o error, usando caché o defecto");
       },
-      { timeout: 10000, maximumAge: 60000 }
+      { timeout: 10000, maximumAge: 60000 },
     );
   }
 
@@ -4780,7 +4766,7 @@ function cleanHTML(htmlString) {
   const doc = new DOMParser().parseFromString(htmlString, "text/html");
   doc
     .querySelectorAll(
-      "script, style, nav, footer, header, .menu, #menu, .footer"
+      "script, style, nav, footer, header, .menu, #menu, .footer",
     )
     .forEach((e) => e.remove());
   return doc.body.innerText.replace(/\s+/g, " ").trim();
@@ -4828,7 +4814,7 @@ function parseSmartDate(str) {
     .replace(/[\u0300-\u036f]/g, "");
 
   const numericMatch = cleanStr.match(
-    /(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/
+    /(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/,
   );
   if (numericMatch) {
     let d = parseInt(numericMatch[1]);
@@ -4839,7 +4825,7 @@ function parseSmartDate(str) {
   }
 
   const textMatch = cleanStr.match(
-    /(\d{1,2})\s+(?:de\s+)?([a-z]+)(?:\s+de\s+(\d{4}))?/
+    /(\d{1,2})\s+(?:de\s+)?([a-z]+)(?:\s+de\s+(\d{4}))?/,
   );
   if (textMatch) {
     let d = parseInt(textMatch[1]);
@@ -4882,7 +4868,7 @@ function isDateActive(text) {
     "(?:\\d{1,2}\\s+(?:de\\s+)?[a-z]+(?:\\s+de\\s+\\d{4})?|\\d{1,2}[\\/\\-\\.]\\d{1,2}[\\/\\-\\.]\\d{2,4})";
   const rangeRegex = new RegExp(
     `(?:del?|desde(?:\\s+el)?|entre(?:\\s+el)?)\\s+(${R_DATE})\\s+(?:al?|a\\s+el|hasta(?:\\s+el)?|y(?:\\s+el)?)\\s+(${R_DATE})`,
-    "i"
+    "i",
   );
   const rangeMatch = clean.match(rangeRegex);
 
@@ -4913,7 +4899,7 @@ function isDateActive(text) {
 
   const durationRegex = new RegExp(
     `durante\\s+(\\d+|[a-z]+)\\s+(dias?|semanas?|meses|anos?)\\s+(?:a partir|desde|iniciando)(?:\\s+del?|\\s+el)?\\s+(${R_DATE})`,
-    "i"
+    "i",
   );
   const durMatch = clean.match(durationRegex);
 
@@ -4936,7 +4922,7 @@ function isDateActive(text) {
 
   const singleRegex = new RegExp(
     `(?:el|dia|desde(?:\\s+el)?|a partir(?:\\s+del?)?)\\s+(${R_DATE})`,
-    "i"
+    "i",
   );
   const singleMatch = clean.match(singleRegex);
 
@@ -5061,7 +5047,7 @@ function extractLinesToSet(text, setObj) {
 async function updateHomeRecentWidgets() {
   const stopsContainer = document.getElementById("home-recent-stops");
   const recentStops = JSON.parse(
-    localStorage.getItem("granaGo_recent_stops") || "[]"
+    localStorage.getItem("granaGo_recent_stops") || "[]",
   );
 
   if (stopsContainer && recentStops.length > 0) {
@@ -5088,7 +5074,7 @@ async function updateHomeRecentWidgets() {
 
   const gamesContainer = document.getElementById("home-recent-games");
   const recentGames = JSON.parse(
-    localStorage.getItem("granaGo_recent_games") || "[]"
+    localStorage.getItem("granaGo_recent_games") || "[]",
   );
 
   const gameActions = {
@@ -5156,7 +5142,7 @@ async function updateHomeEventsWidget() {
       let matchType = null;
       let isEndingToday = false;
       const finPubMatch = descriptionHTML.match(
-        /Fin de la publicación:\s*(\d{4}-\d{2}-\d{2})/i
+        /Fin de la publicación:\s*(\d{4}-\d{2}-\d{2})/i,
       );
 
       if (finPubMatch && finPubMatch[1] === todayStr) {
@@ -5268,7 +5254,7 @@ async function updateHomeBusWidget() {
     }
 
     const sortedLines = Array.from(affectedLines).sort((a, b) =>
-      a.localeCompare(b, undefined, { numeric: true })
+      a.localeCompare(b, undefined, { numeric: true }),
     );
 
     if (sortedLines.length > 0) {
@@ -5380,7 +5366,7 @@ async function updateHomeFuel() {
   try {
     const PROXY = "https://proxy.contacto-granago.workers.dev/?url=";
     const TARGET = encodeURIComponent(
-      "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroProvincia/18"
+      "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroProvincia/18",
     );
 
     const res = await fetch(PROXY + TARGET);
@@ -5414,7 +5400,7 @@ async function updateHomeFuel() {
             window.currentLat,
             window.currentLng,
             lat,
-            lng
+            lng,
           );
           if (dist < minDistance) {
             minDistance = dist;
@@ -5493,7 +5479,7 @@ window.googleTranslateElementInit = function () {
       includedLanguages: "es,en,fr,it",
       autoDisplay: false,
     },
-    "google_translate_element"
+    "google_translate_element",
   );
 };
 
@@ -5554,7 +5540,7 @@ window.changeLanguage = async function (lang) {
       showNotification(
         "Acción requerida",
         "Debes aceptar las cookies para habilitar la traducción.",
-        "info"
+        "info",
       );
     }
     return;
@@ -5644,7 +5630,7 @@ function initCookieConsent() {
       showNotification(
         "Cookies Rechazadas",
         "La traducción estará desactivada",
-        "info"
+        "info",
       );
     });
 }
@@ -5663,9 +5649,12 @@ if ("serviceWorker" in navigator) {
           }
         });
 
-        setInterval(() => {
-          reg.update();
-        }, 5 * 60 * 1000);
+        setInterval(
+          () => {
+            reg.update();
+          },
+          5 * 60 * 1000,
+        );
 
         reg.addEventListener("updatefound", () => {
           newWorker = reg.installing;
@@ -5765,7 +5754,7 @@ window.installPWA = async function () {
     showNotification(
       "¡Ya la tienes!",
       "GranáGo ya está instalada en tu dispositivo.",
-      "success"
+      "success",
     );
     return;
   }
@@ -5780,7 +5769,7 @@ window.installPWA = async function () {
       showNotification(
         "Instalando...",
         "Gracias por instalar GranáGo",
-        "success"
+        "success",
       );
     }
   } else {
@@ -5791,13 +5780,13 @@ window.installPWA = async function () {
       showNotification(
         "Instalar en iPhone",
         "Pulsa el botón 'Compartir' de Safari y selecciona 'Añadir a la pantalla de inicio'.",
-        "info"
+        "info",
       );
     } else {
       showNotification(
         "Instalación",
         "Si no ves la opción, busca 'Instalar aplicación' en el menú de tu navegador.",
-        "info"
+        "info",
       );
     }
   }
@@ -5809,7 +5798,7 @@ window.addEventListener("appinstalled", () => {
   showNotification(
     "¡Instalada!",
     "GranáGo ya está en tu pantalla de inicio",
-    "success"
+    "success",
   );
 });
 
@@ -5817,7 +5806,7 @@ window.hardReload = async function () {
   showNotification(
     "Reiniciando...",
     "Borrando caché y actualizando...",
-    "info"
+    "info",
   );
 
   if ("serviceWorker" in navigator) {
@@ -5855,7 +5844,7 @@ window.toggleNearbyPanel = function () {
           content.innerHTML =
             '<div class="empty-state"><i class="ri-gps-line" style="font-size:2rem; margin-bottom:10px; display:block;"></i><p>Activa el GPS para ver paradas cercanas.</p></div>';
         },
-        { enableHighAccuracy: true, timeout: 5000 }
+        { enableHighAccuracy: true, timeout: 5000 },
       );
     } else {
       content.innerHTML =
@@ -5945,17 +5934,14 @@ function createNearbyItemHTML(stop) {
     const starClass = isFav ? "active" : "";
 
     actionsHtml = `
-            <button class="icon-btn-small" onclick="openRealTimeModal('${
-              stop.id
-            }', '${stop.layerKey}', '${safeName}')">
+            <button class="icon-btn-small" onclick="openRealTimeModal('${stop.id
+      }', '${stop.layerKey}', '${safeName}')">
                 <i class="icon ri-search-line" style="font-size:1.2rem; color:var(--text-primary);"></i>
             </button>
-            <button class="icon-btn-small ${starClass}" onclick="toggleFavorite('${
-      stop.id
-    }', '${stop.layerKey}', '${safeName}', '${safeLines}', this)">
-                <i class="icon ${starIcon}" style="font-size:1.2rem; color:${
-      isFav ? "#fbbf24" : "var(--text-secondary)"
-    };"></i>
+            <button class="icon-btn-small ${starClass}" onclick="toggleFavorite('${stop.id
+      }', '${stop.layerKey}', '${safeName}', '${safeLines}', this)">
+                <i class="icon ${starIcon}" style="font-size:1.2rem; color:${isFav ? "#fbbf24" : "var(--text-secondary)"
+      };"></i>
             </button>
         `;
   }
@@ -5991,7 +5977,7 @@ window.flyToStopFromList = function (lat, lon) {
 
     const targetStop = allSearchableStops.find(
       (s) =>
-        Math.abs(s.lat - lat) < 0.000001 && Math.abs(s.lon - lon) < 0.000001
+        Math.abs(s.lat - lat) < 0.000001 && Math.abs(s.lon - lon) < 0.000001,
     );
 
     if (targetStop && targetStop.marker) {
@@ -6001,14 +5987,14 @@ window.flyToStopFromList = function (lat, lon) {
         mapInstance.addLayer(mapLayers[layerKey]);
 
         const filterBtn = document.querySelector(
-          `.filter-chip[data-layer="${layerKey}"]`
+          `.filter-chip[data-layer="${layerKey}"]`,
         );
         if (filterBtn) filterBtn.classList.add("active");
 
         showNotification(
           "Capa activada",
           `Se activó ${layerKey} para ver la parada`,
-          "info"
+          "info",
         );
       }
 
@@ -6037,9 +6023,9 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
   var a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(deg2rad(lat1)) *
-      Math.cos(deg2rad(lat2)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+    Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
   var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   var d = R * c;
   return d;
@@ -6158,18 +6144,17 @@ function setWordleLen(len) {
   [4, 5, 6].forEach((l) =>
     document
       .getElementById(`btn-len-${l}`)
-      .classList.toggle("active", l === len)
+      .classList.toggle("active", l === len),
   );
 }
 
 function updateWordleStatsDisplay() {
   const stats = JSON.parse(
-    localStorage.getItem("granaGo_wordle_stats") || '{"daily":0, "infinite":0}'
+    localStorage.getItem("granaGo_wordle_stats") || '{"daily":0, "infinite":0}',
   );
   const val = wordleConfig.mode === "daily" ? stats.daily : stats.infinite;
-  document.getElementById("wordle-stats-text").innerText = `Racha ${
-    wordleConfig.mode === "daily" ? "Diaria" : "Actual"
-  }: ${val}`;
+  document.getElementById("wordle-stats-text").innerText = `Racha ${wordleConfig.mode === "daily" ? "Diaria" : "Actual"
+    }: ${val}`;
 }
 
 async function startWordleGame(retryCount = 0) {
@@ -6190,14 +6175,14 @@ async function startWordleGame(retryCount = 0) {
 
   if (wordleConfig.mode === "daily") {
     const lastPlay = localStorage.getItem(
-      `wordle_last_daily_${wordleConfig.len}`
+      `wordle_last_daily_${wordleConfig.len}`,
     );
 
     if (lastPlay === todayStr) {
       showNotification(
         "Aviso",
         `Ya has completado el reto diario de ${wordleConfig.len} letras.`,
-        "info"
+        "info",
       );
       if (setupContainer.innerHTML.includes("spinner"))
         setupContainer.innerHTML = wordleSetupHTML;
@@ -6359,7 +6344,7 @@ window.useWordlePowerup = function () {
     showNotification(
       "Pista",
       `La palabra contiene la letra: ${randomChar}`,
-      "info"
+      "info",
     );
     document.getElementById("btn-pwr-wordle").style.display = "none";
   }
@@ -6413,7 +6398,7 @@ function handleInvalidWord() {
   showNotification(
     "No válida",
     "La palabra no está en el diccionario",
-    "error"
+    "error",
   );
   const input = document.getElementById("wordle-native-input");
   if (input) input.focus();
@@ -6491,7 +6476,7 @@ function renderWordleBoard() {
 function endGame(win) {
   wordleConfig.gameOver = true;
   let stats = JSON.parse(
-    localStorage.getItem("granaGo_wordle_stats") || '{"daily":0, "infinite":0}'
+    localStorage.getItem("granaGo_wordle_stats") || '{"daily":0, "infinite":0}',
   );
 
   if (win) {
@@ -6518,7 +6503,7 @@ function endGame(win) {
   if (wordleConfig.mode === "daily") {
     localStorage.setItem(
       `wordle_last_daily_${wordleConfig.len}`,
-      new Date().toDateString()
+      new Date().toDateString(),
     );
     localStorage.removeItem(`wordle_session_daily_${wordleConfig.len}`);
   }
@@ -6549,12 +6534,10 @@ function showWordleResult(win) {
        <button class="cookie-btn secondary" onclick="closeWordle()">Volver a Juegos</button>`;
 
   setup.innerHTML = `
-        <div class="info-card" style="border-left: 4px solid ${
-          win ? "var(--color-success)" : "var(--color-error)"
-        }">
-            <h3 class="info-title" style="margin-top:0">${
-              win ? "¡Victoria!" : "Fin del juego"
-            }</h3>
+        <div class="info-card" style="border-left: 4px solid ${win ? "var(--color-success)" : "var(--color-error)"
+    }">
+            <h3 class="info-title" style="margin-top:0">${win ? "¡Victoria!" : "Fin del juego"
+    }</h3>
             <p style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 5px;">
                 ${wordleConfig.originalTarget}
             </p>
@@ -6578,13 +6561,13 @@ function saveWordleState() {
   };
   localStorage.setItem(
     `wordle_session_daily_${wordleConfig.len}`,
-    JSON.stringify(state)
+    JSON.stringify(state),
   );
 }
 
 function loadWordleState() {
   const saved = localStorage.getItem(
-    `wordle_session_daily_${wordleConfig.len}`
+    `wordle_session_daily_${wordleConfig.len}`,
   );
   if (!saved) return null;
   const state = JSON.parse(saved);
@@ -6615,7 +6598,7 @@ window.shareWordleResult = function (win) {
     grid += "\n";
   }
 
-  const shareText = `Granádle (${wordleConfig.len} letras) ${attempts}/${wordleConfig.attempts}\n\n${grid}\n#GranáGo`;
+  const shareText = `Granádle (${wordleConfig.len} letras) ${attempts}/${wordleConfig.attempts}\n\n${grid}\nJuega en: https://granago.github.io\n#GranáGo`;
 
   if (navigator.share) {
     navigator
@@ -6638,7 +6621,7 @@ function copyToClipboard(text) {
       showNotification(
         "¡Copiado!",
         "Resultado copiado al portapapeles",
-        "success"
+        "success",
       );
     })
     .catch(() => {
@@ -6793,13 +6776,13 @@ window.startSudokuGame = function () {
       showNotification(
         "Ya jugado",
         "Vuelve mañana para el próximo reto.",
-        "info"
+        "info",
       );
       return;
     }
 
     const savedSession = JSON.parse(
-      localStorage.getItem("sudoku_daily_session")
+      localStorage.getItem("sudoku_daily_session"),
     );
     if (savedSession && savedSession.date === todayStr) {
       loadSudokuState(savedSession);
@@ -7059,9 +7042,8 @@ function endSudokuGame(win) {
       message.style.display = "block";
       message.style.borderLeftColor = "var(--color-success)";
       message.querySelector("h3").innerText = "¡Victoria!";
-      message.querySelector("p").innerText = `Tiempo: ${
-        document.getElementById("sudoku-timer").innerText
-      }`;
+      message.querySelector("p").innerText = `Tiempo: ${document.getElementById("sudoku-timer").innerText
+        }`;
     }, 1000);
 
     const reward = sudokuConfig.mode === "daily" ? 150 : 30;
@@ -7106,8 +7088,8 @@ if (window.visualViewport) {
           activeElement.id === "wordle-native-input"
             ? "wordle-board"
             : activeElement.id === "sudoku-hidden-input"
-            ? "sudoku-board"
-            : "last-word-display";
+              ? "sudoku-board"
+              : "last-word-display";
 
         const board = document.getElementById(boardId);
         if (board)
@@ -7290,7 +7272,7 @@ window.useMemoryPowerup = function () {
       showNotification(
         "Ojo de Lince",
         "¡Espero que las hayas memorizado!",
-        "info"
+        "info",
       );
     }, 2000);
 
@@ -7371,9 +7353,8 @@ function showQuestion() {
     btnPwr.style.display =
       inv["mitad-quiz"] > 0 && !quizConfig.isAnswered ? "block" : "none";
   }
-  counterEl.innerText = `PREGUNTA ${quizConfig.currentIdx + 1} / ${
-    quizConfig.questionsPerRound
-  }`;
+  counterEl.innerText = `PREGUNTA ${quizConfig.currentIdx + 1} / ${quizConfig.questionsPerRound
+    }`;
   qEl.innerText = qData.pregunta;
   optsEl.innerHTML = "";
   quizConfig.isAnswered = false;
@@ -7454,7 +7435,7 @@ window.useQuizPowerup = function () {
     showNotification(
       "Power-up",
       "Se han eliminado dos respuestas incorrectas",
-      "info"
+      "info",
     );
   }
 };
@@ -7504,9 +7485,8 @@ function finishQuizGame() {
 }
 
 function updateQuizStats() {
-  document.getElementById(
-    "quiz-stats-text"
-  ).innerText = `Puntos: ${quizConfig.score}`;
+  document.getElementById("quiz-stats-text").innerText =
+    `Puntos: ${quizConfig.score}`;
 }
 
 const VOICE_CONFIG = {
@@ -7668,13 +7648,13 @@ async function toggleDrivingMode() {
 
       "GPS activo y pantalla bloqueada",
 
-      "success"
+      "success",
     );
 
     watchId = navigator.geolocation.watchPosition(
       processDrivingPosition,
       handleDrivingError,
-      { enableHighAccuracy: true, maximumAge: 0 }
+      { enableHighAccuracy: true, maximumAge: 0 },
     );
 
     const msgs = getVoiceSettings().labels;
@@ -7708,7 +7688,7 @@ async function toggleDrivingMode() {
             iconAnchor: [12, 12],
           });
           userMarker = L.marker([lat, lng], { icon: gpsIcon }).addTo(
-            camarasMapInstance
+            camarasMapInstance,
           );
         } else {
           userMarker.setLatLng([lat, lng]).addTo(camarasMapInstance);
@@ -7763,7 +7743,7 @@ function checkNearbyRadars(userLat, userLng, userHeading) {
             p1[1],
             p1[0],
             p2[1],
-            p2[0]
+            p2[0],
           );
 
           if (d < 0.5) {
@@ -7802,7 +7782,7 @@ function checkNearbyRadars(userLat, userLng, userHeading) {
           userLat,
           userLng,
           latlng.lat,
-          latlng.lng
+          latlng.lng,
         );
 
         if (dist < minDistance) {
@@ -7855,7 +7835,7 @@ function checkCurrentSpeedLimit(userLat, userLng) {
         p1[1],
         p1[0],
         p2[1],
-        p2[0]
+        p2[0],
       );
 
       if (dist < minDistance && dist < DETECTION_RADIUS) {
@@ -7913,8 +7893,8 @@ function updateHudAlert(item, distanceKm) {
     const color = isCamera
       ? "#8b5cf6"
       : item.type === "fijo"
-      ? "#e67e22"
-      : "#D9281C";
+        ? "#e67e22"
+        : "#D9281C";
     const icon = isCamera ? "ri-camera-lens-fill" : "ri-alarm-warning-fill";
     const label = isCamera ? "CÁMARA" : item.type.toUpperCase();
 
@@ -7923,8 +7903,8 @@ function updateHudAlert(item, distanceKm) {
             <div style="font-size: 1.5rem; font-weight:bold; margin-top: 10px; color:${color}">${label}</div>
             <div class="notranslate">${props.road}</div>
             <div style="font-size: 0.9rem;">${props.desc || ""} a ${(
-      distanceKm * 1000
-    ).toFixed(0)}m</div>
+        distanceKm * 1000
+      ).toFixed(0)}m</div>
         `;
 
     if (now - lastAlertTime > 15000) {
@@ -7938,8 +7918,8 @@ function updateHudAlert(item, distanceKm) {
           item.type === "movil"
             ? msgs.mobile
             : item.type === "tramo"
-            ? msgs.section
-            : msgs.fixed;
+              ? msgs.section
+              : msgs.fixed;
         frase = `${msgs.attention}. ${radarType} en ${props.road}`;
       }
 
@@ -8131,8 +8111,8 @@ window.initMastermindGame = function () {
   for (let i = 0; i < 4; i++) {
     mastermindConfig.target.push(
       mastermindConfig.icons[
-        Math.floor(Math.random() * mastermindConfig.icons.length)
-      ]
+      Math.floor(Math.random() * mastermindConfig.icons.length)
+      ],
     );
   }
 
@@ -8144,9 +8124,8 @@ window.initMastermindGame = function () {
   if (btnPwr) {
     btnPwr.style.display = inv["codigo-mind"] > 0 ? "flex" : "none";
   }
-  document.getElementById(
-    "mastermind-stats-text"
-  ).innerText = `Intentos: 0 / ${mastermindConfig.maxAttempts}`;
+  document.getElementById("mastermind-stats-text").innerText =
+    `Intentos: 0 / ${mastermindConfig.maxAttempts}`;
 
   renderMastermindPalette();
   renderMastermindBoard();
@@ -8239,14 +8218,13 @@ window.checkMastermindGuess = function () {
   addMastermindHistoryRow(
     mastermindConfig.currentGuess,
     correctPos,
-    correctIcon
+    correctIcon,
   );
 
   mastermindConfig.attempts++;
   mastermindConfig.currentGuess = [];
-  document.getElementById(
-    "mastermind-stats-text"
-  ).innerText = `Intentos: ${mastermindConfig.attempts} / ${mastermindConfig.maxAttempts}`;
+  document.getElementById("mastermind-stats-text").innerText =
+    `Intentos: ${mastermindConfig.attempts} / ${mastermindConfig.maxAttempts}`;
   document.getElementById("btn-submit-mastermind").disabled = true;
 
   if (correctPos === 4) {
@@ -8317,7 +8295,7 @@ window.useMastermindPowerup = function () {
     showNotification(
       "Eco-Código",
       `En la posición ${pos + 1} hay un: ${name}`,
-      "info"
+      "info",
     );
 
     document.getElementById("btn-pwr-mastermind").style.display = "none";
@@ -8349,10 +8327,9 @@ function endMastermind(win) {
   targetHtml += "</div>";
 
   document.getElementById("mastermind-result-text").innerHTML = `
-    <p style="text-align:center;">${
-      win
-        ? "Enhorabuena, tienes un sentido de la orientación envidiable."
-        : "No has dado con la combinación. El código correcto era:"
+    <p style="text-align:center;">${win
+      ? "Enhorabuena, tienes un sentido de la orientación envidiable."
+      : "No has dado con la combinación. El código correcto era:"
     }</p>
     ${targetHtml}
   `;
@@ -8432,9 +8409,8 @@ function initEncadenadas() {
 
   document.getElementById("encadenadas-gameplay").style.display = "block";
   document.getElementById("encadenadas-result-card").style.display = "none";
-  document.getElementById(
-    "encadenadas-history"
-  ).innerHTML = `<span class="bus-line-pill" style="background:var(--text-secondary)">${startWord}</span>`;
+  document.getElementById("encadenadas-history").innerHTML =
+    `<span class="bus-line-pill" style="background:var(--text-secondary)">${startWord}</span>`;
 
   setupEncadenadasInput();
   updateEncadenadasUI();
@@ -8468,12 +8444,10 @@ function startEncadenadasTimer() {
 function updateEncadenadasUI() {
   document.getElementById("last-word-display").innerText =
     encadenadasState.lastWord.toUpperCase();
-  document.getElementById(
-    "next-syllable-hint"
-  ).innerText = `Debe empezar por: "${encadenadasState.lastSyllable.toUpperCase()}"`;
-  document.getElementById(
-    "encadenadas-score"
-  ).innerText = `Puntuación: ${encadenadasState.score}`;
+  document.getElementById("next-syllable-hint").innerText =
+    `Debe empezar por: "${encadenadasState.lastSyllable.toUpperCase()}"`;
+  document.getElementById("encadenadas-score").innerText =
+    `Puntuación: ${encadenadasState.score}`;
 }
 
 window.useEncadenadasPowerup = function () {
@@ -8513,7 +8487,7 @@ window.useAutoEncadenadasPowerup = function () {
       showNotification(
         "Auto-Cadena",
         `Palabra encontrada: ${foundWord.toUpperCase()}`,
-        "success"
+        "success",
       );
 
       setTimeout(() => {
@@ -8527,7 +8501,7 @@ window.useAutoEncadenadasPowerup = function () {
       showNotification(
         "Error",
         "No se encontró ninguna palabra disponible",
-        "error"
+        "error",
       );
     }
   }
@@ -8553,7 +8527,7 @@ window.submitEncadenada = function () {
     showNotification(
       "No existe",
       "Palabra no encontrada en el diccionario",
-      "error"
+      "error",
     );
     return;
   }
@@ -8567,7 +8541,7 @@ window.submitEncadenada = function () {
     showNotification(
       "Error",
       `Debe empezar por "${encadenadasState.lastSyllable.toUpperCase()}"`,
-      "error"
+      "error",
     );
     return;
   }
@@ -8600,9 +8574,8 @@ function endEncadenadasGame(reason) {
   resultCard.style.display = "block";
 
   document.getElementById("encadenadas-result-title").innerText = reason;
-  document.getElementById(
-    "encadenadas-result-score"
-  ).innerText = `Puntuación final: ${encadenadasState.score}`;
+  document.getElementById("encadenadas-result-score").innerText =
+    `Puntuación final: ${encadenadasState.score}`;
 
   if (encadenadasState.score > 0) {
     addGranaSaldo(encadenadasState.score * 2, "palabras encadenadas");
@@ -8636,7 +8609,7 @@ function openBlackjackMenu() {
 
   if (currentBalance <= 0) {
     let courtesyCount = parseInt(
-      localStorage.getItem("granaGo_bj_courtesy_count") || "0"
+      localStorage.getItem("granaGo_bj_courtesy_count") || "0",
     );
     if (courtesyCount < 3) {
       currentBalance = 50;
@@ -8646,7 +8619,7 @@ function openBlackjackMenu() {
       showNotification(
         "Regalo de cortesía",
         `Has recibido 50 G$ (${courtesyCount}/3)`,
-        "success"
+        "success",
       );
     }
   }
@@ -8717,7 +8690,7 @@ window.blackjackAction = function (action, amount) {
       return showNotification(
         "Sin saldo",
         "Pide un regalo de cortesía",
-        "error"
+        "error",
       );
     if (betValue > bjState.balance)
       return showNotification("Saldo insuficiente", "", "error");
@@ -8799,13 +8772,13 @@ function resolveBJWinner() {
     showNotification(
       "Seguro aplicado",
       `Has recuperado ${refund} G$ (50%)`,
-      "success"
+      "success",
     );
   }
 
   if (bjState.balance <= 0) {
     let courtesyCount = parseInt(
-      localStorage.getItem("granaGo_bj_courtesy_count") || "0"
+      localStorage.getItem("granaGo_bj_courtesy_count") || "0",
     );
     if (courtesyCount < 3) {
       bjState.balance = 50;
@@ -8814,13 +8787,13 @@ function resolveBJWinner() {
       showNotification(
         "Cortesía de GranáGo",
         `Has recibido 50 G$ para seguir jugando (${courtesyCount}/3)`,
-        "success"
+        "success",
       );
     } else {
       showNotification(
         "Sin saldo",
         "Has agotado tus regalos de cortesía.",
-        "error"
+        "error",
       );
     }
   }
@@ -8865,16 +8838,16 @@ function updateBJUI() {
   renderCards(
     bjState.playerHand,
     document.getElementById("player-cards"),
-    false
+    false,
   );
   renderCards(
     bjState.dealerHand,
     document.getElementById("dealer-cards"),
-    true
+    true,
   );
 
   document.getElementById("player-score").innerText = getHandScore(
-    bjState.playerHand
+    bjState.playerHand,
   );
   document.getElementById("dealer-score").innerText = bjState.gameOver
     ? getHandScore(bjState.dealerHand)
@@ -8891,7 +8864,7 @@ window.useBlackjackPowerup = function () {
     showNotification(
       "Seguro Activado",
       "Recuperarás el 50% de tu apuesta si pierdes.",
-      "info"
+      "info",
     );
 
     document.getElementById("btn-pwr-blackjack").style.display = "none";
@@ -8948,7 +8921,7 @@ async function initZBEMap() {
                     <p style="font-size:0.85rem; color:var(--text-secondary); margin:0;">${desc}</p>
                 </div>
              `,
-              { closeButton: false }
+              { closeButton: false },
             );
           }
         },
@@ -9023,7 +8996,7 @@ async function loadSostenibleData() {
             opacity: 0.8,
           };
         },
-      })
+      }),
     )
     .on("ready", function () {
       this.eachLayer((layer) => {
@@ -9082,7 +9055,7 @@ async function loadSostenibleData() {
 
             marker.bindPopup(
               `<strong>Parking ${tipoNombre}</strong><br>${name}`,
-              { closeButton: false }
+              { closeButton: false },
             );
             marker.addTo(parkingBiciLayer);
           }
@@ -9099,7 +9072,7 @@ async function loadSostenibleData() {
   } catch (e) {
     console.error(
       "Error procesando estructura de carpetas en parkingbici.kml:",
-      e
+      e,
     );
     if (loader) loader.classList.remove("visible");
   }
@@ -9140,7 +9113,7 @@ window.locateUserSostenible = function (isInitial = false) {
         showNotification(
           "Ubicación encontrada",
           "Te hemos localizado",
-          "success"
+          "success",
         );
       }
     },
@@ -9150,7 +9123,7 @@ window.locateUserSostenible = function (isInitial = false) {
       }
       console.warn("Error Geolocation Sostenible:", error.message);
     },
-    { enableHighAccuracy: true, timeout: 5000 }
+    { enableHighAccuracy: true, timeout: 5000 },
   );
 };
 
@@ -9168,7 +9141,7 @@ window.toggleSostenibleLayer = function (type, btn) {
       showNotification(
         "Parkings Bici",
         "Verde: Exterior | Rojo: Interior",
-        "info"
+        "info",
       );
     } else {
       sostenibleMap.removeLayer(parkingBiciLayer);
@@ -9209,10 +9182,10 @@ window.renderShop = function () {
   const pwrContainer = document.getElementById("shop-powerups-container");
 
   const ownedColors = JSON.parse(
-    localStorage.getItem("granaGo_owned_colors") || '["color-default"]'
+    localStorage.getItem("granaGo_owned_colors") || '["color-default"]',
   );
   const inventory = JSON.parse(
-    localStorage.getItem("granaGo_inventory") || "{}"
+    localStorage.getItem("granaGo_inventory") || "{}",
   );
   const activeColor = localStorage.getItem("granaGo_accent_color") || "#2563eb";
 
@@ -9223,40 +9196,34 @@ window.renderShop = function () {
         const isActive = activeColor === c.hex;
 
         return `
-        <div class="transport-card" style="justify-content: space-between; border-left: 4px solid ${
-          c.hex
-        }; align-items: center; padding: 12px 15px;">
+        <div class="transport-card" style="justify-content: space-between; border-left: 4px solid ${c.hex
+          }; align-items: center; padding: 12px 15px;">
           <div style="display: flex; align-items: center; gap: 15px">
-            <div class="card-icon-wrapper" style="background: ${
-              c.hex
-            }1A; color: ${c.hex}; width: 42px; height: 42px; min-width: 42px;">
+            <div class="card-icon-wrapper" style="background: ${c.hex
+          }1A; color: ${c.hex}; width: 42px; height: 42px; min-width: 42px;">
               <i class="ri-palette-fill"></i>
             </div>
             <div class="transport-info">
               <h3 style="font-size: 0.95rem; margin:0;">${c.name}</h3>
-              <p style="margin:0; opacity: 0.7;">${
-                isOwned ? "Propiedad" : c.price + " G$"
-              }</p>
+              <p style="margin:0; opacity: 0.7;">${isOwned ? "Propiedad" : c.price + " G$"
+          }</p>
             </div>
           </div>
           <div style="flex-shrink: 0; margin-left: 10px;">
-            ${
-              isOwned
-                ? `<button class="cookie-btn ${
-                    isActive ? "secondary" : "primary"
-                  }" 
+            ${isOwned
+            ? `<button class="cookie-btn ${isActive ? "secondary" : "primary"
+            }" 
                        style="min-width: 100px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;" 
-                       onclick="applyAccentColor('${c.hex}')" ${
-                    isActive ? "disabled" : ""
-                  }>
+                       onclick="applyAccentColor('${c.hex}')" ${isActive ? "disabled" : ""
+            }>
                  ${isActive ? "Activo" : "Usar"}
                </button>`
-                : `<button class="cookie-btn secondary" 
+            : `<button class="cookie-btn secondary" 
                        style="min-width: 100px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;" 
                        onclick="buyItem('${c.id}', 'color')">
                  Comprar
                </button>`
-            }
+          }
           </div>
         </div>`;
       })
@@ -9301,7 +9268,7 @@ window.buyItem = function (id, type) {
     showNotification(
       "Saldo insuficiente",
       "¡Sigue jugando para ganar más G$!",
-      "error"
+      "error",
     );
     return;
   }
@@ -9311,7 +9278,7 @@ window.buyItem = function (id, type) {
 
   if (type === "color") {
     let owned = JSON.parse(
-      localStorage.getItem("granaGo_owned_colors") || '["color-default"]'
+      localStorage.getItem("granaGo_owned_colors") || '["color-default"]',
     );
     if (!owned.includes(id)) owned.push(id);
     localStorage.setItem("granaGo_owned_colors", JSON.stringify(owned));
@@ -9327,7 +9294,7 @@ window.buyItem = function (id, type) {
   showNotification(
     "¡Compra realizada!",
     `Has adquirido: ${item.name}`,
-    "success"
+    "success",
   );
 };
 
@@ -9378,7 +9345,7 @@ window.openSlotsMenu = function () {
 
   if (balance <= 0) {
     let courtesyCount = parseInt(
-      localStorage.getItem("granaGo_slots_courtesy_count") || "0"
+      localStorage.getItem("granaGo_slots_courtesy_count") || "0",
     );
     if (courtesyCount < 3) {
       balance = 50;
@@ -9388,7 +9355,7 @@ window.openSlotsMenu = function () {
       showNotification(
         "Regalo de cortesía",
         `50 G$ para probar suerte (${courtesyCount}/3)`,
-        "success"
+        "success",
       );
     }
   }
@@ -9496,12 +9463,12 @@ function resolve3x3Results(grid) {
   }
 
   const currentBalance = parseInt(
-    localStorage.getItem("granaGo_bj_balance") || 500
+    localStorage.getItem("granaGo_bj_balance") || 500,
   );
 
   if (currentBalance <= 0) {
     let courtesyCount = parseInt(
-      localStorage.getItem("granaGo_slots_courtesy_count") || "0"
+      localStorage.getItem("granaGo_slots_courtesy_count") || "0",
     );
     if (courtesyCount < 3) {
       currentBalance = 50;
@@ -9511,7 +9478,7 @@ function resolve3x3Results(grid) {
       showNotification(
         "Cortesía de GranáGo",
         `Créditos añadidos (${courtesyCount}/3)`,
-        "success"
+        "success",
       );
     }
   }
@@ -9538,3 +9505,81 @@ function updateSlotsUI() {
   if (el) el.innerHTML = `Saldo: <span class="notranslate">${bal}</span> G$`;
   updateGamesMenuBalance();
 }
+
+function initSupportTimers() {
+  setTimeout(
+    () => {
+      showSupportNotification();
+      setInterval(showSupportNotification, 30 * 60 * 1000);
+    },
+    5 * 60 * 1000,
+  );
+}
+
+function showSupportNotification() {
+  const container = document.getElementById("notification-container");
+  if (!container) return;
+
+  const toast = document.createElement("div");
+  toast.className =
+    "notification-toast toast-info gpu-accelerated support-toast";
+  toast.style.animation = "slideInDown 0.5s forwards";
+  toast.style.pointerEvents = "auto";
+  toast.style.flexDirection = "column";
+  toast.style.padding = "20px";
+
+  toast.innerHTML = `
+        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+            <i class="notification-icon icon ri-heart-3-fill" style="color: #ef4444; font-size: 1.8rem;"></i>
+            <div class="notification-content">
+                <h4 class="notification-title">¿Te gusta GranáGo?</h4>
+                <p class="notification-message">Tu apoyo nos ayuda a mantener los servidores y mejorar la app.</p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px; width: 100%;">
+            <button onclick="window.open('https://www.paypal.com/donate/?hosted_button_id=ELYXMJVZP5B8W', '_blank')" 
+                    style="flex: 1; background: #004ad4; color: white; border: none; padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.8rem;">
+                <i class="ri-paypal-fill"></i> Donar
+            </button>
+            <button onclick="shareAppDirectly()" 
+                    style="flex: 1; background: var(--text-accent); color: white; border: none; padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.8rem;">
+                <i class="ri-share-line"></i> Compartir
+            </button>
+            <button onclick="this.parentElement.parentElement.remove()" 
+                    style="background: var(--bg-app); color: var(--text-secondary); border: 1px solid var(--border-subtle); padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 0.8rem;">
+                Cerrar
+            </button>
+        </div>
+    `;
+
+  container.appendChild(toast);
+}
+
+window.shareAppDirectly = function () {
+  const text =
+    "Estoy usando GranáGo para moverme por Granada y también incluye juegos. ¡Tiene buses, metro y parkings en tiempo real! Y muchas otras opciones por descubrir... Pruébala aquí:";
+  const url = "https://granago.github.io";
+
+  if (navigator.share) {
+    navigator
+      .share({
+        title: "GranáGo - Muévete con Sentido",
+        text: text,
+        url: url,
+      })
+      .then(() => {
+        showNotification(
+          "¡Gracias!",
+          "Gracias por compartir GranáGo",
+          "success",
+        );
+      });
+  } else {
+    copyToClipboard(text + " " + url);
+    showNotification(
+      "Enlace copiado",
+      "Pégalo donde quieras para compartir",
+      "info",
+    );
+  }
+};
