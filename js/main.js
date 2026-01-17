@@ -1265,6 +1265,7 @@ function hideAllGameContainers() {
     "mastermind-game-container",
     "encadenadas-game-container",
     "blackjack-game-container",
+    "slots-game-container"
   ];
 
   containers.forEach((id) => {
@@ -1326,7 +1327,7 @@ async function initMapParadas() {
         (e) => {
           console.log("Auto-gps no disponible o denegado");
         },
-        { enableHighAccuracy: true, timeout: 3000 },
+        { enableHighAccuracy: true, timeout: 10000 },
       );
 
       mapInstance.on("popupopen", (e) => {
