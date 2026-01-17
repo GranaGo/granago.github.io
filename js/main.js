@@ -9553,7 +9553,7 @@ function showSupportNotification() {
             </button>
             <button onclick="shareAppDirectly()" 
                     style="flex: 1; background: var(--text-accent); color: white; border: none; padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.8rem;">
-                <i class="ri-share-line"></i> Compartir
+                <i class="ri-share-line"></i> Compartir App
             </button>
             <button onclick="this.parentElement.parentElement.remove()" 
                     style="background: var(--bg-app); color: var(--text-secondary); border: 1px solid var(--border-subtle); padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 0.8rem;">
