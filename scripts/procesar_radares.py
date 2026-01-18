@@ -12,6 +12,7 @@
 import json
 import re
 import os
+import math
 from pypdf import PdfReader
 
 ARCHIVO_PDF = "raw_data/radares.pdf"
@@ -83,7 +84,6 @@ def cargar_mapa_ign(ruta_viales, ruta_pks):
     return pks_map
 
 def buscar_pk_cercano(pks_disponibles, pk_objetivo, margen=2.0):
-    """Busca el PK más cercano en el mapa (Nearest Neighbor)"""
     if not pks_disponibles: return None
     pk_mas_cercano = min(pks_disponibles.keys(), key=lambda k: abs(k - pk_objetivo))
     
@@ -109,6 +109,17 @@ def obtener_tramo_coords(pks_map, ref, inicio, fin):
         return None
     
     return coords
+
+def calcular_bearing(p1, p2):
+    lon1, lat1 = math.radians(p1[0]), math.radians(p1[1])
+    lon2, lat2 = math.radians(p2[0]), math.radians(p2[1])
+    
+    d_lon = lon2 - lon1
+    y = math.sin(d_lon) * math.cos(lat2)
+    x = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(d_lon)
+    
+    bearing = math.degrees(math.atan2(y, x))
+    return (bearing + 360) % 360
 
 def procesar():
     mapa_geo = cargar_mapa_ign(ARCHIVO_VIALES, ARCHIVO_PKS)
@@ -174,11 +185,27 @@ def procesar():
                 pk_val = float(nums[0].rstrip('.'))
                 pk_mapa = pk_val + OFFSETS_PKS.get(ref, 0.0)
                 coords = buscar_pk_cercano(mapa_geo[ref], pk_mapa)
+                
                 if coords:
+                    pks_vía = sorted(mapa_geo[ref].keys())
+                    proximo_pk = next((p for p in pks_vía if p > pk_mapa), None)
+                    
+                    bearing_vía = None
+                    if proximo_pk:
+                        coords_next = mapa_geo[ref][proximo_pk]
+                        bearing_vía = calcular_bearing(coords, coords_next)
+
                     feature = {
                         "type": "Feature",
                         "geometry": { "type": "Point", "coordinates": coords },
-                        "properties": { "road": ctra_raw, "type": "fijo", "pk": pk_val, "sentido": sentido, "desc": f"Radar Fijo PK {pk_val}" }
+                        "properties": { 
+                            "road": ctra_raw, 
+                            "type": "fijo", 
+                            "pk": pk_val, 
+                            "sentido": sentido, 
+                            "bearing": round(bearing_vía, 2) if bearing_vía is not None else None,
+                            "desc": f"Radar Fijo PK {pk_val}" 
+                        }
                     }
                 else: motivo = f"PK {pk_val} no encontrado"
 

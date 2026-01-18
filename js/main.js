@@ -7777,6 +7777,18 @@ function checkNearbyRadars(userLat, userLng, userHeading) {
         const rLat = geom.coordinates[1];
         const rLng = geom.coordinates[0];
         dist = getDistanceFromLatLonInKm(userLat, userLng, rLat, rLng);
+
+        if (radar.properties.bearing !== null && userHeading !== null) {
+          let targetAngle = radar.properties.bearing;
+
+          if (radar.properties.sentido === "Decreciente") {
+            targetAngle = (targetAngle + 180) % 360;
+          }
+
+          if (radar.properties.sentido !== "Ambos") {
+            matchesHeading = isAngleSimilar(userHeading, targetAngle);
+          }
+        }
       } else if (geom.type === "LineString") {
         let minDistToLine = Infinity;
         const coords = geom.coordinates;

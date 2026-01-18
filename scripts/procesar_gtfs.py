@@ -29,7 +29,6 @@ COLORES_DEFECTO = {
 }
 
 def limpiar_nombre_linea(nombre, es_interurbano):
-    """Quita ceros a la izquierda solo si es interurbano (ej: 0177 -> 177)"""
     if pd.isna(nombre): return "Sin Nombre"
     nombre = str(nombre).strip()
     if es_interurbano:
@@ -37,7 +36,6 @@ def limpiar_nombre_linea(nombre, es_interurbano):
     return nombre
 
 def corregir_hora(hora_str):
-    """24:30:00 -> 00:30:00"""
     if pd.isna(hora_str): return None
     try:
         h, m, s = map(int, hora_str.split(':'))

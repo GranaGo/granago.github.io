@@ -18,7 +18,6 @@ ARCHIVO_ESP = "raw_data/esp.json"
 ARCHIVO_SALIDA = "data/palabras.json"
 
 def normalizar_palabra(palabra):
-    """Lógica de normalización original: elimina espacios en blanco."""
     return palabra.strip()
 
 def procesar():

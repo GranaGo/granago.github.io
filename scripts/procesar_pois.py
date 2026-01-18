@@ -17,7 +17,6 @@ INPUT = Path("raw_data/poi.geojson")
 OUTPUT = Path("data/poi_final.geojson")
 
 def get_category(tags):
-    """Devuelve la categoría exacta según tu lista de POIs"""
     if "amenity" in tags:
         amenity_map = {
             "parking": "Parking",
@@ -85,7 +84,6 @@ def get_category(tags):
     return None
 
 def generate_id(name, coords):
-    """Genera un ID único basado en nombre y coordenadas"""
     hash_input = f"{name}-{coords[0]}-{coords[1]}"
     return hashlib.md5(hash_input.encode("utf-8")).hexdigest()[:8]
 
