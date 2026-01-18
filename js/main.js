@@ -9643,3 +9643,97 @@ window.shareAppDirectly = function () {
     );
   }
 };
+
+window.calculateTripFuel = function () {
+  const km = parseFloat(document.getElementById('calc-km').value);
+  const consumption = parseFloat(document.getElementById('calc-cons').value);
+  const price = parseFloat(document.getElementById('calc-price-trip').value);
+  const resultDiv = document.getElementById('trip-result');
+
+  if (!km || !consumption || !price) {
+    showNotification("Faltan datos", "Rellena todos los campos para calcular.", "error");
+    return;
+  }
+
+  const liters = (km * consumption) / 100;
+  const cost = liters * price;
+  const pricePerKm = cost / km;
+
+  resultDiv.innerHTML = `
+        Necesitas aprox. ${liters.toFixed(2)}L<br>
+        Coste total: ${cost.toFixed(2)}€<br>
+        <span style="font-size: 0.85rem; opacity: 0.8;">Precio por km: ${pricePerKm.toFixed(3)}€/km</span>
+    `;
+
+  if (navigator.vibrate) navigator.vibrate(50);
+};
+
+window.calculateFillCost = function () {
+  const capacity = parseFloat(document.getElementById('fill-capacity').value);
+  const price = parseFloat(document.getElementById('fill-price').value);
+  const resultDiv = document.getElementById('fill-result');
+
+  if (isNaN(capacity) || isNaN(price)) {
+    showNotification("Faltan datos", "Indica la capacidad y el precio del litro.", "error");
+    return;
+  }
+
+  const totalCost = capacity * price;
+
+  resultDiv.innerHTML = `Coste total de llenado: ${totalCost.toFixed(2)}€`;
+  if (navigator.vibrate) navigator.vibrate(50);
+};
+
+window.calculateTaxiFare = function () {
+  const km = parseFloat(document.getElementById('taxi-km').value);
+  const type = document.getElementById('taxi-type').value;
+  const time = document.getElementById('taxi-time').value;
+  const resultDiv = document.getElementById('taxi-calc-result');
+
+  if (!km || km <= 0) {
+    showNotification("Datos incompletos", "Introduce los kilómetros del viaje.", "error");
+    return;
+  }
+
+  const rates = {
+    urban: {
+      t1: { flag: 1.60, km: 0.99, min: 4.25 },
+      t2: { flag: 2.02, km: 1.18, min: 5.28 },
+      t3: { flag: 2.47, km: 1.33, min: 6.50 }
+    },
+    inter: {
+      t1: { flag: 3.41, km: 0.66, min: 3.56 },
+      t2: { flag: 1.70, km: 0.78, min: 3.56 },
+      t3: { flag: 1.70, km: 0.78, min: 3.56 }
+    }
+  };
+
+  let totalPrice = 0;
+  let estimatedMinutes = 0;
+
+  if (type === 'mixed') {
+    const urbanKm = Math.min(km, 4);
+    const interKm = Math.max(0, km - 4);
+
+    totalPrice = rates.urban[time].flag + (urbanKm * rates.urban[time].km);
+    totalPrice += (interKm * rates.inter[time].km);
+
+    estimatedMinutes = (urbanKm * 2.8) + (interKm * 1.5);
+  } else {
+    const selectedRate = rates[type][time];
+    totalPrice = selectedRate.flag + (km * selectedRate.km);
+
+    const minPerKm = (type === 'urban') ? 2.8 : 1.6;
+    estimatedMinutes = km * minPerKm;
+
+    if (totalPrice < selectedRate.min) totalPrice = selectedRate.min;
+  }
+
+  if (type !== 'inter') totalPrice *= 1.12;
+
+  resultDiv.style.display = 'block';
+  document.getElementById('res-price').innerText = `${totalPrice.toFixed(2)} €`;
+  document.getElementById('res-time').innerText = `Tiempo estimado: ~${Math.round(estimatedMinutes)} min`;
+
+  if (navigator.vibrate) navigator.vibrate(50);
+};

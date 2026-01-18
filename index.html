@@ -869,6 +869,19 @@
           <span>Eléctrico</span>
         </button>
       </div>
+      <div class="transport-grid fade-in-up" style="margin-top: 20px;">
+        <div class="transport-card" onclick="navigateTo('calculadora-combustible')"
+          style="border-left: 4px solid var(--text-accent);">
+          <div class="card-icon-wrapper" style="background: rgba(37, 99, 235, 0.1); color: var(--text-accent);">
+            <i class="icon ri-calculator-line"></i>
+          </div>
+          <div class="transport-info">
+            <h3>Calculadora de Combustible</h3>
+            <p>Calcula gastos de viaje y llenado</p>
+          </div>
+          <i class="icon arrow-icon ri-arrow-right-s-line"></i>
+        </div>
+      </div>
     </div>
 
     <div id="repostar-map-view" class="view-section" style="height: 100%">
@@ -906,6 +919,56 @@
           <p>Consultando precios...</p>
         </div>
         <div id="map-repostar" class="gpu-accelerated" style="width: 100%; height: 100%"></div>
+      </div>
+    </div>
+
+    <div id="calculadora-combustible-view" class="view-section">
+      <div class="section-header with-back-btn">
+        <button onclick="navigateTo('repostar')" class="icon-btn back-btn" aria-label="Volver atrás">
+          <i class="icon ri-arrow-left-line"></i>
+        </button>
+        <div>
+          <h2>Calculadora</h2>
+          <p>Consumos y presupuestos</p>
+        </div>
+      </div>
+
+      <div class="fade-in-up" style="padding: 0 16px 120px 16px;">
+        <h3 class="info-title">Gasto de Viaje</h3>
+        <div class="info-card" style="margin-bottom: 20px;">
+          <div class="search-box" style="margin-bottom: 10px; background: var(--bg-app);">
+            <i class="ri-road-map-line search-icon"></i>
+            <input type="number" id="calc-km" placeholder="Distancia (km)" inputmode="decimal" />
+          </div>
+          <div class="search-box" style="margin-bottom: 10px; background: var(--bg-app);">
+            <i class="ri-fire-line search-icon"></i>
+            <input type="number" id="calc-cons" placeholder="Consumo (L/100km)" step="0.1" inputmode="decimal" />
+          </div>
+          <div class="search-box" style="margin-bottom: 15px; background: var(--bg-app);">
+            <i class="ri-money-euro-circle-line search-icon"></i>
+            <input type="number" id="calc-price-trip" placeholder="Precio Litro (€/L)" step="0.001"
+              inputmode="decimal" />
+          </div>
+          <button class="cookie-btn primary" onclick="calculateTripFuel()" style="width: 100%;">Calcular Gasto</button>
+          <div id="trip-result"
+            style="margin-top: 15px; text-align: center; font-weight: 800; color: var(--text-accent);"></div>
+        </div>
+
+        <h3 class="info-title">Rellenar Depósito</h3>
+        <div class="info-card">
+          <div class="search-box" style="margin-bottom: 10px; background: var(--bg-app);">
+            <i class="ri-charging-pile-fill search-icon"></i>
+            <input type="number" id="fill-capacity" placeholder="Capacidad del Tanque (L)" inputmode="decimal" />
+          </div>
+          <div class="search-box" style="margin-bottom: 15px; background: var(--bg-app);">
+            <i class="ri-money-euro-circle-line search-icon"></i>
+            <input type="number" id="fill-price" placeholder="Precio Litro (€/L)" step="0.001" inputmode="decimal" />
+          </div>
+          <button class="cookie-btn primary" onclick="calculateFillCost()" style="width: 100%;">Calcular
+            Llenado</button>
+          <div id="fill-result"
+            style="margin-top: 15px; text-align: center; font-weight: 800; color: var(--text-accent);"></div>
+        </div>
       </div>
     </div>
 
@@ -1699,7 +1762,7 @@
         </button>
         <div>
           <h2>Taxi y VTC</h2>
-          <p>Guía completa de tarifas 2026</p>
+          <p>Guía completa de tarifas</p>
         </div>
       </div>
 
@@ -2010,6 +2073,49 @@
             <strong>preguntar antes de subir</strong> o llevar efectivo por si
             el terminal falla. El taxímetro debe estar siempre visible.
           </p>
+        </div>
+
+
+        <h3 class="info-title">Calculadora de Trayecto</h3>
+        <div class="info-card fade-in-up" style="margin-bottom: 25px; border-left: 4px solid #f59e0b;">
+          <div style="display: flex; flex-direction: column; gap: 15px;">
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">Estima el precio y tiempo de tu
+              viaje
+              según el tipo de tarifa y tráfico.</p>
+
+            <div class="search-box" style="background: var(--bg-app); height: 48px;">
+              <i class="ri-road-map-line search-icon"></i>
+              <input type="number" id="taxi-km" placeholder="Distancia total (km)" inputmode="decimal" />
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+              <select id="taxi-type" class="tab-pill"
+                style="flex: 1; border: 1px solid var(--border-subtle); background: var(--bg-app); color: var(--text-primary); padding: 8px; border-radius: 12px; font-size: 0.85rem;">
+                <option value="urban">Solo Urbano</option>
+                <option value="inter">Solo Interurbano</option>
+                <option value="mixed">Mixto (Salida ciudad)</option>
+              </select>
+
+              <select id="taxi-time" class="tab-pill"
+                style="flex: 1; border: 1px solid var(--border-subtle); background: var(--bg-app); color: var(--text-primary); padding: 8px; border-radius: 12px; font-size: 0.85rem;">
+                <option value="t1">Día (Laborable)</option>
+                <option value="t2">Noche / Festivo</option>
+                <option value="t3">Especial Nocturno</option>
+              </select>
+            </div>
+
+            <button class="cookie-btn primary" onclick="calculateTaxiFare()"
+              style="width: 100%; height: 48px; font-weight: 800;">Calcular Estimación</button>
+
+            <div id="taxi-calc-result"
+              style="display: none; background: var(--bg-app); padding: 15px; border-radius: 16px; border: 1px solid var(--border-subtle); text-align: center;">
+              <div id="res-price" style="font-size: 1.5rem; font-weight: 800; color: var(--text-accent);">0.00 €</div>
+              <div id="res-time" style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 5px;">Tiempo
+                estimado: -- min</div>
+              <small style="display: block; margin-top: 10px; font-size: 0.7rem; opacity: 0.7;">* Incluye estimación de
+                tráfico y semáforos.</small>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -3232,8 +3338,10 @@
                   devuelve el 50% si pierdes.
                 </li>
                 <li>
-                  <strong>8. GranáSlots:</strong> Prueba tu suerte con los iconos de la ciudad en una máquina de azar de
-                  3x3. Consigue combinaciones horizontales o diagonales para multiplicar tu apuesta y ganar GranáSaldo.
+                  <strong>8. GranáSlots:</strong> Prueba tu suerte con los
+                  iconos de la ciudad en una máquina de azar de 3x3. Consigue
+                  combinaciones horizontales o diagonales para multiplicar tu
+                  apuesta y ganar GranáSaldo.
                 </li>
               </ul>
             </div>
