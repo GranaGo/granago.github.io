@@ -7587,12 +7587,18 @@ const VOICE_CONFIG = {
 
 const ESP_FALLBACK_LIMITS = {
   motorway: "120",
-  trunk: "120",
+  trunk: "100",
   primary: "90",
   secondary: "90",
-  tertiary: "80",
+  tertiary: "90",
+  unclassified: "90",
   residential: "30",
   living_street: "20",
+  motorway_link: "60",
+  trunk_link: "60",
+  primary_link: "40",
+  secondary_link: "40",
+  tertiary_link: "40",
 };
 
 async function loadSpeedLimits() {
