@@ -7749,6 +7749,13 @@ async function toggleDrivingMode() {
   }
 }
 
+function isTargetInFront(userHeading, bearingToTarget) {
+  if (userHeading === null || isNaN(userHeading)) return true;
+  let diff = Math.abs(userHeading - bearingToTarget) % 360;
+  let normalizedDiff = diff > 180 ? 360 - diff : diff;
+  return normalizedDiff < 90;
+}
+
 function processDrivingPosition(position) {
   const lat = position.coords.latitude;
   const lng = position.coords.longitude;
@@ -7778,8 +7785,10 @@ function checkNearbyRadars(userLat, userLng, userHeading) {
         const rLat = geom.coordinates[1];
         const rLng = geom.coordinates[0];
         dist = getDistanceFromLatLonInKm(userLat, userLng, rLat, rLng);
+        const bearingToRadar = getBearing(userLat, userLng, rLat, rLng);
+        const inFront = isTargetInFront(userHeading, bearingToRadar);
 
-        if (radar.properties.bearing !== null && userHeading !== null) {
+        if (inFront && radar.properties.bearing !== null && userHeading !== null) {
           let targetAngle = radar.properties.bearing;
 
           if (radar.properties.sentido === "Decreciente") {
@@ -7789,6 +7798,8 @@ function checkNearbyRadars(userLat, userLng, userHeading) {
           if (radar.properties.sentido !== "Ambos") {
             matchesHeading = isAngleSimilar(userHeading, targetAngle);
           }
+        } else if (!inFront) {
+          matchesHeading = false;
         }
       } else if (geom.type === "LineString") {
         let minDistToLine = Infinity;
@@ -7846,7 +7857,10 @@ function checkNearbyRadars(userLat, userLng, userHeading) {
           latlng.lng,
         );
 
-        if (dist < minDistance) {
+        const bearingToCam = getBearing(userLat, userLng, latlng.lat, latlng.lng);
+        const camInFront = isTargetInFront(userHeading, bearingToCam);
+
+        if (camInFront && dist < minDistance) {
           minDistance = dist;
           const popupContent = layer.getPopup()
             ? layer.getPopup().getContent()
@@ -7875,28 +7889,24 @@ function checkCurrentSpeedLimit(userLat, userLng) {
 
   let closestFeature = null;
   let minDistance = Infinity;
-  const DETECTION_RADIUS = 0.035;
 
-  const nearby = speedLimitsData.features.filter((f) => {
-    const firstCoord = f.geometry.coordinates[0];
-    return (
-      Math.abs(firstCoord[1] - userLat) < 0.01 &&
-      Math.abs(firstCoord[0] - userLng) < 0.01
-    );
-  });
+  const DETECTION_RADIUS = 0.050;
 
-  nearby.forEach((feature) => {
+  speedLimitsData.features.forEach((feature) => {
+    if (!feature.geometry || !feature.geometry.coordinates) return;
     const coords = feature.geometry.coordinates;
+
     for (let i = 0; i < coords.length - 1; i++) {
       const p1 = coords[i];
       const p2 = coords[i + 1];
+
       const dist = getDistanceToSegment(
         userLat,
         userLng,
         p1[1],
         p1[0],
         p2[1],
-        p2[0],
+        p2[0]
       );
 
       if (dist < minDistance && dist < DETECTION_RADIUS) {
@@ -7989,9 +7999,14 @@ function updateHudAlert(item, distanceKm) {
       if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
     }
   } else {
+    const isStopped = targetSpeed < 2;
+    const estadoTexto = isStopped ? "Parado" : "Circulando";
+    const estadoIcono = isStopped ? "ri-pause-circle-line" : "ri-steering-2-line";
+    const estadoColor = isStopped ? "#94a3b8" : "#10b981";
+
     alertBox.innerHTML = `
-            <i class="ri-steering-2-line" style="font-size: 3rem; color: #10b981;"></i>
-            <div style="font-size: 1.2rem; margin-top: 10px;">Circulando</div>
+            <i class="${estadoIcono}" style="font-size: 3rem; color: ${estadoColor};"></i>
+            <div style="font-size: 1.2rem; margin-top: 10px;">${estadoTexto}</div>
         `;
   }
 }
