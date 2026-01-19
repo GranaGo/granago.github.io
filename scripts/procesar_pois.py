@@ -24,6 +24,9 @@ def get_category(tags):
             "library": "Biblioteca",
             "fountain": "Fuente",
             "place_of_worship": "Lugar de Culto",
+            "drinking_water": "Fuente",
+            "bar": "Comida",
+            "restaurant": "Comida",
             "nightclub": "Discoteca",
             "cinema": "Cine",
             "police": "Policía",
@@ -100,6 +103,12 @@ for f in raw["features"]:
     geom = f.get("geometry")
     if not name or not category or not geom:
         continue
+    name = tags.get("name")
+    if not name:
+        if tags.get("amenity") == "drinking_water":
+            name = "Fuente de agua potable"
+        else:
+            continue
     coords = geom.get("coordinates")
     if not coords:
         continue

@@ -465,6 +465,7 @@ const PLACES_CONFIG = {
   "Estación de Autobuses": { color: "#2563eb", icon: "ri-bus-fill" },
   Biblioteca: { color: "#3b82f6", icon: "ri-book-read-fill" },
   Fuente: { color: "#06b6d4", icon: "ri-drop-fill" },
+  Comida: { color: "#ef4444", icon: "ri-restaurant-fill" },
   "Lugar de Culto": { color: "#6366f1", icon: "ri-bank-fill" },
   Discoteca: { color: "#a855f7", icon: "ri-music-2-fill" },
   Cine: { color: "#ec4899", icon: "ri-film-fill" },
