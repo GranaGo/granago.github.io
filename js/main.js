@@ -78,6 +78,8 @@ const ALERT_RADIUS = 0.3;
 let currentDisplayedSpeed = 0;
 let targetSpeed = 0;
 let speedAnimationId = null;
+let currentStreetFeature = null;
+let lastAnnouncedLimit = null;
 
 let parkingsMapInstance = null;
 let parkingsLayerGroup = null;
@@ -7913,10 +7915,29 @@ function checkNearbyRadars(userLat, userLng, userHeading) {
 function checkCurrentSpeedLimit(userLat, userLng, userHeading) {
   if (!speedLimitsData) return;
 
-  let closestFeature = null;
+  let bestFeature = null;
   let minDistance = Infinity;
 
-  const DETECTION_RADIUS = 0.030;
+  const DETECTION_RADIUS = 0.035;
+  const isStationary = !userHeading || isNaN(userHeading) || targetSpeed < 5;
+
+  if (isStationary && currentStreetFeature) {
+    let stillOnSameStreet = false;
+    const coords = currentStreetFeature.geometry.coordinates;
+
+    for (let i = 0; i < coords.length - 1; i++) {
+      const d = getDistanceToSegment(userLat, userLng, coords[i][1], coords[i][0], coords[i + 1][1], coords[i + 1][0]);
+      if (d < 0.025) {
+        stillOnSameStreet = true;
+        break;
+      }
+    }
+
+    if (stillOnSameStreet) {
+      updateSpeedUI(currentStreetFeature);
+      return;
+    }
+  }
 
   speedLimitsData.features.forEach((feature) => {
     if (!feature.geometry || !feature.geometry.coordinates) return;
@@ -7925,12 +7946,10 @@ function checkCurrentSpeedLimit(userLat, userLng, userHeading) {
     for (let i = 0; i < coords.length - 1; i++) {
       const p1 = coords[i];
       const p2 = coords[i + 1];
-
       const dist = getDistanceToSegment(userLat, userLng, p1[1], p1[0], p2[1], p2[0]);
 
       if (dist < DETECTION_RADIUS) {
-
-        if (userHeading !== null && !isNaN(userHeading)) {
+        if (!isStationary) {
           const segmentBearing = getBearing(p1[1], p1[0], p2[1], p2[0]);
           const diff1 = Math.abs(userHeading - segmentBearing) % 360;
           const diff2 = Math.abs(userHeading - (segmentBearing + 180) % 360) % 360;
@@ -7941,47 +7960,71 @@ function checkCurrentSpeedLimit(userLat, userLng, userHeading) {
 
         if (dist < minDistance) {
           minDistance = dist;
-          closestFeature = feature;
+          bestFeature = feature;
         }
       }
     }
   });
 
-  updateSpeedUI(closestFeature);
+
+  if (bestFeature) {
+    currentStreetFeature = bestFeature;
+  }
+
+  updateSpeedUI(bestFeature);
 }
 
 function updateSpeedUI(feature) {
   const container = document.getElementById("hud-speed-limit");
   if (!feature) {
     container.style.display = "none";
+    lastAnnouncedLimit = null;
     return;
   }
 
   let limit = feature.properties.maxspeed;
+  let lanesLimit = feature.properties["maxspeed:lanes"];
   let isEstimated = false;
 
-  if (!limit) {
+  if (!limit && !lanesLimit) {
     const type = feature.properties.highway;
     limit = ESP_FALLBACK_LIMITS[type];
     isEstimated = true;
   }
 
-  if (limit) {
+  if (lanesLimit) {
+    const lanes = lanesLimit.split('|');
+    container.innerHTML = `
+      <div class="speed-lanes-container" style="display: flex; gap: 5px; justify-content: center; align-items: center;">
+        ${lanes.map(l => `<div class="speed-sign mini" style="transform: scale(0.7); margin: -5px;">${l}</div>`).join('')}
+      </div>`;
+
+    if (lanesLimit !== lastAnnouncedLimit) {
+      speak(`Límites por carril: ${lanes.join(', ')}`);
+      lastAnnouncedLimit = lanesLimit;
+    }
+  } else if (limit) {
     container.innerHTML = `
       <div class="speed-sign ${isEstimated ? "estimated" : ""}">
         ${limit}
         ${isEstimated ? '<span class="est-label">EST.</span>' : ""}
       </div>`;
-    container.style.display = "block";
 
-    const speedText = document.getElementById("hud-speed");
-    if (targetSpeed > parseInt(limit) + 5) {
-      speedText.style.color = "#ef4444";
-    } else {
-      speedText.style.color = "white";
+    if (limit !== lastAnnouncedLimit) {
+      speak(`Límite de velocidad: ${limit}`);
+      lastAnnouncedLimit = limit;
     }
+  }
+
+  container.style.display = "block";
+
+  const speedText = document.getElementById("hud-speed");
+  const maxLimit = lanesLimit ? Math.max(...lanesLimit.split('|').map(Number)) : parseInt(limit);
+
+  if (targetSpeed > maxLimit + 5) {
+    speedText.style.color = "#ef4444";
   } else {
-    container.style.display = "none";
+    speedText.style.color = "white";
   }
 }
 
