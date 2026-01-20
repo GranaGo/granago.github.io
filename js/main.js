@@ -223,8 +223,11 @@ function hexToHSL(hex) {
   let g = parseInt(hex.substring(3, 5), 16) / 255;
   let b = parseInt(hex.substring(5, 7), 16) / 255;
 
-  let max = Math.max(r, g, b), min = Math.min(r, g, b);
-  let h, s, l = (max + min) / 2;
+  let max = Math.max(r, g, b),
+    min = Math.min(r, g, b);
+  let h,
+    s,
+    l = (max + min) / 2;
 
   if (max === min) {
     h = s = 0;
@@ -232,9 +235,15 @@ function hexToHSL(hex) {
     let d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
     switch (max) {
-      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-      case g: h = (b - r) / d + 2; break;
-      case b: h = (r - g) / d + 4; break;
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / d + 2;
+        break;
+      case b:
+        h = (r - g) / d + 4;
+        break;
     }
     h /= 6;
   }
@@ -270,18 +279,35 @@ window.applyAccentColor = function (hex) {
   root.style.setProperty("--color-primary", hex);
 
   if (isDark) {
-    root.style.setProperty("--bg-app", `hsl(${hsl.h}, ${Math.min(hsl.s, 30)}%, 8%)`);
-    root.style.setProperty("--bg-surface", `hsla(${hsl.h}, ${Math.min(hsl.s, 25)}%, 12%, 0.85)`);
-    root.style.setProperty("--bg-card", `hsl(${hsl.h}, ${Math.min(hsl.s, 20)}%, 15%)`);
+    root.style.setProperty(
+      "--bg-app",
+      `hsl(${hsl.h}, ${Math.min(hsl.s, 30)}%, 8%)`,
+    );
+    root.style.setProperty(
+      "--bg-surface",
+      `hsla(${hsl.h}, ${Math.min(hsl.s, 25)}%, 12%, 0.85)`,
+    );
+    root.style.setProperty(
+      "--bg-card",
+      `hsl(${hsl.h}, ${Math.min(hsl.s, 20)}%, 15%)`,
+    );
   } else {
-    root.style.setProperty("--bg-app", `hsl(${hsl.h}, ${Math.min(hsl.s, 20)}%, 96%)`);
-    root.style.setProperty("--bg-surface", `hsla(${hsl.h}, ${Math.min(hsl.s, 15)}%, 98%, 0.85)`);
+    root.style.setProperty(
+      "--bg-app",
+      `hsl(${hsl.h}, ${Math.min(hsl.s, 20)}%, 96%)`,
+    );
+    root.style.setProperty(
+      "--bg-surface",
+      `hsla(${hsl.h}, ${Math.min(hsl.s, 15)}%, 98%, 0.85)`,
+    );
     root.style.setProperty("--bg-card", `#ffffff`);
   }
 
-  if (document.getElementById("tienda-view")?.classList.contains("active")) renderShop();
+  if (document.getElementById("tienda-view")?.classList.contains("active"))
+    renderShop();
   const metaColor = document.querySelector('meta[name="theme-color"]');
-  if (metaColor) metaColor.content = getComputedStyle(root).getPropertyValue('--bg-app');
+  if (metaColor)
+    metaColor.content = getComputedStyle(root).getPropertyValue("--bg-app");
 };
 
 const savedColor = localStorage.getItem("granaGo_accent_color");
@@ -901,7 +927,8 @@ function initTheme() {
       const isDark = body.classList.contains("dark-mode");
       localStorage.setItem("theme", isDark ? "dark" : "light");
 
-      const currentThemeHex = localStorage.getItem("granaGo_accent_color") || "#2563eb";
+      const currentThemeHex =
+        localStorage.getItem("granaGo_accent_color") || "#2563eb";
       applyAccentColor(currentThemeHex);
 
       checkMapTheme();
@@ -1304,7 +1331,7 @@ function hideAllGameContainers() {
     "mastermind-game-container",
     "encadenadas-game-container",
     "blackjack-game-container",
-    "slots-game-container"
+    "slots-game-container",
   ];
 
   containers.forEach((id) => {
@@ -5846,7 +5873,7 @@ window.hardReload = async function () {
   showNotification(
     "Reiniciando...",
     "Limpiando caché y forzando actualización...",
-    "info"
+    "info",
   );
 
   try {
@@ -5863,9 +5890,8 @@ window.hardReload = async function () {
     }
 
     const url = new URL(window.location.href);
-    url.searchParams.set('t', Date.now());
+    url.searchParams.set("t", Date.now());
     window.location.href = url.toString();
-
   } catch (error) {
     console.error("Error durante la recarga forzada:", error);
     window.location.reload();
@@ -7770,89 +7796,73 @@ function processDrivingPosition(position) {
   targetSpeed = speed ? speed * 3.6 : 0;
 
   checkNearbyRadars(lat, lng, heading);
-  checkCurrentSpeedLimit(lat, lng);
+  checkCurrentSpeedLimit(lat, lng, heading);
 }
 
 function checkNearbyRadars(userLat, userLng, userHeading) {
   if (!window.radaresData && !camarasClusterGroup) return;
 
-  let closestItem = null;
-  let minDistance = Infinity;
-  const currentHeading =
-    typeof userHeading !== "undefined" ? userHeading : null;
+  let closestRadar = null;
+  let minRadarDist = Infinity;
+  let closestCamera = null;
+  let minCameraDist = Infinity;
 
   if (window.radaresData) {
     window.radaresData.features.forEach((radar) => {
       let dist = Infinity;
+      let inFront = false;
       const geom = radar.geometry;
-      let matchesHeading = true;
 
       if (geom.type === "Point") {
         const rLat = geom.coordinates[1];
         const rLng = geom.coordinates[0];
         dist = getDistanceFromLatLonInKm(userLat, userLng, rLat, rLng);
         const bearingToRadar = getBearing(userLat, userLng, rLat, rLng);
-        const inFront = isTargetInFront(userHeading, bearingToRadar);
+        inFront = isTargetInFront(userHeading, bearingToRadar);
 
-        if (inFront && radar.properties.bearing !== null && userHeading !== null) {
+        if (
+          inFront &&
+          radar.properties.bearing !== null &&
+          userHeading !== null
+        ) {
           let targetAngle = radar.properties.bearing;
-
-          if (radar.properties.sentido === "Decreciente") {
+          if (radar.properties.sentido === "Decreciente")
             targetAngle = (targetAngle + 180) % 360;
+          if (
+            radar.properties.sentido !== "Ambos" &&
+            !isAngleSimilar(userHeading, targetAngle)
+          ) {
+            inFront = false;
           }
-
-          if (radar.properties.sentido !== "Ambos") {
-            matchesHeading = isAngleSimilar(userHeading, targetAngle);
-          }
-        } else if (!inFront) {
-          matchesHeading = false;
         }
       } else if (geom.type === "LineString") {
-        let minDistToLine = Infinity;
         const coords = geom.coordinates;
-        let segmentAngle = 0;
-
         for (let i = 0; i < coords.length - 1; i++) {
-          const p1 = coords[i];
-          const p2 = coords[i + 1];
           const d = getDistanceToSegment(
             userLat,
             userLng,
-            p1[1],
-            p1[0],
-            p2[1],
-            p2[0],
+            coords[i][1],
+            coords[i][0],
+            coords[i + 1][1],
+            coords[i + 1][0],
           );
-
-          if (d < 0.5) {
-            segmentAngle = getBearing(p1[1], p1[0], p2[1], p2[0]);
-
-            if (
-              currentHeading !== null &&
-              !isAngleSimilar(currentHeading, segmentAngle)
-            ) {
-              matchesHeading = false;
-            } else {
-              matchesHeading = true;
-            }
-          }
-          if (d < minDistToLine) minDistToLine = d;
+          if (d < dist) dist = d;
         }
-        dist = minDistToLine;
+        inFront = dist < ALERT_RADIUS;
       }
 
-      if (matchesHeading && dist < minDistance) {
-        minDistance = dist;
-        closestItem = {
+      if (inFront && dist < minRadarDist) {
+        minRadarDist = dist;
+        closestRadar = {
           data: radar.properties,
-          isCamera: false,
           type: radar.properties.type,
+          isCamera: false,
         };
       }
     });
   }
 
-  if (camarasClusterGroup) {
+  if (closestRadar === null && camarasClusterGroup) {
     camarasClusterGroup.eachLayer((layer) => {
       if (layer instanceof L.Marker) {
         const latlng = layer.getLatLng();
@@ -7862,12 +7872,16 @@ function checkNearbyRadars(userLat, userLng, userHeading) {
           latlng.lat,
           latlng.lng,
         );
+        const bearingToCam = getBearing(
+          userLat,
+          userLng,
+          latlng.lat,
+          latlng.lng,
+        );
+        const inFront = isTargetInFront(userHeading, bearingToCam);
 
-        const bearingToCam = getBearing(userLat, userLng, latlng.lat, latlng.lng);
-        const camInFront = isTargetInFront(userHeading, bearingToCam);
-
-        if (camInFront && dist < minDistance) {
-          minDistance = dist;
+        if (inFront && dist < minCameraDist) {
+          minCameraDist = dist;
           const popupContent = layer.getPopup()
             ? layer.getPopup().getContent()
             : "";
@@ -7877,7 +7891,7 @@ function checkNearbyRadars(userLat, userLng, userHeading) {
             ? tempDiv.querySelector("strong").innerText
             : "Cámara Tráfico";
 
-          closestItem = {
+          closestCamera = {
             data: { road: name, desc: "Cámara de vigilancia" },
             isCamera: true,
             type: "camera",
@@ -7887,16 +7901,22 @@ function checkNearbyRadars(userLat, userLng, userHeading) {
     });
   }
 
-  updateHudAlert(closestItem, minDistance);
+  if (closestRadar) {
+    updateHudAlert(closestRadar, minRadarDist);
+  } else if (closestCamera) {
+    updateHudAlert(closestCamera, minCameraDist);
+  } else {
+    updateHudAlert(null, Infinity);
+  }
 }
 
-function checkCurrentSpeedLimit(userLat, userLng) {
+function checkCurrentSpeedLimit(userLat, userLng, userHeading) {
   if (!speedLimitsData) return;
 
   let closestFeature = null;
   let minDistance = Infinity;
 
-  const DETECTION_RADIUS = 0.050;
+  const DETECTION_RADIUS = 0.030;
 
   speedLimitsData.features.forEach((feature) => {
     if (!feature.geometry || !feature.geometry.coordinates) return;
@@ -7906,18 +7926,23 @@ function checkCurrentSpeedLimit(userLat, userLng) {
       const p1 = coords[i];
       const p2 = coords[i + 1];
 
-      const dist = getDistanceToSegment(
-        userLat,
-        userLng,
-        p1[1],
-        p1[0],
-        p2[1],
-        p2[0]
-      );
+      const dist = getDistanceToSegment(userLat, userLng, p1[1], p1[0], p2[1], p2[0]);
 
-      if (dist < minDistance && dist < DETECTION_RADIUS) {
-        minDistance = dist;
-        closestFeature = feature;
+      if (dist < DETECTION_RADIUS) {
+
+        if (userHeading !== null && !isNaN(userHeading)) {
+          const segmentBearing = getBearing(p1[1], p1[0], p2[1], p2[0]);
+          const diff1 = Math.abs(userHeading - segmentBearing) % 360;
+          const diff2 = Math.abs(userHeading - (segmentBearing + 180) % 360) % 360;
+          const minDiff = Math.min(diff1 > 180 ? 360 - diff1 : diff1, diff2 > 180 ? 360 - diff2 : diff2);
+
+          if (minDiff > 45) continue;
+        }
+
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestFeature = feature;
+        }
       }
     }
   });
@@ -7967,39 +7992,34 @@ function updateHudAlert(item, distanceKm) {
   if (item && distanceKm < ALERT_RADIUS) {
     const isCamera = item.isCamera;
     const props = item.data;
-    const color = isCamera
-      ? "#8b5cf6"
-      : item.type === "fijo"
-        ? "#e67e22"
-        : "#D9281C";
-    const icon = isCamera ? "ri-camera-lens-fill" : "ri-alarm-warning-fill";
-    const label = isCamera ? "CÁMARA" : item.type.toUpperCase();
+    const type = item.type;
+
+    let color = isCamera ? "#8b5cf6" : type === "fijo" ? "#e67e22" : "#D9281C";
+    let icon = isCamera ? "ri-camera-lens-fill" : "ri-alarm-warning-fill";
+    let label = isCamera ? "CÁMARA" : type.toUpperCase();
+
+    if (
+      !isCamera &&
+      (type === "tramo" || type === "movil") &&
+      distanceKm < 0.05
+    ) {
+      label = "EN RADAR";
+      color = "#10b981";
+    }
 
     alertBox.innerHTML = `
             <i class="${icon}" style="font-size: 4rem; color: ${color}; animation: pulse 1s infinite;"></i>
             <div style="font-size: 1.5rem; font-weight:bold; margin-top: 10px; color:${color}">${label}</div>
-            <div class="notranslate">${props.road}</div>
-            <div style="font-size: 0.9rem;">${props.desc || ""} a ${(
-        distanceKm * 1000
-      ).toFixed(0)}m</div>
+            <div class="notranslate">${props.road || props.tramo || "Vía Principal"}</div>
+            <div style="font-size: 0.9rem;">${props.desc || ""} ${label === "EN RADAR" ? "" : "a " + (distanceKm * 1000).toFixed(0) + "m"}</div>
         `;
 
-    if (now - lastAlertTime > 15000) {
+    // Alertas de voz: Solo saltan si estamos aproximándonos (no si ya estamos "EN RADAR")
+    if (now - lastAlertTime > 15000 && label !== "EN RADAR") {
       const msgs = getVoiceSettings().labels;
-      let frase = "";
-
-      if (isCamera) {
-        frase = `Atención, cámara de tráfico próxima en ${props.road}`;
-      } else {
-        let radarType =
-          item.type === "movil"
-            ? msgs.mobile
-            : item.type === "tramo"
-              ? msgs.section
-              : msgs.fixed;
-        frase = `${msgs.attention}. ${radarType} en ${props.road}`;
-      }
-
+      let frase = isCamera
+        ? `Atención, cámara próxima en ${props.road}`
+        : `${msgs.attention}. Radar ${type} en ${props.road || "su ruta"}`;
       speak(frase);
       lastAlertTime = now;
       if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
@@ -8007,7 +8027,9 @@ function updateHudAlert(item, distanceKm) {
   } else {
     const isStopped = targetSpeed < 2;
     const estadoTexto = isStopped ? "Parado" : "Circulando";
-    const estadoIcono = isStopped ? "ri-pause-circle-line" : "ri-steering-2-line";
+    const estadoIcono = isStopped
+      ? "ri-pause-circle-line"
+      : "ri-steering-2-line";
     const estadoColor = isStopped ? "#94a3b8" : "#10b981";
 
     alertBox.innerHTML = `
@@ -9599,6 +9621,8 @@ function initSupportTimers() {
 }
 
 function showSupportNotification() {
+  if (drivingModeActive) return;
+
   const container = document.getElementById("notification-container");
   if (!container) return;
 
@@ -9667,13 +9691,17 @@ window.shareAppDirectly = function () {
 };
 
 window.calculateTripFuel = function () {
-  const km = parseFloat(document.getElementById('calc-km').value);
-  const consumption = parseFloat(document.getElementById('calc-cons').value);
-  const price = parseFloat(document.getElementById('calc-price-trip').value);
-  const resultDiv = document.getElementById('trip-result');
+  const km = parseFloat(document.getElementById("calc-km").value);
+  const consumption = parseFloat(document.getElementById("calc-cons").value);
+  const price = parseFloat(document.getElementById("calc-price-trip").value);
+  const resultDiv = document.getElementById("trip-result");
 
   if (!km || !consumption || !price) {
-    showNotification("Faltan datos", "Rellena todos los campos para calcular.", "error");
+    showNotification(
+      "Faltan datos",
+      "Rellena todos los campos para calcular.",
+      "error",
+    );
     return;
   }
 
@@ -9691,12 +9719,16 @@ window.calculateTripFuel = function () {
 };
 
 window.calculateFillCost = function () {
-  const capacity = parseFloat(document.getElementById('fill-capacity').value);
-  const price = parseFloat(document.getElementById('fill-price').value);
-  const resultDiv = document.getElementById('fill-result');
+  const capacity = parseFloat(document.getElementById("fill-capacity").value);
+  const price = parseFloat(document.getElementById("fill-price").value);
+  const resultDiv = document.getElementById("fill-result");
 
   if (isNaN(capacity) || isNaN(price)) {
-    showNotification("Faltan datos", "Indica la capacidad y el precio del litro.", "error");
+    showNotification(
+      "Faltan datos",
+      "Indica la capacidad y el precio del litro.",
+      "error",
+    );
     return;
   }
 
@@ -9707,55 +9739,60 @@ window.calculateFillCost = function () {
 };
 
 window.calculateTaxiFare = function () {
-  const km = parseFloat(document.getElementById('taxi-km').value);
-  const type = document.getElementById('taxi-type').value;
-  const time = document.getElementById('taxi-time').value;
-  const resultDiv = document.getElementById('taxi-calc-result');
+  const km = parseFloat(document.getElementById("taxi-km").value);
+  const type = document.getElementById("taxi-type").value;
+  const time = document.getElementById("taxi-time").value;
+  const resultDiv = document.getElementById("taxi-calc-result");
 
   if (!km || km <= 0) {
-    showNotification("Datos incompletos", "Introduce los kilómetros del viaje.", "error");
+    showNotification(
+      "Datos incompletos",
+      "Introduce los kilómetros del viaje.",
+      "error",
+    );
     return;
   }
 
   const rates = {
     urban: {
-      t1: { flag: 1.60, km: 0.99, min: 4.25 },
+      t1: { flag: 1.6, km: 0.99, min: 4.25 },
       t2: { flag: 2.02, km: 1.18, min: 5.28 },
-      t3: { flag: 2.47, km: 1.33, min: 6.50 }
+      t3: { flag: 2.47, km: 1.33, min: 6.5 },
     },
     inter: {
       t1: { flag: 3.41, km: 0.66, min: 3.56 },
-      t2: { flag: 1.70, km: 0.78, min: 3.56 },
-      t3: { flag: 1.70, km: 0.78, min: 3.56 }
-    }
+      t2: { flag: 1.7, km: 0.78, min: 3.56 },
+      t3: { flag: 1.7, km: 0.78, min: 3.56 },
+    },
   };
 
   let totalPrice = 0;
   let estimatedMinutes = 0;
 
-  if (type === 'mixed') {
+  if (type === "mixed") {
     const urbanKm = Math.min(km, 4);
     const interKm = Math.max(0, km - 4);
 
-    totalPrice = rates.urban[time].flag + (urbanKm * rates.urban[time].km);
-    totalPrice += (interKm * rates.inter[time].km);
+    totalPrice = rates.urban[time].flag + urbanKm * rates.urban[time].km;
+    totalPrice += interKm * rates.inter[time].km;
 
-    estimatedMinutes = (urbanKm * 2.8) + (interKm * 1.5);
+    estimatedMinutes = urbanKm * 2.8 + interKm * 1.5;
   } else {
     const selectedRate = rates[type][time];
-    totalPrice = selectedRate.flag + (km * selectedRate.km);
+    totalPrice = selectedRate.flag + km * selectedRate.km;
 
-    const minPerKm = (type === 'urban') ? 2.8 : 1.6;
+    const minPerKm = type === "urban" ? 2.8 : 1.6;
     estimatedMinutes = km * minPerKm;
 
     if (totalPrice < selectedRate.min) totalPrice = selectedRate.min;
   }
 
-  if (type !== 'inter') totalPrice *= 1.12;
+  if (type !== "inter") totalPrice *= 1.12;
 
-  resultDiv.style.display = 'block';
-  document.getElementById('res-price').innerText = `${totalPrice.toFixed(2)} €`;
-  document.getElementById('res-time').innerText = `Tiempo estimado: ~${Math.round(estimatedMinutes)} min`;
+  resultDiv.style.display = "block";
+  document.getElementById("res-price").innerText = `${totalPrice.toFixed(2)} €`;
+  document.getElementById("res-time").innerText =
+    `Tiempo estimado: ~${Math.round(estimatedMinutes)} min`;
 
   if (navigator.vibrate) navigator.vibrate(50);
 };
