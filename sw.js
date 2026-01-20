@@ -67,6 +67,9 @@ const ASSETS_TO_CACHE = [
   "./data/velocidad.json",
   "./data/carrilbici.kml",
   "./data/parkingbici.kml",
+  "./data/espprovincias.json",
+  "./data/municipiosgranada.json",
+  "./data/paisesmundo.json",
   ...cartasAssets,
 ];
 

@@ -107,6 +107,17 @@ let speedLimitsData = null;
 let slotBet = 10;
 let slotsSpinning = false;
 
+let geoMapInstance = null;
+let geoLayer = null;
+let geoConfig = {
+  mode: '',
+  round: 0,
+  score: 0,
+  targetFeatures: [],
+  currentTarget: null,
+  isAnswered: false
+};
+
 let taxiMapInstance = null;
 let taxiLayersGroup = null;
 let taxiTileLayer = null;
@@ -1323,6 +1334,17 @@ function destroyUnusedMaps() {
     cSM._leaflet_id = null;
     cSM.innerHTML = "";
   }
+
+  if (geoMapInstance) {
+    geoMapInstance.off();
+    geoMapInstance.remove();
+    geoMapInstance = null;
+  }
+  const cGeo = document.getElementById("map-geo");
+  if (cGeo) {
+    cGeo._leaflet_id = null;
+    cGeo.innerHTML = "";
+  }
 }
 function hideAllGameContainers() {
   const containers = [
@@ -1334,6 +1356,7 @@ function hideAllGameContainers() {
     "encadenadas-game-container",
     "blackjack-game-container",
     "slots-game-container",
+    "geograna-game-container",
   ];
 
   containers.forEach((id) => {
@@ -9839,3 +9862,182 @@ window.calculateTaxiFare = function () {
 
   if (navigator.vibrate) navigator.vibrate(50);
 };
+
+window.openGeoMenu = function () {
+  hideAllGameContainers();
+  document.getElementById("games-menu").style.display = "none";
+  document.getElementById("geograna-game-container").style.display = "block";
+  document.getElementById("geo-setup").style.display = "block";
+  document.getElementById("geo-gameplay").style.display = "none";
+  document.getElementById("geo-result").style.display = "none";
+  trackRecentItem("granaGo_recent_games", "GeoGraná");
+};
+
+window.closeGeo = function () {
+  document.getElementById("games-menu").style.display = "flex";
+  document.getElementById("geograna-game-container").style.display = "none";
+  if (geoMapInstance) { geoMapInstance.remove(); geoMapInstance = null; }
+};
+
+async function startGeoGame(mode) {
+  geoConfig.mode = mode;
+  geoConfig.round = 1;
+  geoConfig.score = 0;
+  geoConfig.isAnswered = false;
+
+  document.getElementById("geo-setup").style.display = "none";
+  document.getElementById("geo-gameplay").style.display = "block";
+  document.getElementById("geo-options-overlay").style.display = "none";
+
+  const fileMap = {
+    'granada': 'data/municipiosgranada.json',
+    'espana': 'data/espprovincias.json',
+    'mundo': 'data/paisesmundo.json'
+  };
+
+  showNotification("Cargando", "Preparando el mapa...", "info");
+
+  try {
+    await loadScript("js/leaflet.js");
+
+    const response = await fetch(fileMap[mode]);
+    const data = await response.json();
+
+    geoConfig.targetFeatures = [...data.features]
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 10);
+
+    initGeoMap(data);
+    nextGeoRound();
+  } catch (e) {
+    console.error(e);
+    showNotification("Error", "No se pudo cargar el mapa o las librerías", "error");
+  }
+}
+
+function initGeoMap(fullData) {
+  if (geoMapInstance) geoMapInstance.remove();
+
+  geoMapInstance = L.map('map-geo', {
+    zoomControl: false,
+    attributionControl: false,
+    maxZoom: 12
+  });
+
+  const isDark = document.body.classList.contains("dark-mode");
+  const url = isDark
+    ? "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
+    : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png";
+
+  L.tileLayer(url).addTo(geoMapInstance);
+
+  geoLayer = L.geoJSON(fullData, {
+    style: {
+      color: isDark ? "#334155" : "#cbd5e1",
+      weight: 1,
+      fillOpacity: 0.1,
+      fillColor: "#000"
+    }
+  }).addTo(geoMapInstance);
+
+  geoMapInstance.fitBounds(geoLayer.getBounds());
+}
+
+function nextGeoRound() {
+  geoConfig.isAnswered = false;
+  geoConfig.currentTarget = geoConfig.targetFeatures[geoConfig.round - 1];
+
+  document.getElementById("geo-stats-text").innerText = `Puntos: ${geoConfig.score} | Ronda: ${geoConfig.round}/10`;
+  document.getElementById("geo-options-overlay").style.display = "block";
+
+  const isDark = document.body.classList.contains("dark-mode");
+  geoLayer.setStyle((feature) => {
+    const isCurrent = feature === geoConfig.currentTarget;
+    return {
+      fillOpacity: isCurrent ? 0.8 : 0.1,
+      fillColor: isCurrent ? "var(--text-accent)" : (isDark ? "#000" : "#fff"),
+      color: isCurrent ? "white" : (isDark ? "#444" : "#ccc"),
+      weight: isCurrent ? 3 : 1
+    };
+  });
+
+  const bounds = L.geoJSON(geoConfig.currentTarget).getBounds();
+  geoMapInstance.flyToBounds(bounds, {
+    padding: [60, 60],
+    duration: 1.2,
+    maxZoom: 9
+  });
+
+  renderGeoOptions();
+}
+
+function renderGeoOptions() {
+  const grid = document.getElementById("geo-options-grid");
+  grid.innerHTML = "";
+
+  const getName = (feature) => {
+    const p = feature.properties;
+    return p.NAMEUNIT || p.NAME || p.name || p.ADMIN || p.text || "Lugar desconocido";
+  };
+
+  const correctAnswer = getName(geoConfig.currentTarget);
+
+  let allPossibleNames = geoLayer.getLayers()
+    .map(l => getName(l.feature))
+    .filter(n => n !== correctAnswer && n !== "Lugar desconocido");
+
+  let incorrectOptions = [...new Set(allPossibleNames)]
+    .sort(() => 0.5 - Math.random())
+    .slice(0, 3);
+
+  while (incorrectOptions.length < 3) {
+    incorrectOptions.push("Otra ubicación " + (incorrectOptions.length + 1));
+  }
+
+  let options = [correctAnswer, ...incorrectOptions].sort(() => 0.5 - Math.random());
+
+  options.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.className = "quiz-btn";
+    btn.style.padding = "10px";
+    btn.style.fontSize = "0.85rem";
+    btn.style.minHeight = "45px";
+    btn.innerHTML = `<span>${opt}</span>`;
+    btn.onclick = () => checkGeoAnswer(opt, correctAnswer, btn);
+    grid.appendChild(btn);
+  });
+}
+
+function checkGeoAnswer(selected, correct, btn) {
+  if (geoConfig.isAnswered) return;
+  geoConfig.isAnswered = true;
+
+  if (selected === correct) {
+    geoConfig.score += 100;
+    btn.classList.add("correct");
+    showNotification("¡Correcto!", "+100 G$", "success");
+  } else {
+    btn.classList.add("wrong");
+    Array.from(document.querySelectorAll("#geo-options-grid .quiz-btn")).forEach(b => {
+      if (b.innerText === correct) b.classList.add("correct");
+    });
+  }
+
+  setTimeout(() => {
+    if (geoConfig.round < 10) {
+      geoConfig.round++;
+      nextGeoRound();
+    } else {
+      finishGeoGame();
+    }
+  }, 2000);
+}
+
+function finishGeoGame() {
+  document.getElementById("geo-gameplay").style.display = "none";
+  const resultDiv = document.getElementById("geo-result");
+  resultDiv.style.display = "block";
+
+  document.getElementById("geo-result-score").innerText = `Puntuación final: ${geoConfig.score} G$`;
+  addGranaSaldo(Math.floor(geoConfig.score / 10), "GeoGraná");
+}
