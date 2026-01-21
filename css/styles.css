@@ -4215,3 +4215,32 @@ body.keyboard-open .glass-dock {
     transform: scale(1);
   }
 }
+
+.powerup-btn {
+  background: var(--bg-surface);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-subtle);
+  padding: 8px 12px;
+  border-radius: 12px;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.powerup-btn:active {
+  transform: scale(0.95);
+}
+
+.powerup-btn.active {
+  border-color: var(--text-accent);
+  color: var(--text-accent);
+}
+
+.powerup-btn:disabled {
+  opacity: 0.5;
+  filter: grayscale(1);
+}

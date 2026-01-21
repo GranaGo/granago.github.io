@@ -2118,40 +2118,41 @@
       </div>
     </div>
 
-    <div id="daily-reward-banner" class="info-card" style="
-          display: none;
-          margin-bottom: 15px;
-          border-left: 4px solid var(--color-star);
-          background: rgba(251, 191, 36, 0.05);
-        ">
-      <div style="display: flex; align-items: center; gap: 15px">
-        <div class="card-icon-wrapper" style="
-              background: rgba(251, 191, 36, 0.1);
-              color: #fbbf24;
-              width: 42px;
-              height: 42px;
-            ">
-          <i class="ri-gift-fill"></i>
-        </div>
-        <div style="flex: 1">
-          <h3 style="margin: 0; font-size: 0.95rem">¡Regalo Diario!</h3>
-          <p style="margin: 0; font-size: 0.8rem; opacity: 0.8">
-            Reclama tus 50 G$ por volver hoy.
-          </p>
-        </div>
-        <button class="cookie-btn primary" onclick="claimDailyReward()"
-          style="padding: 8px 15px; font-size: 0.8rem; width: auto">
-          Reclamar
-        </button>
-      </div>
-    </div>
-
     <div id="juegos-view" class="view-section">
       <div class="section-header">
         <h2>Zona de Juegos</h2>
         <p id="games-main-balance">
           Saldo: <span class="notranslate">0</span> G$
         </p>
+      </div>
+
+      <div id="daily-reward-banner" class="info-card" style="
+        display: none;
+        margin-bottom: 15px;
+        margin-top: 15px;
+        border-left: 4px solid var(--color-star);
+        background: rgba(251, 191, 36, 0.05);
+      ">
+        <div style="display: flex; align-items: center; gap: 15px">
+          <div class="card-icon-wrapper" style="
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+            width: 42px;
+            height: 42px;
+          ">
+            <i class="ri-gift-fill"></i>
+          </div>
+          <div style="flex: 1">
+            <h3 style="margin: 0; font-size: 0.95rem">¡Regalo Diario!</h3>
+            <p style="margin: 0; font-size: 0.8rem; opacity: 0.8">
+              Reclama tus 50 G$ por volver hoy.
+            </p>
+          </div>
+          <button class="cookie-btn primary" onclick="claimDailyReward()"
+            style="padding: 8px 15px; font-size: 0.8rem; width: auto">
+            Reclamar
+          </button>
+        </div>
       </div>
 
       <div id="games-menu" class="transport-grid fade-in-up">
@@ -3024,6 +3025,15 @@
 
         <div id="geo-gameplay"
           style="display: none; position: relative; height: calc(100vh - 220px); min-height: 400px;">
+          <div id="geo-powerups-bar"
+            style="position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 8px;">
+            <button onclick="useGeoPowerUp('reveal')" class="powerup-btn" id="pu-reveal-btn" style="display:none;">
+              <i class="ri-eye-fill"></i>
+            </button>
+            <button onclick="useGeoPowerUp('5050')" class="powerup-btn" id="pu-5050-btn" style="display:none;">
+              <i class="ri-scissors-2-fill"></i>
+            </button>
+          </div>
           <div id="map-geo"
             style="width: 100%; height: 100%; border-radius: 20px; border: 2px solid var(--border-subtle);"></div>
 

@@ -228,6 +228,22 @@ const SHOP_ITEMS = {
       icon: "ri-shield-check-fill",
       game: "blackjack",
     },
+    {
+      id: "geo-lince",
+      name: "Geo-Lince",
+      desc: "Marca la respuesta correcta",
+      price: 750,
+      icon: "ri-eye-fill",
+      game: "geograna",
+    },
+    {
+      id: "geo-5050",
+      name: "Geo 50/50",
+      desc: "Quita 2 respuestas falsas",
+      price: 500,
+      icon: "ri-scissors-2-fill",
+      game: "geograna",
+    },
   ],
 };
 
@@ -9870,6 +9886,7 @@ window.openGeoMenu = function () {
   document.getElementById("geo-setup").style.display = "block";
   document.getElementById("geo-gameplay").style.display = "none";
   document.getElementById("geo-result").style.display = "none";
+  updateGeoPowerUpUI();
   trackRecentItem("granaGo_recent_games", "GeoGraná");
 };
 
@@ -9877,6 +9894,53 @@ window.closeGeo = function () {
   document.getElementById("games-menu").style.display = "flex";
   document.getElementById("geograna-game-container").style.display = "none";
   if (geoMapInstance) { geoMapInstance.remove(); geoMapInstance = null; }
+};
+
+function updateGeoPowerUpUI() {
+  const inventory = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+  document.getElementById("pu-reveal-count").innerText = inventory.geo_reveal || 0;
+  document.getElementById("pu-5050-count").innerText = inventory.geo_5050 || 0;
+}
+
+window.useGeoPowerUp = function (type) {
+  if (geoConfig.isAnswered) return;
+
+  const getName = (feature) => {
+    const p = feature.properties;
+    return p.NAMEUNIT || p.NAME || p.name || p.ADMIN || "Lugar desconocido";
+  };
+  const correctAnswer = getName(geoConfig.currentTarget);
+
+  if (type === 'reveal') {
+    if (useInventoryItem("geo-lince")) {
+      const buttons = document.querySelectorAll("#geo-options-grid .quiz-btn");
+      buttons.forEach(btn => {
+        if (btn.dataset.answer === correctAnswer) {
+          btn.style.boxShadow = "0 0 15px var(--text-accent)";
+          btn.style.borderColor = "var(--text-accent)";
+          btn.style.transform = "scale(1.05)";
+        }
+      });
+      document.getElementById("pu-reveal-btn").style.display = "none";
+      showNotification("Geo-Lince", "Respuesta correcta resaltada", "success");
+    }
+  }
+  else if (type === '5050') {
+    if (useInventoryItem("geo-5050")) {
+      const buttons = Array.from(document.querySelectorAll("#geo-options-grid .quiz-btn"));
+      let incorrectButtons = buttons.filter(btn => btn.dataset.answer !== correctAnswer);
+
+      incorrectButtons.sort(() => 0.5 - Math.random())
+        .slice(0, 2)
+        .forEach(btn => {
+          btn.style.opacity = "0.2";
+          btn.disabled = true;
+          btn.style.pointerEvents = "none";
+        });
+      document.getElementById("pu-5050-btn").style.display = "none";
+      showNotification("50/50", "Eliminadas dos opciones falsas", "info");
+    }
+  }
 };
 
 async function startGeoGame(mode) {
@@ -9950,6 +10014,14 @@ function nextGeoRound() {
   document.getElementById("geo-stats-text").innerText = `Puntos: ${geoConfig.score} | Ronda: ${geoConfig.round}/10`;
   document.getElementById("geo-options-overlay").style.display = "block";
 
+  const inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+
+  const btnLince = document.getElementById("pu-reveal-btn");
+  const btn5050 = document.getElementById("pu-5050-btn");
+
+  if (btnLince) btnLince.style.display = (inv["geo-lince"] > 0) ? "flex" : "none";
+  if (btn5050) btn5050.style.display = (inv["geo-5050"] > 0) ? "flex" : "none";
+
   const isDark = document.body.classList.contains("dark-mode");
   geoLayer.setStyle((feature) => {
     const isCurrent = feature === geoConfig.currentTarget;
@@ -9962,11 +10034,7 @@ function nextGeoRound() {
   });
 
   const bounds = L.geoJSON(geoConfig.currentTarget).getBounds();
-  geoMapInstance.flyToBounds(bounds, {
-    padding: [60, 60],
-    duration: 1.2,
-    maxZoom: 9
-  });
+  geoMapInstance.flyToBounds(bounds, { padding: [60, 60], duration: 1.2, maxZoom: 9 });
 
   renderGeoOptions();
 }
@@ -9977,7 +10045,7 @@ function renderGeoOptions() {
 
   const getName = (feature) => {
     const p = feature.properties;
-    return p.NAMEUNIT || p.NAME || p.name || p.ADMIN || p.text || "Lugar desconocido";
+    return p.NAMEUNIT || p.NAME || p.name || p.ADMIN || "Lugar desconocido";
   };
 
   const correctAnswer = getName(geoConfig.currentTarget);
@@ -9990,18 +10058,12 @@ function renderGeoOptions() {
     .sort(() => 0.5 - Math.random())
     .slice(0, 3);
 
-  while (incorrectOptions.length < 3) {
-    incorrectOptions.push("Otra ubicación " + (incorrectOptions.length + 1));
-  }
-
   let options = [correctAnswer, ...incorrectOptions].sort(() => 0.5 - Math.random());
 
   options.forEach(opt => {
     const btn = document.createElement("button");
     btn.className = "quiz-btn";
-    btn.style.padding = "10px";
-    btn.style.fontSize = "0.85rem";
-    btn.style.minHeight = "45px";
+    btn.dataset.answer = opt;
     btn.innerHTML = `<span>${opt}</span>`;
     btn.onclick = () => checkGeoAnswer(opt, correctAnswer, btn);
     grid.appendChild(btn);
@@ -10015,11 +10077,14 @@ function checkGeoAnswer(selected, correct, btn) {
   if (selected === correct) {
     geoConfig.score += 100;
     btn.classList.add("correct");
-    showNotification("¡Correcto!", "+100 G$", "success");
+    btn.innerHTML = `<span>${selected} <i class="ri-checkbox-circle-fill"></i></span>`;
   } else {
     btn.classList.add("wrong");
-    Array.from(document.querySelectorAll("#geo-options-grid .quiz-btn")).forEach(b => {
-      if (b.innerText === correct) b.classList.add("correct");
+    const buttons = document.querySelectorAll("#geo-options-grid .quiz-btn");
+    buttons.forEach(b => {
+      if (b.dataset.answer === correct) {
+        b.classList.add("correct");
+      }
     });
   }
 
