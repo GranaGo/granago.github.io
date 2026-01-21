@@ -1684,7 +1684,14 @@
               justify-content: center;
               color: white;
             ">
-
+          <div id="hud-status-bar"
+            style="position: absolute; top: 20px; left: 0; width: 100%; display: flex; justify-content: space-between; padding: 0 30px; font-size: 1.2rem; font-weight: 700; opacity: 0.9; color: white; z-index: 10;">
+            <div id="hud-clock">00:00</div>
+            <div id="hud-battery" style="display: flex; align-items: center; gap: 8px;">
+              <i id="hud-battery-icon" class="ri-battery-2-fill"></i>
+              <span id="hud-battery-level">--%</span>
+            </div>
+          </div>
           <div
             style="text-align: center; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 15px;">
             <div id="hud-speed-limit" style="

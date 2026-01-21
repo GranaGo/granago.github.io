@@ -80,6 +80,7 @@ let targetSpeed = 0;
 let speedAnimationId = null;
 let currentStreetFeature = null;
 let lastAnnouncedLimit = null;
+let hudUpdateInterval = null;
 
 let parkingsMapInstance = null;
 let parkingsLayerGroup = null;
@@ -7751,6 +7752,9 @@ async function toggleDrivingMode() {
 
     drivingModeActive = true;
 
+    updateHudSystemInfo();
+    hudUpdateInterval = setInterval(updateHudSystemInfo, 10000);
+
     document.body.classList.add("driving-mode-on");
 
     hud.style.display = "flex";
@@ -7783,6 +7787,8 @@ async function toggleDrivingMode() {
     speak(msgs.active);
   } else {
     drivingModeActive = false;
+
+    if (hudUpdateInterval) clearInterval(hudUpdateInterval);
 
     document.body.classList.remove("driving-mode-on");
 
@@ -7948,6 +7954,37 @@ function checkNearbyRadars(userLat, userLng, userHeading) {
     updateHudAlert(closestCamera, minCameraDist);
   } else {
     updateHudAlert(null, Infinity);
+  }
+}
+
+async function updateHudSystemInfo() {
+  const clockEl = document.getElementById('hud-clock');
+  const batteryLevelEl = document.getElementById('hud-battery-level');
+  const batteryIconEl = document.getElementById('hud-battery-icon');
+
+  if (!clockEl) return;
+
+  const now = new Date();
+  clockEl.innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  if ('getBattery' in navigator) {
+    try {
+      const battery = await navigator.getBattery();
+      const level = Math.round(battery.level * 100);
+      batteryLevelEl.innerText = `${level}%`;
+
+      if (battery.charging) {
+        batteryIconEl.className = 'ri-battery-charge-fill';
+        batteryIconEl.style.color = '#10b981';
+      } else {
+        batteryIconEl.style.color = 'white';
+        if (level <= 20) batteryIconEl.className = 'ri-battery-low-fill';
+        else if (level <= 60) batteryIconEl.className = 'ri-battery-2-fill';
+        else batteryIconEl.className = 'ri-battery-fill';
+      }
+    } catch (e) {
+      console.warn("No se pudo acceder a la batería");
+    }
   }
 }
 
