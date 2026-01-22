@@ -4064,8 +4064,8 @@ body.keyboard-open .glass-dock {
 }
 
 .speed-sign {
-  width: 250px;
-  height: 250px;
+  width: 200px;
+  height: 200px;
   background: white;
   border: 25px solid #ef4444;
   border-radius: 50%;
@@ -4075,7 +4075,7 @@ body.keyboard-open .glass-dock {
   justify-content: center;
   color: black;
   font-weight: 900;
-  font-size: 4rem;
+  font-size: 5rem;
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
   transition: all 0.3s ease;
   margin: 0 auto;
@@ -4105,9 +4105,9 @@ body.keyboard-open .glass-dock {
 }
 
 .speed-sign.mini {
-  width: 125px !important;
-  height: 125px !important;
-  font-size: 2.4rem !important;
+  width: 100px !important;
+  height: 100px !important;
+  font-size: 2.5rem !important;
   border-width: 10px !important;
 }
 
