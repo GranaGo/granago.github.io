@@ -5159,27 +5159,48 @@ async function updateHomeRecentWidgets() {
     localStorage.getItem("granaGo_recent_stops") || "[]",
   );
 
-  if (stopsContainer && recentStops.length > 0) {
-    stopsContainer.innerHTML = recentStops
-      .map((s) => {
-        const icon = s.type === "metro" ? "ri-train-fill" : "ri-bus-fill";
-        const color = s.type === "metro" ? "#009a44" : "#D9281C";
-        const safeName = s.name.replace(/'/g, "\\'");
-
-        return `
-                <button class="transport-card" 
-                        style="width: 100%; padding: 10px; margin: 0; border-radius: 12px; border: 1px solid var(--border-subtle); justify-content: flex-start; gap: 10px; background: var(--bg-app); color: var(--text-primary);"
-                        onclick="event.stopPropagation(); openRealTimeModal('${s.id}', '${s.type}', '${safeName}')">
-                    <div class="card-icon-wrapper" style="width: 32px; height: 32px; min-width: 32px; background: ${color}1A; color: ${color};">
-                        <i class="${icon}" style="font-size: 14px;"></i>
-                    </div>
-                    <span style="font-size: 0.85rem; font-weight: 600; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-primary);">
-                        ${s.name}
-                    </span>
-                </button>`;
-      })
-      .join("");
+  if (!window.appColors || !window.appColors.urbano) {
+    try {
+      const [uCol, mCol] = await Promise.all([
+        fetch("data/urbano/colores.json").then(r => r.json()),
+        fetch("data/metro/colores.json").then(r => r.json())
+      ]);
+      window.appColors = { urbano: uCol, metro: mCol };
+    } catch (e) { console.warn("No se pudieron cargar colores para el widget"); }
   }
+
+  stopsContainer.innerHTML = recentStops.map((s) => {
+    const icon = s.type === "metro" ? "ri-train-fill" : "ri-bus-fill";
+    const brandColor = s.type === "metro" ? "#009a44" : "#D9281C";
+    const safeName = s.name.replace(/'/g, "\\'");
+
+    let linesHtml = "";
+    if (s.lines) {
+      const linesArr = s.lines.split(",").map(l => l.trim());
+      linesHtml = `<div style="display:flex; gap:3px; margin-top:4px; flex-wrap:wrap;">`;
+      linesArr.slice(0, 5).forEach(l => {
+        const color = (window.appColors && window.appColors[s.type]) ? window.appColors[s.type][l] || "#64748b" : "#64748b";
+        linesHtml += `<span style="background:${color}; color:white; font-size:9px; padding:1px 4px; border-radius:3px; font-weight:800;">${l}</span>`;
+      });
+      if (linesArr.length > 5) linesHtml += `<span style="font-size:9px; opacity:0.6;">+${linesArr.length - 5}</span>`;
+      linesHtml += `</div>`;
+    }
+
+    return `
+      <button class="transport-card" 
+              style="width: 100%; padding: 10px; margin: 0; border-radius: 12px; border: 1px solid var(--border-subtle); justify-content: flex-start; gap: 10px; background: var(--bg-app); color: var(--text-primary);"
+              onclick="event.stopPropagation(); openRealTimeModal('${s.id}', '${s.type}', '${safeName}', '${s.lines || ''}')">
+          <div class="card-icon-wrapper" style="width: 32px; height: 32px; min-width: 32px; background: ${brandColor}1A; color: ${brandColor};">
+              <i class="${icon}" style="font-size: 14px;"></i>
+          </div>
+          <div style="display:flex; flex-direction:column; overflow:hidden;">
+              <span style="font-size: 0.85rem; font-weight: 600; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-primary);">
+                  ${s.name}
+              </span>
+              ${linesHtml}
+          </div>
+      </button>`;
+  }).join("");
 
   const gamesContainer = document.getElementById("home-recent-games");
   const recentGames = JSON.parse(
@@ -5300,106 +5321,113 @@ async function updateHomeEventsWidget() {
   }
 }
 
+const DIVERSION_ZONES = [
+  {
+    keywords: ["reyes catolicos", "puerta real", "gran via", "isabel la catolica"],
+    name: "Eje Central (Reyes Católicos / Gran Vía)",
+    lines: ["4", "8", "11", "21", "33", "C31", "C32", "C34"],
+    info: "Desvío por Camino de Ronda o Severo Ochoa."
+  },
+  {
+    keywords: ["recogidas"],
+    name: "Calle Recogidas",
+    lines: ["9", "11", "C5"],
+    info: "Líneas desviadas por calle Molinos o Camino de Ronda."
+  },
+  {
+    keywords: ["san juan de dios", "gran capitan"],
+    name: "San Juan de Dios",
+    lines: ["25", "C32", "C33"],
+    info: "Circular por recorridos alternativos según el corte."
+  },
+  {
+    keywords: ["avenida de la constitucion"],
+    name: "Avda. Constitución",
+    lines: ["4", "8", "11", "21", "33", "N1", "N3", "N5"],
+    info: "Posibles retenciones o desvíos puntuales."
+  }
+];
+
 async function updateHomeBusWidget() {
   const busContent = document.getElementById("home-bus-content");
   if (!busContent) return;
 
   busContent.innerHTML = "";
-
   let affectedLines = new Set();
-
-  const DEFAULT_CENTER_LINES = [
-    "4",
-    "8",
-    "11",
-    "21",
-    "33",
-    "C31",
-    "C32",
-    "C34",
-  ];
+  let detectedZones = [];
 
   try {
-    const [rssRes, centroRes] = await Promise.allSettled([
-      fetch(URLS.rss).then((r) => r.text()),
-      fetch(URLS.centro).then((r) => r.text()),
-    ]);
+    const rssRes = await fetch(URLS.rss);
+    const rssText = await rssRes.text();
+    const parser = new DOMParser();
+    const items = parser.parseFromString(rssText, "text/xml").querySelectorAll("item");
 
-    if (rssRes.status === "fulfilled") {
-      const parser = new DOMParser();
-      const items = parser
-        .parseFromString(rssRes.value, "text/xml")
-        .querySelectorAll("item");
+    items.forEach((item) => {
+      const title = item.querySelector("title").textContent.toLowerCase();
+      const desc = item.querySelector("description").textContent.toLowerCase();
+      const fullText = (title + " " + desc).replace(/<[^>]*>?/gm, " ");
 
-      items.forEach((item) => {
-        const title = item.querySelector("title").textContent;
-        const desc = item.querySelector("description").textContent;
-        const fullText = (title + " " + desc).replace(/<[^>]*>?/gm, " ");
+      if (isDateActive(fullText) && isDayTimeActive(fullText)) {
 
-        if (isDateActive(fullText) && isDayTimeActive(fullText)) {
-          extractLinesToSet(fullText, affectedLines);
-        }
-      });
-    }
+        DIVERSION_ZONES.forEach(zone => {
+          if (zone.keywords.some(k => fullText.includes(k))) {
+            zone.lines.forEach(l => affectedLines.add(l));
+            if (!detectedZones.includes(zone.name)) {
+              detectedZones.push(zone.name);
+            }
+          }
+        });
 
-    if (centroRes.status === "fulfilled") {
-      const cleanText = cleanHTML(centroRes.value);
-      const upper = cleanText.toUpperCase();
-      const isCut =
-        (upper.includes("CORTADO") ||
-          upper.includes("CERRADO") ||
-          upper.includes("DESVÍO")) &&
-        !upper.includes("ABIERTO AL TRÁFICO") &&
-        !upper.includes("NORMALIDAD");
-
-      if (isCut && isDateActive(cleanText) && isDayTimeActive(cleanText)) {
-        const initialSize = affectedLines.size;
-        extractLinesToSet(cleanText, affectedLines);
-
-        if (affectedLines.size === initialSize) {
-          DEFAULT_CENTER_LINES.forEach((l) => affectedLines.add(l));
-        }
+        extractLinesToSet(fullText, affectedLines);
       }
-    }
+    });
 
-    const sortedLines = Array.from(affectedLines).sort((a, b) =>
-      a.localeCompare(b, undefined, { numeric: true }),
-    );
+    if (affectedLines.size > 0) {
+      const zoneTitle = document.createElement("div");
+      zoneTitle.style.cssText = "color:var(--color-error); font-weight:700; font-size:0.85rem; margin-bottom:5px;";
+      zoneTitle.innerHTML = detectedZones.length > 0
+        ? `<i class="ri-alert-fill"></i> Corte en: ${detectedZones.join(", ")}`
+        : `<i class="ri-alert-fill"></i> Desvíos activos:`;
 
-    if (sortedLines.length > 0) {
-      const titleDiv = document.createElement("div");
-      titleDiv.className = "bus-status-text";
-      titleDiv.style.cssText = "color:var(--color-error); font-weight:700;";
-      titleDiv.textContent =
-        sortedLines.length > 1 ? "Líneas afectadas:" : "Línea afectada:";
+      busContent.appendChild(zoneTitle);
 
       const wrapperDiv = document.createElement("div");
       wrapperDiv.className = "bus-lines-wrapper";
+
+      const sortedLines = Array.from(affectedLines).sort((a, b) =>
+        a.localeCompare(b, undefined, { numeric: true })
+      );
 
       sortedLines.forEach((l) => {
         const span = document.createElement("span");
         span.className = "bus-line-pill";
         span.textContent = l;
 
-        if (["4", "8", "9", "11", "21", "33"].includes(l))
-          span.style.backgroundColor = "#d9281c";
+        if (["4", "8", "9", "11", "21", "33"].includes(l)) span.style.backgroundColor = "#d9281c";
         else if (l.startsWith("C")) span.style.backgroundColor = "#059669";
-        else if (l.startsWith("N") || l.startsWith("S") || l.startsWith("U"))
-          span.style.backgroundColor = "#2757f5";
-        else if (l.startsWith("F")) span.style.backgroundColor = "#db2777";
-        else span.style.backgroundColor = "#64748b";
+        else span.style.backgroundColor = "#2757f5";
 
         wrapperDiv.appendChild(span);
       });
 
-      busContent.appendChild(titleDiv);
       busContent.appendChild(wrapperDiv);
+
+      if (detectedZones.length > 0) {
+        const hint = document.createElement("div");
+        hint.style.cssText = "font-size:0.7rem; opacity:0.7; margin-top:5px; font-style:italic;";
+        hint.innerText = "Recorrido alternativo por ejes principales.";
+        busContent.appendChild(hint);
+      }
+
     } else {
-      busContent.innerHTML = `<div class="summary-value" style="color:#10b981; font-size:1.2rem">Normal</div><div class="summary-sub">Servicio habitual.</div>`;
+      busContent.innerHTML = `
+        <div class="summary-value" style="color:#10b981; font-size:1.2rem">Normal</div>
+        <div class="summary-sub">Servicio habitual sin desvíos.</div>
+      `;
     }
   } catch (e) {
     console.error("Error Widget Bus:", e);
-    busContent.innerHTML = `<div class="summary-sub">No disponible</div>`;
+    busContent.innerHTML = `<div class="summary-sub">No disponible temporalmente</div>`;
   }
 }
 
