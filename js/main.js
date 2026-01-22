@@ -10140,7 +10140,7 @@ function checkGeoAnswer(selected, correct, btn) {
   geoConfig.isAnswered = true;
 
   if (selected === correct) {
-    geoConfig.score += 100;
+    geoConfig.score += 1;
     btn.classList.add("correct");
     btn.innerHTML = `<span>${selected} <i class="ri-checkbox-circle-fill"></i></span>`;
   } else {
@@ -10163,11 +10163,24 @@ function checkGeoAnswer(selected, correct, btn) {
   }, 2000);
 }
 
+window.recenterGeoTarget = function () {
+  if (!geoMapInstance || !geoConfig.currentTarget) return;
+
+  const bounds = L.geoJSON(geoConfig.currentTarget).getBounds();
+  geoMapInstance.flyToBounds(bounds, {
+    padding: [60, 60],
+    duration: 1.2,
+    maxZoom: 9
+  });
+};
+
 function finishGeoGame() {
   document.getElementById("geo-gameplay").style.display = "none";
   const resultDiv = document.getElementById("geo-result");
   resultDiv.style.display = "block";
 
-  document.getElementById("geo-result-score").innerText = `Puntuación final: ${geoConfig.score} G$`;
-  addGranaSaldo(Math.floor(geoConfig.score / 10), "GeoGraná");
+  document.getElementById("geo-result-score").innerText = `Puntuación final: ${geoConfig.score} puntos`;
+
+  const recompensaFinal = geoConfig.score * 100;
+  addGranaSaldo(recompensaFinal, "GeoGraná");
 }

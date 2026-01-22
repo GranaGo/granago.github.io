@@ -3032,6 +3032,9 @@
 
         <div id="geo-gameplay"
           style="display: none; position: relative; height: calc(100vh - 220px); min-height: 400px;">
+          <button class="geo-recenter-btn" onclick="recenterGeoTarget()" title="Re-localizar zona">
+            <i class="ri-focus-3-line"></i>
+          </button>
           <div id="geo-powerups-bar"
             style="position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 8px;">
             <button onclick="useGeoPowerUp('reveal')" class="powerup-btn" id="pu-reveal-btn" style="display:none;">
@@ -3377,7 +3380,7 @@
 
           <div class="info-card">
             <h3 class="info-title" style="margin-top: 0">
-              <i class="icon ri-gamepad-fill"></i> Detalle de los 8 Juegos
+              <i class="icon ri-gamepad-fill"></i> Detalle de los 9 Juegos
             </h3>
             <div class="info-body-text" style="background: transparent; border: none; padding: 0">
               <ul class="limits-list">
@@ -3420,6 +3423,11 @@
                   iconos de la ciudad en una máquina de azar de 3x3. Consigue
                   combinaciones horizontales o diagonales para multiplicar tu
                   apuesta y ganar GranáSaldo.
+                </li>
+                <li>
+                  <strong>9. GeoGraná:</strong> Pon a prueba tu orientación identificando municipios de Granada,
+                  provincias de España o países del mundo en el mapa durante 10 rondas. Pista: "Geo-Lince" resalta la
+                  respuesta correcta y "Geo 50/50" elimina dos opciones falsas.
                 </li>
               </ul>
             </div>
