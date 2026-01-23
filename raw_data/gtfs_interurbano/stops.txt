@@ -2671,6 +2671,7 @@ stop_id,stop_name,stop_lat,stop_lon
 3_16104,"Avda. Entrecaminos V",37.078938,-3.750090
 3_16105,"Avda. Espadafor",37.078155,-3.769969
 3_16106,"Urb. San Jerónimo V",37.2131482,-3.5928811
+3_16107,"Carril De San Cecilio V",37.2435056,-3.5597896
 4_3,"Campamento Benítez",36.65237222222222,-4.4870777777777775
 4_29,"Olías",36.76965555555555,-4.320747222222222
 4_48,"Flatotel",36.58151388888889,-4.549286111111111
@@ -4079,7 +4080,7 @@ stop_id,stop_name,stop_lat,stop_lon
 6_83,"Pozo San José",36.797402,-2.668055
 6_84,"Venta Cosario",36.795009,-2.682785
 6_85,"Venta Del Viso",36.793069,-2.696226
-6_86,"Pol. Ind. La Redonda - Vi",36.784761,-2.746289
+6_86,"P.I. La Redonda-Vi",36.784761,-2.746289
 6_87,"S. María Del Águila",36.779906,-2.774239
 6_89,"Matagorda - Balsa",36.747773,-2.84085
 6_90,"Guardias Viejas - Baños",36.701981,-2.844046
@@ -4095,7 +4096,7 @@ stop_id,stop_name,stop_lat,stop_lon
 6_107,"Lance De La Virgen",36.747540,-3.053736
 6_108,"Adra - Alcazaba",36.749353,-3.093255
 6_109,"Universidad Norte",36.831479,-2.405652
-6_119,"Pol. Ind. San Rafael",36.866556,-2.441018
+6_119,"P.I. San Rafael",36.866556,-2.441018
 6_120,"Huércal - Villa Inés",36.869248,-2.439485
 6_122,"Huércal - Los Pinos",36.889332,-2.444787
 6_123,"Los Mandarinos",36.899922,-2.433719
@@ -4133,7 +4134,7 @@ stop_id,stop_name,stop_lat,stop_lon
 6_169,"Viator - Piscina",36.887872,-2.422521
 6_170,"Viator - Barrio De La Cruz",36.887943,-2.420441
 6_172,"El Parador - Karting",36.800381,-2.601144
-6_173,"Pol. Ind. La Algaida",36.786126,-2.606968
+6_173,"P.I. La Algaida",36.786126,-2.606968
 6_174,"Roquetas - Centro",36.764592,-2.613400
 6_175,"Roquetas - Alej. Magno",36.760656,-2.610450
 6_176,"Roquetas - Puerto",36.756194,-2.608662
@@ -4167,7 +4168,7 @@ stop_id,stop_name,stop_lat,stop_lon
 6_207,"Roquetas - Centro",36.764899,-2.613379
 6_209,"C.C. Gran Plaza V",36.775231,-2.611004
 6_210,"Roquetas - Hortamar",36.782187,-2.608212
-6_211,"Pol. Ind. La Algaida",36.785968,-2.606743
+6_211,"P.I. La Algaida",36.785968,-2.606743
 6_212,"Barrio San Francisco",36.794545,-2.603335
 6_213,"El Parador - Karting",36.800127,-2.600990
 6_214,"El Parador - Parrales V",36.805678,-2.598878
@@ -4257,9 +4258,9 @@ stop_id,stop_name,stop_lat,stop_lon
 6_309,"Las Palmerillas",36.788684,-2.719349
 6_310,"Cartabona",36.787112,-2.731951
 6_311,"Cartabona",36.787024,-2.729565
-6_312,"Pol. Ind. La Redonda - Vi",36.784069,-2.747087
-6_313,"Pol. Ind. La Redonda - I",36.783361,-2.753843
-6_314,"Pol. Ind. La Redonda - I",36.783485,-2.753223
+6_312,"P.I. La Redonda-Vi",36.784069,-2.747087
+6_313,"P.I. La Redonda-I",36.783361,-2.753843
+6_314,"P.I. La Redonda-I",36.783485,-2.753223
 6_315,"Pampanico Alto",36.792026,-2.844359
 6_316,"Pampanico Alto",36.790979,-2.843572
 6_317,"Pampanico Bajo",36.781371,-2.832365
@@ -4314,7 +4315,7 @@ stop_id,stop_name,stop_lat,stop_lon
 6_379,"El Roncalillo",36.791764,-2.617168
 6_380,"El Roncalillo",36.791633,-2.617238
 6_381,"Almería - Bola Azul",36.847906,-2.452853
-6_383,"Pol. Ind. San Rafael",36.866553,-2.441284
+6_383,"P.I. San Rafael",36.866553,-2.441284
 6_385,"Huércal - Villa Inés V",36.869328,-2.439645
 6_387,"Huércal - Fuensanta",36.871569,-2.440437
 6_388,"Almería - Sanidad",36.839034,-2.454912
@@ -4339,8 +4340,8 @@ stop_id,stop_name,stop_lat,stop_lon
 6_412,"Huércal - Los Pinos",36.888669,-2.444897
 6_413,"Huércal - La Foca",36.880939,-2.443842
 6_414,"Huércal - Club De Tenis",36.879681,-2.444704
-6_415,"Pol. Ind. La Cepa",36.870523,-2.445017
-6_416,"Pol. Ind. La Cepa",36.870389,-2.445265
+6_415,"P.I. La Cepa",36.873030,-2.444751
+6_416,"P.I. La Cepa",36.874135,-2.445165
 6_417,"Almería - P. Generalife",36.842811,-2.447149
 6_418,"Almería - P. Generalife",36.842979,-2.447310
 6_419,"Almería - Manuel Azaña",36.843086,-2.443690
@@ -4466,8 +4467,8 @@ stop_id,stop_name,stop_lat,stop_lon
 6_621,"Balerma - Roqueo",36.731634,-2.886472
 6_622,"Enix - Dúplex",36.876042,-2.606626
 6_623,"Enix - Dúplex",36.876131,-2.606708
-6_625,"Pol. San Nicolás",36.790588,-2.710548
-6_626,"Pol. San Nicolás",36.790272,-2.709562
+6_625,"P.I. San Nicolás",36.790588,-2.710548
+6_626,"P.I. San Nicolás",36.790272,-2.709562
 6_629,"Los Escullos - Camping",36.806111,-2.076383
 6_630,"Los Escullos - Hotel",36.806736,-2.065008
 6_631,"Pueblo Blanco",36.911031,-2.132149
@@ -4510,7 +4511,7 @@ stop_id,stop_name,stop_lat,stop_lon
 6_730,"Ayuntamiento Huércal De Almería",36.8784053985577,-2.44144784600546
 6_731,"Ayuntamiento Huércal De Almería",36.8784053985577,-2.44144784600546
 6_732,"P.C. Cemar",36.8692004457096,-2.44578763169823
-6_733,"P.C. Cemar",36.8692004457096,-2.44578763169823
+6_733,"P.C. Cemar",36.868983,-2.445869
 6_734,"C.C. Torrecárdenas",36.8626298180491,-2.43484393288823
 6_735,"Hospital Torrecárdenas",36.8618917127477,-2.44126533305195
 6_736,"Club De Tenis Huércal De Almería",36.8801258788599,-2.444483620031866
@@ -4528,6 +4529,12 @@ stop_id,stop_name,stop_lat,stop_lon
 6_749,"Plaza Pueblo",37.049807,-2.392544
 6_750,"Minihollywood",37.021111,-2.434571
 6_751,"Minihollywood",37.021272,-2.134777
+6_752,"Argamasón",36.971101,-1.979727
+6_753,"Llano Don Antonio",36.998009,-1.932919
+6_754,"Carboneras",36.999641,-1.895541
+6_755,"Carboneras",36.999641,-1.895541
+6_756,"Llano Don Antonio",36.998009,-1.932919
+6_757,"Argamasón",36.971331,-1.980009
 7_1,"Estación De Autobuses De Jaén",37.771548,-3.787237
 7_4,"Puente Nuevo",37.778522,-3.746984
 7_8,"La Yuca I",37.778288,-3.733590
@@ -4564,6 +4571,7 @@ stop_id,stop_name,stop_lat,stop_lon
 7_59,"Hospital Neurotrau. Solo Bajada (8 A 10 Y 15 A 16) V",37.795579,-3.779451
 7_61,"Plaza De La Constitución",37.647156,-3.905485
 7_62,"Ctra. Martos (Cooperativa)",37.64552,-3.91551
+7_68,"Parque Científico Tecnológico (Geolit)",37.941064,-3.78998
 7_69,"Plaza De La Constitución",37.59041,-3.81960
 7_70,"Calle Santísimo",37.591389,-3.817222
 7_78,"Avd. La Paz",37.689640,-3.823500
@@ -4905,7 +4913,7 @@ stop_id,stop_name,stop_lat,stop_lon
 9_263,"Edif Telefonica Av Santa Marta V",37.28025657511552,-6.936497293023649
 9_264,"La Alqueria V",37.30969674970561,-6.896774768829346
 9_266,"Centro Penitenciario V",37.32135247608171,-6.884967684745789
-9_270,"El Punto",37.25452242990414,-6.945681176690641
+9_270,"El Punto I",37.25452242990414,-6.945681176690641
 9_271,"Kiosco Once",37.258388165105984,-6.9344256073236465
 9_272,"Antigua Carcel",37.260467971174926,-6.931017190217972
 9_273,"Circunvalacion Hospital Infanta Elena V",37.27882722636813,-6.911687850952148
@@ -4914,7 +4922,7 @@ stop_id,stop_name,stop_lat,stop_lon
 9_277,"Las Torretas",37.20687156985186,-7.404192388057709
 9_278,"Las Torretas V",37.20677461082267,-7.403923304585305
 9_279,"Kiosco Once V",37.259048884677036,-6.933464705944061
-9_280,"El Punto V",37.25416219801619,-6.947367936372757
+9_280,"El Punto Ii V",37.25416219801619,-6.947367936372757
 9_281,"Antigua Carcel V",37.260413001417234,-6.931176781654358
 9_283,"Gasolinera",37.263807175290125,-6.523481011390686
 9_284,"Hotel El Cortijo",37.00682162894315,-6.553226709365845

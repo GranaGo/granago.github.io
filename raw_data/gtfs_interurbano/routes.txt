@@ -136,6 +136,7 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 2_14,CMTBC,"M-041","Cádiz-El Puerto De Santa María (Por Río San Pedro Y Campus Universitario De Puerto Real)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=14,ff0000,FFFFFF
 2_15,CMTBC,"B-042","Cádiz-El Puerto De Santa María",4,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=15,33ff00,FFFFFF
 2_16,CMTBC,"M-050","Cádiz-Jerez De La Frontera (Directo)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=16,ff33cc,FFFFFF
+2_17,CMTBC,"M-051","Cádiz-Jerez De La Frontera (Por El Puerto De Santa María)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=17,0000FF,FFFFFF
 2_18,CMTBC,"M-052","Cádiz-Jerez De La Frontera (Por Campus Universitario De Puerto Real Y El Puerto De Santa María)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=18,ff33cc,FFFFFF
 2_19,CMTBC,"M-060","Cádiz-El Puerto De Santa María-Rota (Por Costa Oeste)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=19,33ff00,FFFFFF
 2_20,CMTBC,"M-061","Cádiz-El Puerto De Santa María-Rota (Por Río San Pedro  Campus De Puerto Real Y Costa Oeste)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=20,00cccc,FFFFFF
@@ -173,12 +174,7 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 2_177,CMTBC,"M-053","Cádiz-Jerez De La Frontera (Por Hospital De Jerez)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=177,ff0000,FFFFFF
 2_219,CMTBC,"M-966","Chipiona-Costa Ballena-Rota",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=219,FF0000,FFFFFF
 2_220,CMTBC,"M-035","Cádiz-Escuela De Ingeniería",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=220,FF0000,FFFFFF
-2_221,CMTBC,"M-231","Chiclana De La Frontera-Campus Universitario De Puerto Real",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=221,FF00FF,FFFFFF
-2_222,CMTBC,"M-330","Puerto Real-Escuela De Ingeniería",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=222,0000FF,FFFFFF
-2_223,CMTBC,"M-351","Jerez De La Frontera-Campus Universitario De Puerto Real  (Por Cuatro Caminos)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=223,CC6666,FFFFFF
-2_224,CMTBC,"M-352","Jerez De La Frontera-Campus Universitario De Puerto Real (Por El Puerto De Santa María)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=224,00FF00,FFFFFF
 2_225,CMTBC,"M-967","Chipiona-Sanlúcar De Barrameda-Cádiz  (Por Campus De Puerto Real)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=225,FF0000,FFFFFF
-2_226,CMTBC,"M-340","El Puerto De Santa María-Campus Universitario De Puerto Real",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=226,0000FF,FFFFFF
 2_230,CMTBC,"M-965","Chipiona-Sanlúcar De Barrameda (Sevilla/Utrera)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=230,0000FF,FFFFFF
 2_231,CMTBC,"M-974","Costa Ballena-Chipiona-Sanlúcar De Barrameda (Sevilla)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=231,FF00FF,FFFFFF
 2_234,CMTBC,"M-911","Cádiz-Conil-Barbate (Por La Barca/Por Los Caños)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=234,FF0000,FFFFFF
@@ -396,8 +392,12 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 7_55,CTJA,"M17-1","Jaén - Los Villares",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=55,66ff00,FFFFFF
 7_56,CTJA,"M17-2","Jaén - Valdepeñas",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=56,ff0000,FFFFFF
 7_60,CTJA,"M14-1","Noalejo - Jaén",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=60,6699cc,FFFFFF
+7_61,CTJA,"M15-1","Jaén - Fuerte Del Rey",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=61,FF3333,FFFFFF
 7_62,CTJA,"M15-2","Andújar - Jaén Por Fuerte Del Rey",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=62,00FF33,FFFFFF
 7_71,CTJA,"M16-1","Santa Elena - Jaén",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=71,66ffff,FFFFFF
+7_203,CTJA,"M04-8","Linares - Jaén",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=203,333399,FFFFFF
+7_205,CTJA,"M04-15","Jaén - Mengibar",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=205,FF3333,FFFFFF
+7_216,CTJA,"M15-3","Andújar - Jaén",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=216,FFFF00,FFFFFF
 7_254,CTJA,"M15-4","Jaén-Lahiguera-Arjona-Andújar",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=254,FF33CC,FFFFFF
 7_255,CTJA,"M15-5","Andújar-Arjonilla-Arjona",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=255,FFFF00,FFFFFF
 7_276,CTJA,"M15-7","Jaén - Andújar - Marmolejo",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=276,66FF99,FFFFFF
@@ -413,6 +413,7 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 7_288,CTJA,"M20-12","Jaén - Escañuela  2024",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=288,0000FF,FFFFFF
 7_289,CTJA,"M20-13","Jaén - Jamilena - Martos  2024",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=289,0000FF,FFFFFF
 7_294,CTJA,"M9-1","Carcheles - Jaén (2024)",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=294,FFCC33,FFFFFF
+7_321,CTJA,"M15-6","Jaén - Andújar - Lopera",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=321,66FF99,FFFFFF
 7_322,CTJA,"M20-22","Jaén - Ciudad Jardín (La Guardia)",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=322,CCFFCC,FFFFFF
 8_8,CTMAC,"M-110","Córdoba - Villaviciosa De Córdoba",3,https://siu.ctco.es/es/horarios_lineas_tabla.php?linea=8,0000FF,FFFFFF
 8_9,CTMAC,"M-211","Córdoba - Villaharta (Empalme) - Villaharta (Pueblo)",3,https://siu.ctco.es/es/horarios_lineas_tabla.php?linea=9,00FF00,FFFFFF
