@@ -5403,7 +5403,7 @@ async function updateHomeEventsWidget() {
   const processedTitles = new Set();
 
   try {
-    const rssRes = await fetch(URLS.rss);
+    const rssRes = await fetch(URLS.rss, { priority: 'high' });
     const rssText = await rssRes.text();
     const parser = new DOMParser();
     const items = parser
