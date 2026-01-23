@@ -25,6 +25,7 @@
   <link rel="icon" type="image/png" href="./images/Logo.png" />
   <link rel="apple-touch-icon" href="./images/Logo.png" />
   <link rel="preconnect" href="https://proxy.contacto-granago.workers.dev" />
+  <link rel="preconnect" href="https://api.open-meteo.com" />
   <link rel="stylesheet" href="css/leaflet.css" media="print" onload="this.media = 'all'" />
   <noscript>
     <link rel="stylesheet" href="css/leaflet.css" />
@@ -82,7 +83,67 @@
         </button>
       </div>
 
-      <div id="home-dashboard-grid" class="home-dashboard-grid fade-in-up"></div>
+      <div id="home-dashboard-grid" class="home-dashboard-grid fade-in-up">
+        <div class="summary-card widget-event" onclick="navigateTo('cortes')">
+          <div class="summary-header">
+            <div class="summary-icon"><i class="ri-calendar-event-fill"></i></div>
+            <span class="summary-title" id="event-widget-title">Eventos Hoy</span>
+          </div>
+          <div id="home-event-content" class="mini-list-container">
+            <div class="skeleton-text"></div>
+          </div>
+        </div>
+
+        <div class="summary-card widget-parking" onclick="navigateTo('parkings')">
+          <div class="summary-header">
+            <div class="summary-icon"><i class="ri-parking-box-fill"></i></div>
+            <span class="summary-title" id="parking-widget-title">Parkings</span>
+          </div>
+          <div id="home-parking-content" class="mini-list-container">
+            <div class="skeleton-text"></div>
+          </div>
+        </div>
+
+        <div class="summary-card widget-bus" onclick="navigateTo('paradas')">
+          <div class="summary-header">
+            <div class="summary-icon"><i class="ri-bus-fill"></i></div>
+            <span class="summary-title" id="bus-widget-title">Desvíos Bus</span>
+          </div>
+          <div id="home-bus-content" class="mini-list-container">
+            <div class="skeleton-text"></div>
+          </div>
+        </div>
+
+        <div class="summary-card widget-fuel" onclick="navigateTo('repostar')">
+          <div class="summary-header">
+            <div class="summary-icon"><i class="ri-gas-station-fill"></i></div>
+            <span class="summary-title" id="fuel-widget-title">Combustible</span>
+          </div>
+          <div id="home-fuel-content" class="mini-list-container">
+            <div class="skeleton-text"></div>
+          </div>
+        </div>
+
+        <div class="summary-card widget-recent-stops" onclick="navigateTo('paradas')">
+          <div class="summary-header">
+            <div class="summary-icon"><i class="ri-history-line"></i></div>
+            <span class="summary-title" id="stops-widget-title">Paradas Recientes</span>
+          </div>
+          <div id="home-stops-content" class="mini-list-container">
+            <div class="skeleton-text"></div>
+          </div>
+        </div>
+
+        <div class="summary-card widget-recent-games" onclick="navigateTo('juegos')">
+          <div class="summary-header">
+            <div class="summary-icon"><i class="ri-play-list-add-line"></i></div>
+            <span class="summary-title" id="games-widget-title">Últimos Juegos</span>
+          </div>
+          <div id="home-games-content" class="mini-list-container">
+            <div class="skeleton-text"></div>
+          </div>
+        </div>
+      </div>
     </div>
     <div id="home-editor-modal" class="modal-overlay">
       <div class="modal-card gpu-accelerated">

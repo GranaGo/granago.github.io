@@ -4811,28 +4811,36 @@ if (savedLayout && Array.isArray(savedLayout)) {
 async function renderHomeDashboard() {
   const container = document.getElementById('home-dashboard-grid');
   if (!container) return;
-  container.innerHTML = '';
 
-  homeLayout.forEach(config => {
-    if (!config.active) return;
-    const w = ALL_WIDGETS[config.id];
+  const customConfig = localStorage.getItem('granaGo_home_layout');
 
-    const card = document.createElement('div');
-    card.className = `summary-card ${w.class}`;
-    card.onclick = () => eval(w.action);
+  if (customConfig) {
+    container.innerHTML = '';
+    homeLayout.forEach(config => {
+      if (!config.active) return;
+      const w = ALL_WIDGETS[config.id];
 
-    card.innerHTML = `
-      <div class="summary-header">
-        <div class="summary-icon"><i class="${w.icon}"></i></div>
-        <span class="summary-title" id="${w.id}-widget-title">${w.title}</span>
-      </div>
-      <div id="home-${w.id}-content" class="mini-list-container">
-        <div class="skeleton-text"></div>
-      </div>
-    `;
-    container.appendChild(card);
+      const card = document.createElement('div');
+      card.className = `summary-card ${w.class}`;
+      card.onclick = () => eval(w.action);
 
-    if (w.render) w.render();
+      card.innerHTML = `
+        <div class="summary-header">
+          <div class="summary-icon"><i class="${w.icon}"></i></div>
+          <span class="summary-title" id="${w.id}-widget-title">${w.title}</span>
+        </div>
+        <div id="home-${w.id}-content" class="mini-list-container">
+          <div class="skeleton-text"></div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  Object.values(ALL_WIDGETS).forEach(w => {
+    if (document.getElementById(`home-${w.id}-content`)) {
+      w.render();
+    }
   });
 }
 
