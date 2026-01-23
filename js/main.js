@@ -107,6 +107,7 @@ let isMuted = false;
 let speedLimitsData = null;
 let slotBet = 10;
 let slotsSpinning = false;
+let shopItemsCache = null;
 
 let geoMapInstance = null;
 let geoLayer = null;
@@ -128,125 +129,35 @@ let zbeMapInstance = null;
 let zbeTileLayer = null;
 let zbeDataLoaded = false;
 
-const SHOP_ITEMS = {
-  colors: [
-    { id: "color-default", name: "GranáGo", hex: "#2563eb", price: 0 },
-    {
-      id: "color-alhambra",
-      name: "Atardecer Alhambra",
-      hex: "#d97706",
-      price: 5000,
-    },
-    { id: "color-sierra", name: "Nieve Sierra", hex: "#06b6d4", price: 6500 },
-    {
-      id: "color-generalife",
-      name: "Verde Generalife",
-      hex: "#10b981",
-      price: 7000,
-    },
-    {
-      id: "color-sacromonte",
-      name: "Cueva Sacromonte",
-      hex: "#8b5cf6",
-      price: 8000,
-    },
-    {
-      id: "color-albaicin",
-      name: "Oro Albaicín",
-      hex: "#f59e0b",
-      price: 10000,
-    },
-    { id: "color-darro", name: "Río Darro", hex: "#14b8a6", price: 15000 },
-    {
-      id: "color-realejo",
-      name: "Barrio Realejo",
-      hex: "#ec4899",
-      price: 20000,
-    },
-  ],
-  powerups: [
-    {
-      id: "pista-wordle",
-      name: "Lupa Granádle",
-      desc: "Revela una letra",
-      price: 500,
-      icon: "ri-search-eye-line",
-      game: "wordle",
-    },
-    {
-      id: "celda-sudoku",
-      name: "Saber-doku",
-      desc: "Resuelve una celda",
-      price: 500,
-      icon: "ri-lightbulb-flash-line",
-      game: "sudoku",
-    },
-    {
-      id: "ojo-memory",
-      name: "Ojo de Lince",
-      desc: "Mira las cartas 2s",
-      price: 750,
-      icon: "ri-eye-fill",
-      game: "memory",
-    },
-    {
-      id: "mitad-quiz",
-      name: "Cincuenta%",
-      desc: "Quita 2 respuestas",
-      price: 500,
-      icon: "ri-scissors-2-fill",
-      game: "quiz",
-    },
-    {
-      id: "codigo-mind",
-      name: "Eco-Código",
-      desc: "Revela 1 posición",
-      price: 500,
-      icon: "ri-radar-line",
-      game: "mastermind",
-    },
-    {
-      id: "tiempo-encadenadas",
-      name: "Reloj de Arena",
-      desc: "+15s extra",
-      price: 750,
-      icon: "ri-hourglass-2-fill",
-      game: "encadenadas",
-    },
-    {
-      id: "auto-encadenadas",
-      name: "Auto-Cadena",
-      desc: "Encuentra una palabra por ti",
-      price: 1000,
-      icon: "ri-magic-line",
-      game: "encadenadas",
-    },
-    {
-      id: "seguro-bj",
-      name: "Seguro GranáJack",
-      desc: "Recupera 50% si pierdes",
-      price: 1000,
-      icon: "ri-shield-check-fill",
-      game: "blackjack",
-    },
-    {
-      id: "geo-lince",
-      name: "Geo-Lince",
-      desc: "Marca la respuesta correcta",
-      price: 750,
-      icon: "ri-eye-fill",
-      game: "geograna",
-    },
-    {
-      id: "geo-5050",
-      name: "Geo 50/50",
-      desc: "Quita 2 respuestas falsas",
-      price: 500,
-      icon: "ri-scissors-2-fill",
-      game: "geograna",
-    },
-  ],
-};
+function getShopItems() {
+  if (shopItemsCache) return shopItemsCache;
+
+  shopItemsCache = {
+    colors: [
+      { id: "color-default", name: "GranáGo", hex: "#2563eb", price: 0 },
+      { id: "color-alhambra", name: "Atardecer Alhambra", hex: "#d97706", price: 5000 },
+      { id: "color-sierra", name: "Nieve Sierra", hex: "#06b6d4", price: 6500 },
+      { id: "color-generalife", name: "Verde Generalife", hex: "#10b981", price: 7000 },
+      { id: "color-sacromonte", name: "Cueva Sacromonte", hex: "#8b5cf6", price: 8000 },
+      { id: "color-albaicin", name: "Oro Albaicín", hex: "#f59e0b", price: 10000 },
+      { id: "color-darro", name: "Río Darro", hex: "#14b8a6", price: 15000 },
+      { id: "color-realejo", name: "Barrio Realejo", hex: "#ec4899", price: 20000 },
+    ],
+    powerups: [
+      { id: "pista-wordle", name: "Lupa Granádle", desc: "Revela una letra", price: 500, icon: "ri-search-eye-line", game: "wordle" },
+      { id: "celda-sudoku", name: "Saber-doku", desc: "Resuelve una celda", price: 500, icon: "ri-lightbulb-flash-line", game: "sudoku" },
+      { id: "ojo-memory", name: "Ojo de Lince", desc: "Mira las cartas 2s", price: 750, icon: "ri-eye-fill", game: "memory" },
+      { id: "mitad-quiz", name: "Cincuenta%", desc: "Quita 2 respuestas", price: 500, icon: "ri-scissors-2-fill", game: "quiz" },
+      { id: "codigo-mind", name: "Eco-Código", desc: "Revela 1 posición", price: 500, icon: "ri-radar-line", game: "mastermind" },
+      { id: "tiempo-encadenadas", name: "Reloj de Arena", desc: "+15s extra", price: 750, icon: "ri-hourglass-2-fill", game: "encadenadas" },
+      { id: "auto-encadenadas", name: "Auto-Cadena", desc: "Encuentra una palabra por ti", price: 1000, icon: "ri-magic-line", game: "encadenadas" },
+      { id: "seguro-bj", name: "Seguro GranáJack", desc: "Recupera 50% si pierdes", price: 1000, icon: "ri-shield-check-fill", game: "blackjack" },
+      { id: "geo-lince", name: "Geo-Lince", desc: "Marca la respuesta correcta", price: 750, icon: "ri-eye-fill", game: "geograna" },
+      { id: "geo-5050", name: "Geo 50/50", desc: "Quita 2 respuestas falsas", price: 500, icon: "ri-scissors-2-fill", game: "geograna" },
+    ],
+  };
+  return shopItemsCache;
+}
 
 function hexToHSL(hex) {
   let r = parseInt(hex.substring(1, 3), 16) / 255;
@@ -4819,11 +4730,9 @@ async function renderHomeDashboard() {
     homeLayout.forEach(config => {
       if (!config.active) return;
       const w = ALL_WIDGETS[config.id];
-
       const card = document.createElement('div');
       card.className = `summary-card ${w.class}`;
       card.onclick = () => eval(w.action);
-
       card.innerHTML = `
         <div class="summary-header">
           <div class="summary-icon"><i class="${w.icon}"></i></div>
@@ -4837,9 +4746,12 @@ async function renderHomeDashboard() {
     });
   }
 
-  Object.values(ALL_WIDGETS).forEach(w => {
-    if (document.getElementById(`home-${w.id}-content`)) {
-      w.render();
+  const priorityOrder = ['bus', 'parking', 'fuel', 'stops', 'games', 'event'];
+
+  priorityOrder.forEach((id, index) => {
+    const w = ALL_WIDGETS[id];
+    if (w && w.render && document.getElementById(`home-${id}-content`)) {
+      setTimeout(() => w.render(), index * 100);
     }
   });
 }
@@ -4924,6 +4836,8 @@ async function initHomeDashboard() {
   const savedLat = localStorage.getItem("granaGo_last_lat");
   const savedLng = localStorage.getItem("granaGo_last_lng");
 
+  await renderHomeDashboard();
+
   if (savedLat && savedLng) {
     window.currentLat = parseFloat(savedLat);
     window.currentLng = parseFloat(savedLng);
@@ -4954,10 +4868,6 @@ async function initHomeDashboard() {
       { timeout: 10000, maximumAge: 60000 },
     );
   }
-
-  Promise.allSettled([
-    renderHomeDashboard()
-  ]);
 }
 
 const PROXY_URL = "https://proxy.contacto-granago.workers.dev/?url=";
@@ -5299,26 +5209,23 @@ async function updateHomeRecentWidgets() {
 
   if (stopsContainer) {
     const recentStops = JSON.parse(localStorage.getItem("granaGo_recent_stops") || "[]");
-    const stopFrag = document.createDocumentFragment();
 
     if (recentStops.length === 0) {
-      const emptyDiv = document.createElement("div");
-      emptyDiv.className = "summary-sub";
-      emptyDiv.textContent = "No has consultado paradas todavía.";
-      stopFrag.appendChild(emptyDiv);
+      stopsContainer.innerHTML = `<div class="summary-sub">No has consultado paradas todavía.</div>`;
     } else {
-      if (!window.appColors || !window.appColors.urbano) {
+      if (!window.appColors || !window.appColors.urbano || !window.appColors.metro) {
         try {
           const [uCol, mCol] = await Promise.all([
             fetch("data/urbano/colores.json").then(r => r.json()),
             fetch("data/metro/colores.json").then(r => r.json())
           ]);
-          window.appColors = { urbano: uCol, metro: mCol };
+          window.appColors = { ...window.appColors, urbano: uCol, metro: mCol };
         } catch (e) {
           console.warn("Error cargando colores");
         }
       }
 
+      const stopFrag = document.createDocumentFragment();
       recentStops.forEach((s) => {
         const btn = document.createElement("button");
         btn.className = "transport-card";
@@ -5328,7 +5235,6 @@ async function updateHomeRecentWidgets() {
         const brandColor = s.type === "metro" ? "#009a44" : "#D9281C";
         const safeName = s.name.replace(/'/g, "\\'");
 
-        // Generar HTML de líneas
         let linesHtml = "";
         if (s.lines) {
           const linesArr = s.lines.split(",").map(l => l.trim());
@@ -5358,15 +5264,21 @@ async function updateHomeRecentWidgets() {
           </div>`;
         stopFrag.appendChild(btn);
       });
+
+      stopsContainer.innerHTML = "";
+      stopsContainer.appendChild(stopFrag);
     }
-    stopsContainer.innerHTML = "";
-    stopsContainer.appendChild(stopFrag);
   }
 
   if (gamesContainer) {
     const recentGames = JSON.parse(localStorage.getItem("granaGo_recent_games") || "[]");
-    const gameFrag = document.createDocumentFragment();
 
+    if (recentGames.length === 0) {
+      gamesContainer.innerHTML = `<div class="summary-sub">Prueba algún juego para que aparezca aquí.</div>`;
+      return;
+    }
+
+    const gameFrag = document.createDocumentFragment();
     const gameActions = {
       Granádle: "navigateTo('juegos'); openWordleMenu();",
       Granádoku: "navigateTo('juegos'); openSudokuMenu();",
@@ -5379,31 +5291,25 @@ async function updateHomeRecentWidgets() {
       GeoGraná: "navigateTo('juegos'); openGeoMenu();",
     };
 
-    if (recentGames.length === 0) {
-      const emptyDiv = document.createElement("div");
-      emptyDiv.className = "summary-sub";
-      emptyDiv.textContent = "Prueba algún juego para que aparezca aquí.";
-      gameFrag.appendChild(emptyDiv);
-    } else {
-      recentGames.forEach((game) => {
-        const btn = document.createElement("button");
-        btn.className = "transport-card";
-        btn.style.cssText = "width: 100%; padding: 10px; margin: 0; border-radius: 12px; border: 1px solid var(--border-subtle); justify-content: flex-start; gap: 10px; background: var(--bg-app); color: var(--text-primary); display: flex; align-items: center;";
+    recentGames.forEach((game) => {
+      const btn = document.createElement("button");
+      btn.className = "transport-card";
+      btn.style.cssText = "width: 100%; padding: 10px; margin: 0; border-radius: 12px; border: 1px solid var(--border-subtle); justify-content: flex-start; gap: 10px; background: var(--bg-app); color: var(--text-primary); display: flex; align-items: center;";
 
-        const action = gameActions[game] || "navigateTo('juegos')";
-        btn.onclick = (e) => {
-          e.stopPropagation();
-          eval(action);
-        };
+      const action = gameActions[game] || "navigateTo('juegos')";
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        eval(action);
+      };
 
-        btn.innerHTML = `
-            <div class="card-icon-wrapper" style="width: 32px; height: 32px; min-width: 32px; background: var(--text-accent)1A; color: var(--text-accent);">
-                <i class="ri-play-fill" style="font-size: 14px;"></i>
-            </div>
-            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">${game}</span>`;
-        gameFrag.appendChild(btn);
-      });
-    }
+      btn.innerHTML = `
+          <div class="card-icon-wrapper" style="width: 32px; height: 32px; min-width: 32px; background: var(--text-accent)1A; color: var(--text-accent);">
+              <i class="ri-play-fill" style="font-size: 14px;"></i>
+          </div>
+          <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">${game}</span>`;
+      gameFrag.appendChild(btn);
+    });
+
     gamesContainer.innerHTML = "";
     gamesContainer.appendChild(gameFrag);
   }
@@ -9582,6 +9488,7 @@ window.updateGamesMenuBalance = function () {
 };
 
 window.renderShop = function () {
+  const items = getShopItems();
   const savedBalance = localStorage.getItem("granaGo_bj_balance");
   const balance = savedBalance === null ? 500 : parseInt(savedBalance);
   const balDisplay = document.getElementById("tienda-balance-display");
@@ -9600,7 +9507,7 @@ window.renderShop = function () {
   const activeColor = localStorage.getItem("granaGo_accent_color") || "#2563eb";
 
   if (colorsContainer) {
-    colorsContainer.innerHTML = SHOP_ITEMS.colors
+    colorsContainer.innerHTML = items.colors
       .map((c) => {
         const isOwned = ownedColors.includes(c.id);
         const isActive = activeColor === c.hex;
@@ -9641,7 +9548,7 @@ window.renderShop = function () {
   }
 
   if (pwrContainer) {
-    pwrContainer.innerHTML = SHOP_ITEMS.powerups
+    pwrContainer.innerHTML = items.powerups
       .map((p) => {
         const count = inventory[p.id] || 0;
         return `
@@ -9666,10 +9573,8 @@ window.renderShop = function () {
 };
 
 window.buyItem = function (id, type) {
-  const item =
-    type === "color"
-      ? SHOP_ITEMS.colors.find((c) => c.id === id)
-      : SHOP_ITEMS.powerups.find((p) => p.id === id);
+  const items = getShopItems();
+  const item = type === "color" ? items.colors.find(c => c.id === id) : items.powerups.find(p => p.id === id);
 
   const savedBalance = localStorage.getItem("granaGo_bj_balance");
   let balance = savedBalance === null ? 500 : parseInt(savedBalance);
