@@ -5854,24 +5854,16 @@ window.changeLanguage = async function (lang) {
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
 
-      // --- SOLUCIÓN DEFINITIVA PARA VOLVER AL ORIGINAL ---
       if (lang === 'es') {
-        // 1. Guardamos la preferencia en el almacenamiento local
         localStorage.setItem("granaGo_selected_lang", "es");
 
-        // 2. Eliminamos las cookies de Google Translate para que deje de traducir
         const domain = window.location.hostname;
         document.cookie = "googtrans=; Path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
         document.cookie = `googtrans=; Path=/; domain=${domain}; expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
         document.cookie = `googtrans=; Path=/; domain=.${domain}; expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
-
-        // 3. Recargamos la página. 
-        // Es la única forma de eliminar las etiquetas <font> que Google inyecta.
-        // Como usas hashes (#), el usuario volverá automáticamente a la misma vista.
         location.reload();
-        return; 
+        return;
       }
-      // ---------------------------------------------------
 
       googleSelect.value = lang;
       googleSelect.dispatchEvent(new Event("change"));
