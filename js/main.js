@@ -1009,12 +1009,8 @@ async function fetchWeatherData(lat, lon, locationName) {
 
   try {
     const [weatherRes, aqiRes] = await Promise.all([
-      fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto`,
-      ),
-      fetch(
-        `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`,
-      ),
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto`, { priority: 'high' }),
+      fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`, { priority: 'high' }),
     ]);
 
     if (!weatherRes.ok || !aqiRes.ok) throw new Error("Error API");
@@ -1028,53 +1024,48 @@ async function fetchWeatherData(lat, lon, locationName) {
     const aqi = aqiData.current.european_aqi;
     const weatherIconName = getWeatherIconName(code);
 
-    let aqiText = "Excelente",
-      aqiColor = "#10b981";
-    if (aqi > 20) {
-      aqiText = "Bueno";
-      aqiColor = "#84cc16";
-    }
-    if (aqi > 40) {
-      aqiText = "Regular";
-      aqiColor = "#f59e0b";
-    }
-    if (aqi > 60) {
-      aqiText = "Pobre";
-      aqiColor = "#ef4444";
-    }
-    if (aqi > 80) {
-      aqiText = "Muy Pobre";
-      aqiColor = "#991b1b";
-    }
+    let aqiText = "Excelente", aqiColor = "#10b981";
+    if (aqi > 20) { aqiText = "Bueno"; aqiColor = "#84cc16"; }
+    else if (aqi > 40) { aqiText = "Regular"; aqiColor = "#f59e0b"; }
+    else if (aqi > 60) { aqiText = "Pobre"; aqiColor = "#ef4444"; }
+    else if (aqi > 80) { aqiText = "Muy Pobre"; aqiColor = "#991b1b"; }
 
-    container.innerHTML = `
-        <div class="weather-card-premium fade-in-up">
-            <div class="weather-left">
-                <div class="location-badge notranslate">
-                    <i class="icon ri-map-pin-user-fill"></i> ${locationName}
-                </div>
-                <div class="weather-temp notranslate">${temp}°</div>
-                <div class="weather-desc">${getWeatherDesc(code)}</div>
+    const fragment = document.createDocumentFragment();
+    const card = document.createElement("div");
+    card.className = "weather-card-premium fade-in-up";
+
+    card.innerHTML = `
+        <div class="weather-left">
+            <div class="location-badge notranslate">
+                <i class="icon ri-map-pin-user-fill"></i> ${locationName}
             </div>
-            
-            <div class="weather-right">
-                <i class="icon weather-icon-lg ${weatherIconName}"></i>
-                <div class="weather-meta-row">
-                    <div class="weather-meta-item">
-                        <i class="ri-drop-line"></i> <span>${humidity}%</span>
-                    </div>
-                    <div class="weather-meta-item aq-badge" style="--aqi-color: ${aqiColor}">
-                        <i class="ri-leaf-line"></i> <span>${aqiText}</span>
-                    </div>
+            <div class="weather-temp notranslate">${temp}°</div>
+            <div class="weather-desc">${getWeatherDesc(code)}</div>
+        </div>
+        
+        <div class="weather-right">
+            <i class="icon weather-icon-lg ${weatherIconName}"></i>
+            <div class="weather-meta-row">
+                <div class="weather-meta-item">
+                    <i class="ri-drop-line"></i> <span>${humidity}%</span>
+                </div>
+                <div class="weather-meta-item aq-badge" style="--aqi-color: ${aqiColor}">
+                    <i class="ri-leaf-line"></i> <span>${aqiText}</span>
                 </div>
             </div>
         </div>`;
+
+    fragment.appendChild(card);
+
+    container.innerHTML = "";
+    container.appendChild(fragment);
+
   } catch (e) {
     console.error("Error clima y aire", e);
     container.innerHTML = `
-            <div class="weather-card-premium" style="background: var(--bg-card); color: var(--text-secondary); justify-content: center;">
-                <span class="text-sm flex items-center gap-2"><span class="icon">ri-cloud-off-line</span> Sin conexión</span>
-            </div>`;
+        <div class="weather-card-premium" style="background: var(--bg-card); color: var(--text-secondary); justify-content: center;">
+            <span class="text-sm flex items-center gap-2"><i class="ri-cloud-off-line"></i> Sin conexión</span>
+        </div>`;
   }
 }
 
@@ -5446,9 +5437,13 @@ async function updateHomeEventsWidget() {
     eventsFound.sort((a, b) => a.priority - b.priority);
 
     const uniqueEvents = eventsFound.slice(0, 4);
+    const fragment = document.createDocumentFragment();
 
     if (uniqueEvents.length === 0) {
-      eventsList.innerHTML = `<div class="summary-sub">Sin eventos activos en este momento.</div>`;
+      const div = document.createElement("div");
+      div.className = "summary-sub";
+      div.textContent = "Sin eventos activos en este momento.";
+      fragment.appendChild(div);
     } else {
       uniqueEvents.forEach((evt) => {
         const div = document.createElement("div");
@@ -5459,10 +5454,12 @@ async function updateHomeEventsWidget() {
         } else {
           div.textContent = evt.title;
         }
-
-        eventsList.appendChild(div);
+        fragment.appendChild(div);
       });
     }
+
+    eventsList.appendChild(fragment);
+
   } catch (e) {
     console.error("Error Widget Eventos:", e);
     eventsList.innerHTML = `<div class="summary-sub">No disponible</div>`;
@@ -5500,12 +5497,11 @@ async function updateHomeBusWidget() {
   const busContent = document.getElementById("home-bus-content");
   if (!busContent) return;
 
-  busContent.innerHTML = "";
   let affectedLines = new Set();
   let detectedZones = [];
 
   try {
-    const rssRes = await fetch(URLS.rss);
+    const rssRes = await fetch(URLS.rss, { priority: 'high' });
     const rssText = await rssRes.text();
     const parser = new DOMParser();
     const items = parser.parseFromString(rssText, "text/xml").querySelectorAll("item");
@@ -5516,19 +5512,17 @@ async function updateHomeBusWidget() {
       const fullText = (title + " " + desc).replace(/<[^>]*>?/gm, " ");
 
       if (isDateActive(fullText) && isDayTimeActive(fullText)) {
-
         DIVERSION_ZONES.forEach(zone => {
           if (zone.keywords.some(k => fullText.includes(k))) {
             zone.lines.forEach(l => affectedLines.add(l));
-            if (!detectedZones.includes(zone.name)) {
-              detectedZones.push(zone.name);
-            }
+            if (!detectedZones.includes(zone.name)) detectedZones.push(zone.name);
           }
         });
-
         extractLinesToSet(fullText, affectedLines);
       }
     });
+
+    const fragment = document.createDocumentFragment();
 
     if (affectedLines.size > 0) {
       const zoneTitle = document.createElement("div");
@@ -5536,8 +5530,7 @@ async function updateHomeBusWidget() {
       zoneTitle.innerHTML = detectedZones.length > 0
         ? `<i class="ri-alert-fill"></i> Corte en: ${detectedZones.join(", ")}`
         : `<i class="ri-alert-fill"></i> Desvíos activos:`;
-
-      busContent.appendChild(zoneTitle);
+      fragment.appendChild(zoneTitle);
 
       const wrapperDiv = document.createElement("div");
       wrapperDiv.className = "bus-lines-wrapper";
@@ -5550,29 +5543,32 @@ async function updateHomeBusWidget() {
         const span = document.createElement("span");
         span.className = "bus-line-pill";
         span.textContent = l;
-
         if (["4", "8", "9", "11", "21", "33"].includes(l)) span.style.backgroundColor = "#d9281c";
         else if (l.startsWith("C")) span.style.backgroundColor = "#059669";
         else span.style.backgroundColor = "#2757f5";
 
         wrapperDiv.appendChild(span);
       });
-
-      busContent.appendChild(wrapperDiv);
+      fragment.appendChild(wrapperDiv);
 
       if (detectedZones.length > 0) {
         const hint = document.createElement("div");
         hint.style.cssText = "font-size:0.7rem; opacity:0.7; margin-top:5px; font-style:italic;";
         hint.innerText = "Recorrido alternativo por ejes principales.";
-        busContent.appendChild(hint);
+        fragment.appendChild(hint);
       }
-
     } else {
-      busContent.innerHTML = `
+      const normalDiv = document.createElement("div");
+      normalDiv.innerHTML = `
         <div class="summary-value" style="color:#10b981; font-size:1.2rem">Normal</div>
         <div class="summary-sub">Servicio habitual sin desvíos.</div>
       `;
+      fragment.appendChild(normalDiv);
     }
+
+    busContent.innerHTML = "";
+    busContent.appendChild(fragment);
+
   } catch (e) {
     console.error("Error Widget Bus:", e);
     busContent.innerHTML = `<div class="summary-sub">No disponible temporalmente</div>`;
@@ -5584,25 +5580,20 @@ async function updateHomeParking() {
   if (!container) return;
   try {
     const PROXY = "https://proxy.contacto-granago.workers.dev/?url=";
-    const TABLE_URL =
-      "http://www.movilidadgranada.com/aparcamientos/par_tabla.php";
+    const TABLE_URL = "http://www.movilidadgranada.com/aparcamientos/par_tabla.php";
 
     const response = await fetch(PROXY + encodeURIComponent(TABLE_URL));
     const text = await response.text();
     const htmlDoc = new DOMParser().parseFromString(text, "text/html");
     const rows = htmlDoc.querySelectorAll("tr");
 
-    let totalOpen = 0;
-    let totalFull = 0;
-    let totalParkings = 0;
+    let totalOpen = 0, totalFull = 0, totalParkings = 0;
 
     rows.forEach((row) => {
       const cells = row.querySelectorAll("td");
       if (cells.length < 2) return;
       const statusRaw = cells[1].textContent.trim().toUpperCase();
-
       if (statusRaw.includes("CERRADO")) return;
-
       totalParkings++;
       if (statusRaw.includes("COMPLETO")) {
         totalFull++;
@@ -5613,31 +5604,23 @@ async function updateHomeParking() {
       }
     });
 
-    let statusText = "";
-    let color = "";
-    let subText = "";
+    let statusText = "", color = "", subText = "";
+    if (totalParkings === 0) { statusText = "Sin Datos"; subText = "Inténtalo más tarde"; }
+    else if (totalFull > totalOpen) { statusText = "Saturado"; color = "#ef4444"; subText = "Mayoría de parkings completos."; }
+    else if (totalFull > 0 && totalFull < totalOpen) { statusText = "Ocupado"; color = "#f59e0b"; subText = "Plazas libres moderadas."; }
+    else { statusText = "Libre"; color = "#10b981"; subText = "Buena disponibilidad general."; }
 
-    if (totalParkings === 0) {
-      statusText = "Sin Datos";
-      subText = "Inténtalo más tarde";
-    } else if (totalFull > totalOpen) {
-      statusText = "Saturado";
-      color = "#ef4444";
-      subText = "Mayoría de parkings completos.";
-    } else if (totalFull > 0 && totalFull < totalOpen) {
-      statusText = "Ocupado";
-      color = "#f59e0b";
-      subText = "Plazas libres moderadas.";
-    } else {
-      statusText = "Libre";
-      color = "#10b981";
-      subText = "Buena disponibilidad general.";
-    }
+    const fragment = document.createDocumentFragment();
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = `
+        <div class="summary-value" style="color:${color}">${statusText}</div>
+        <div class="summary-sub">${subText}</div>
+    `;
+    fragment.appendChild(wrapper);
 
-    container.innerHTML = `
-            <div class="summary-value" style="color:${color}">${statusText}</div>
-            <div class="summary-sub">${subText}</div>
-        `;
+    container.innerHTML = "";
+    container.appendChild(fragment);
+
   } catch (e) {
     container.innerHTML = `<div class="summary-sub">Error de conexión</div>`;
   }
@@ -5646,17 +5629,13 @@ async function updateHomeParking() {
 async function updateHomeFuel() {
   const container = document.getElementById("home-fuel-content");
   const title = document.getElementById("fuel-widget-title");
-  if (!container) return;
-
   if (!container || !title) return;
 
   try {
     const PROXY = "https://proxy.contacto-granago.workers.dev/?url=";
-    const TARGET = encodeURIComponent(
-      "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroProvincia/18",
-    );
+    const TARGET = encodeURIComponent("https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroProvincia/18");
 
-    const res = await fetch(PROXY + TARGET);
+    const res = await fetch(PROXY + TARGET, { priority: 'high' });
     const data = await res.json();
     const rawList = data.ListaEESSPrecio;
 
@@ -5671,37 +5650,21 @@ async function updateHomeFuel() {
     let isNearestMode = false;
     let nearestStationName = "";
 
-    if (
-      typeof window.currentLat !== "undefined" &&
-      typeof window.currentLng !== "undefined"
-    ) {
+    if (typeof window.currentLat !== "undefined" && typeof window.currentLng !== "undefined") {
       let minDistance = Infinity;
       let nearestStation = null;
-
       rawList.forEach((s) => {
         const lat = parseFloat(s["Latitud"].replace(",", "."));
         const lng = parseFloat(s["Longitud (WGS84)"].replace(",", "."));
-
         if (!isNaN(lat) && !isNaN(lng)) {
-          const dist = getDistanceFromLatLonInKm(
-            window.currentLat,
-            window.currentLng,
-            lat,
-            lng,
-          );
-          if (dist < minDistance) {
-            minDistance = dist;
-            nearestStation = s;
-          }
+          const dist = getDistanceFromLatLonInKm(window.currentLat, window.currentLng, lat, lng);
+          if (dist < minDistance) { minDistance = dist; nearestStation = s; }
         }
       });
-
       if (nearestStation && minDistance < 10) {
         isNearestMode = true;
         nearestStationName = nearestStation["Rótulo"];
-
         title.innerHTML = `Más Cercana <i class="ri-map-pin-user-fill" style="font-size:0.8em; color:var(--color-primary);"></i>`;
-
         types.forEach((t) => {
           const val = nearestStation[t.key];
           pricesToShow[t.label] = val && val !== "" ? val : "-";
@@ -5711,48 +5674,50 @@ async function updateHomeFuel() {
 
     if (!isNearestMode) {
       title.innerText = "Precios Medios";
-
       types.forEach((t) => {
-        let sum = 0;
-        let count = 0;
+        let sum = 0, count = 0;
         rawList.forEach((s) => {
           const valStr = s[t.key];
           if (valStr) {
             const val = parseFloat(valStr.replace(",", "."));
-            if (!isNaN(val)) {
-              sum += val;
-              count++;
-            }
+            if (!isNaN(val)) { sum += val; count++; }
           }
         });
         pricesToShow[t.label] = count > 0 ? (sum / count).toFixed(3) : "-";
       });
     }
 
-    container.innerHTML = "";
+    const fragment = document.createDocumentFragment();
 
     if (isNearestMode) {
-      container.innerHTML += `
-            <div class="notranslate" style="font-size:0.75rem; font-weight:700; color:var(--color-primary); margin-bottom:8px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:rgba(37,99,235,0.1); padding:4px 8px; border-radius:8px;">
-                ${nearestStationName}
-            </div>`;
+      const stationDiv = document.createElement("div");
+      stationDiv.className = "notranslate";
+      stationDiv.style.cssText = "font-size:0.75rem; font-weight:700; color:var(--color-primary); margin-bottom:8px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:rgba(37,99,235,0.1); padding:4px 8px; border-radius:8px;";
+      stationDiv.textContent = nearestStationName;
+      fragment.appendChild(stationDiv);
     }
 
-    let gridHtml = '<div class="fuel-price-grid">';
+    const gridDiv = document.createElement("div");
+    gridDiv.className = "fuel-price-grid";
+
     types.forEach((t) => {
       let priceDisplay = pricesToShow[t.label];
       if (priceDisplay !== "-") priceDisplay += " €";
 
-      gridHtml += `
-            <div class="fuel-price-item">
-                <span class="fuel-type-label">${t.label}</span>
-                <span class="fuel-price-val">${priceDisplay}</span>
-            </div>
-        `;
+      const item = document.createElement("div");
+      item.className = "fuel-price-item";
+      item.innerHTML = `
+          <span class="fuel-type-label">${t.label}</span>
+          <span class="fuel-price-val">${priceDisplay}</span>
+      `;
+      gridDiv.appendChild(item);
     });
-    gridHtml += "</div>";
 
-    container.innerHTML += gridHtml;
+    fragment.appendChild(gridDiv);
+
+    container.innerHTML = "";
+    container.appendChild(fragment);
+
   } catch (e) {
     console.error("Error Fuel Widget:", e);
     container.innerHTML = `<div class="summary-sub">Datos no disponibles</div>`;
