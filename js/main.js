@@ -5291,9 +5291,13 @@ async function updateHomeRecentWidgets() {
 
   if (stopsContainer) {
     const recentStops = JSON.parse(localStorage.getItem("granaGo_recent_stops") || "[]");
+    const stopFrag = document.createDocumentFragment();
 
     if (recentStops.length === 0) {
-      stopsContainer.innerHTML = `<div class="summary-sub">No has consultado paradas todavía.</div>`;
+      const emptyDiv = document.createElement("div");
+      emptyDiv.className = "summary-sub";
+      emptyDiv.textContent = "No has consultado paradas todavía.";
+      stopFrag.appendChild(emptyDiv);
     } else {
       if (!window.appColors || !window.appColors.urbano) {
         try {
@@ -5303,15 +5307,20 @@ async function updateHomeRecentWidgets() {
           ]);
           window.appColors = { urbano: uCol, metro: mCol };
         } catch (e) {
-          console.warn("No se pudieron cargar colores para los badges del widget");
+          console.warn("Error cargando colores");
         }
       }
 
-      stopsContainer.innerHTML = recentStops.map((s) => {
+      recentStops.forEach((s) => {
+        const btn = document.createElement("button");
+        btn.className = "transport-card";
+        btn.style.cssText = "width: 100%; padding: 10px; margin: 0; border-radius: 12px; border: 1px solid var(--border-subtle); justify-content: flex-start; gap: 10px; background: var(--bg-app); color: var(--text-primary); display: flex; align-items: center;";
+
         const icon = s.type === "metro" ? "ri-train-fill" : "ri-bus-fill";
         const brandColor = s.type === "metro" ? "#009a44" : "#D9281C";
         const safeName = s.name.replace(/'/g, "\\'");
 
+        // Generar HTML de líneas
         let linesHtml = "";
         if (s.lines) {
           const linesArr = s.lines.split(",").map(l => l.trim());
@@ -5324,26 +5333,31 @@ async function updateHomeRecentWidgets() {
           linesHtml += `</div>`;
         }
 
-        return `
-          <button class="transport-card" 
-                  style="width: 100%; padding: 10px; margin: 0; border-radius: 12px; border: 1px solid var(--border-subtle); justify-content: flex-start; gap: 10px; background: var(--bg-app); color: var(--text-primary);"
-                  onclick="event.stopPropagation(); openRealTimeModal('${s.id}', '${s.type}', '${safeName}', '${s.lines || ''}')">
-              <div class="card-icon-wrapper" style="width: 32px; height: 32px; min-width: 32px; background: ${brandColor}1A; color: ${brandColor};">
-                  <i class="${icon}" style="font-size: 14px;"></i>
-              </div>
-              <div style="display:flex; flex-direction:column; overflow:hidden;">
-                  <span style="font-size: 0.85rem; font-weight: 600; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-primary);">
-                      ${s.name}
-                  </span>
-                  ${linesHtml}
-              </div>
-          </button>`;
-      }).join("");
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          openRealTimeModal(s.id, s.type, safeName, s.lines || '');
+        };
+
+        btn.innerHTML = `
+          <div class="card-icon-wrapper" style="width: 32px; height: 32px; min-width: 32px; background: ${brandColor}1A; color: ${brandColor};">
+              <i class="${icon}" style="font-size: 14px;"></i>
+          </div>
+          <div style="display:flex; flex-direction:column; overflow:hidden;">
+              <span style="font-size: 0.85rem; font-weight: 600; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-primary);">
+                  ${s.name}
+              </span>
+              ${linesHtml}
+          </div>`;
+        stopFrag.appendChild(btn);
+      });
     }
+    stopsContainer.innerHTML = "";
+    stopsContainer.appendChild(stopFrag);
   }
 
   if (gamesContainer) {
     const recentGames = JSON.parse(localStorage.getItem("granaGo_recent_games") || "[]");
+    const gameFrag = document.createDocumentFragment();
 
     const gameActions = {
       Granádle: "navigateTo('juegos'); openWordleMenu();",
@@ -5353,24 +5367,37 @@ async function updateHomeRecentWidgets() {
       Granámind: "navigateTo('juegos'); openMastermindMenu();",
       "Granábras Encadenadas": "navigateTo('juegos'); openEncadenadasMenu();",
       GranáJack: "navigateTo('juegos'); openBlackjackMenu();",
+      GranáSlots: "navigateTo('juegos'); openSlotsMenu();",
+      GeoGraná: "navigateTo('juegos'); openGeoMenu();",
     };
 
     if (recentGames.length === 0) {
-      gamesContainer.innerHTML = `<div class="summary-sub">Prueba algún juego para que aparezca aquí.</div>`;
+      const emptyDiv = document.createElement("div");
+      emptyDiv.className = "summary-sub";
+      emptyDiv.textContent = "Prueba algún juego para que aparezca aquí.";
+      gameFrag.appendChild(emptyDiv);
     } else {
-      gamesContainer.innerHTML = recentGames.map((game) => {
+      recentGames.forEach((game) => {
+        const btn = document.createElement("button");
+        btn.className = "transport-card";
+        btn.style.cssText = "width: 100%; padding: 10px; margin: 0; border-radius: 12px; border: 1px solid var(--border-subtle); justify-content: flex-start; gap: 10px; background: var(--bg-app); color: var(--text-primary); display: flex; align-items: center;";
+
         const action = gameActions[game] || "navigateTo('juegos')";
-        return `
-            <button class="transport-card" 
-                    style="width: 100%; padding: 10px; margin: 0; border-radius: 12px; border: 1px solid var(--border-subtle); justify-content: flex-start; gap: 10px; background: var(--bg-app); color: var(--text-primary);"
-                    onclick="event.stopPropagation(); ${action}">
-                <div class="card-icon-wrapper" style="width: 32px; height: 32px; min-width: 32px; background: var(--text-accent)1A; color: var(--text-accent);">
-                    <i class="ri-play-fill" style="font-size: 14px;"></i>
-                </div>
-                <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">${game}</span>
-            </button>`;
-      }).join("");
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          eval(action);
+        };
+
+        btn.innerHTML = `
+            <div class="card-icon-wrapper" style="width: 32px; height: 32px; min-width: 32px; background: var(--text-accent)1A; color: var(--text-accent);">
+                <i class="ri-play-fill" style="font-size: 14px;"></i>
+            </div>
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">${game}</span>`;
+        gameFrag.appendChild(btn);
+      });
     }
+    gamesContainer.innerHTML = "";
+    gamesContainer.appendChild(gameFrag);
   }
 }
 
@@ -8986,14 +9013,14 @@ function openBlackjackMenu() {
     let courtesyCount = parseInt(
       localStorage.getItem("granaGo_bj_courtesy_count") || "0",
     );
-    if (courtesyCount < 3) {
+    if (courtesyCount < 5) {
       currentBalance = 50;
       courtesyCount++;
       localStorage.setItem("granaGo_bj_balance", 50);
       localStorage.setItem("granaGo_bj_courtesy_count", courtesyCount);
       showNotification(
         "Regalo de cortesía",
-        `Has recibido 50 G$ (${courtesyCount}/3)`,
+        `Has recibido 50 G$ (${courtesyCount}/5)`,
         "success",
       );
     }
@@ -9155,13 +9182,13 @@ function resolveBJWinner() {
     let courtesyCount = parseInt(
       localStorage.getItem("granaGo_bj_courtesy_count") || "0",
     );
-    if (courtesyCount < 3) {
+    if (courtesyCount < 5) {
       bjState.balance = 50;
       courtesyCount++;
       localStorage.setItem("granaGo_bj_courtesy_count", courtesyCount);
       showNotification(
         "Cortesía de GranáGo",
-        `Has recibido 50 G$ para seguir jugando (${courtesyCount}/3)`,
+        `Has recibido 50 G$ para seguir jugando (${courtesyCount}/5)`,
         "success",
       );
     } else {
@@ -9722,14 +9749,14 @@ window.openSlotsMenu = function () {
     let courtesyCount = parseInt(
       localStorage.getItem("granaGo_slots_courtesy_count") || "0",
     );
-    if (courtesyCount < 3) {
+    if (courtesyCount < 5) {
       balance = 50;
       courtesyCount++;
       localStorage.setItem("granaGo_bj_balance", 50);
       localStorage.setItem("granaGo_slots_courtesy_count", courtesyCount);
       showNotification(
         "Regalo de cortesía",
-        `50 G$ para probar suerte (${courtesyCount}/3)`,
+        `50 G$ para probar suerte (${courtesyCount}/5)`,
         "success",
       );
     }
@@ -9845,16 +9872,17 @@ function resolve3x3Results(grid) {
     let courtesyCount = parseInt(
       localStorage.getItem("granaGo_slots_courtesy_count") || "0",
     );
-    if (courtesyCount < 3) {
-      currentBalance = 50;
+    if (courtesyCount < 5) {
+      newBalance = 50;
       courtesyCount++;
-      localStorage.setItem("granaGo_bj_balance", currentBalance);
+      localStorage.setItem("granaGo_bj_balance", newBalance);
       localStorage.setItem("granaGo_slots_courtesy_count", courtesyCount);
       showNotification(
         "Cortesía de GranáGo",
-        `Créditos añadidos (${courtesyCount}/3)`,
+        `Créditos añadidos (${courtesyCount}/5)`,
         "success",
       );
+      slotBet = newBalance;
     }
   }
 
