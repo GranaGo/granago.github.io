@@ -1,4 +1,4 @@
-const CACHE_NAME = 'granago-v1769183372';
+const CACHE_NAME = 'granago-v1769186923';
 
 const palos = ["clubs", "diamonds", "hearts", "spades"];
 const valores = [
