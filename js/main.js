@@ -5319,91 +5319,79 @@ async function updateHomeEventsWidget() {
   const eventsList = document.getElementById("home-event-content");
   if (!eventsList) return;
 
-  eventsList.innerHTML = "";
+  const cachedData = localStorage.getItem("granaGo_events_cache");
+  const cacheTime = localStorage.getItem("granaGo_events_cache_time");
+  const now = Date.now();
 
-  const getLocalTodayString = () => {
-    const d = new Date();
-    const offsetMs = d.getTimezoneOffset() * 60 * 1000;
-    const localISOTime = new Date(d.getTime() - offsetMs)
-      .toISOString()
-      .slice(0, 10);
-    return localISOTime;
-  };
-
-  const todayStr = getLocalTodayString();
-  let eventsFound = [];
-  const processedTitles = new Set();
+  if (cachedData && cacheTime && (now - cacheTime < 600000)) {
+    eventsList.innerHTML = cachedData;
+    return;
+  }
 
   try {
-    const rssRes = await fetch(URLS.rss, { priority: 'high' });
+    const rssRes = await fetch(URLS.rss, { priority: 'low' });
     const rssText = await rssRes.text();
     const parser = new DOMParser();
-    const items = parser
-      .parseFromString(rssText, "text/xml")
-      .querySelectorAll("item");
+    const items = parser.parseFromString(rssText, "text/xml").querySelectorAll("item");
 
-    items.forEach((item) => {
-      const title = item.querySelector("title").textContent;
+    let eventsFound = [];
+    const processedTitles = new Set();
+    const todayStr = getLocalTodayDate();
+
+    for (const item of items) {
+      const title = item.querySelector("title").textContent.trim();
+      if (processedTitles.has(title)) continue;
+
       const descriptionHTML = item.querySelector("description").textContent;
-      const cleanTitle = title.trim();
       const cleanDesc = descriptionHTML.replace(/<[^>]*>?/gm, " ").trim();
       const fullSearchText = title + " " + cleanDesc;
 
       let matchType = null;
       let isEndingToday = false;
-      const finPubMatch = descriptionHTML.match(
-        /Fin de la publicación:\s*(\d{4}-\d{2}-\d{2})/i,
-      );
+      const finPubMatch = descriptionHTML.match(/Fin de la publicación:\s*(\d{4}-\d{2}-\d{2})/i);
 
       if (finPubMatch && finPubMatch[1] === todayStr) {
         matchType = "fin_hoy";
         isEndingToday = true;
-      } else {
-        if (isDateActive(fullSearchText) && isDayTimeActive(fullSearchText)) {
-          matchType = "activo";
-        }
+      } else if (isDateActive(fullSearchText) && isDayTimeActive(fullSearchText)) {
+        matchType = "activo";
       }
 
-      if (matchType && !processedTitles.has(cleanTitle)) {
-        processedTitles.add(cleanTitle);
-
-        eventsFound.push({
-          title: cleanTitle,
-          priority: matchType === "fin_hoy" ? 1 : 2,
-          isEndingToday: isEndingToday,
-        });
+      if (matchType) {
+        processedTitles.add(title);
+        eventsFound.push({ title, priority: isEndingToday ? 1 : 2, isEndingToday });
       }
-    });
+      
+      if (eventsFound.length >= 8) break; 
+    }
 
     eventsFound.sort((a, b) => a.priority - b.priority);
 
-    const uniqueEvents = eventsFound.slice(0, 4);
     const fragment = document.createDocumentFragment();
-
-    if (uniqueEvents.length === 0) {
+    if (eventsFound.length === 0) {
       const div = document.createElement("div");
       div.className = "summary-sub";
       div.textContent = "Sin eventos activos en este momento.";
       fragment.appendChild(div);
     } else {
-      uniqueEvents.forEach((evt) => {
+      eventsFound.slice(0, 4).forEach((evt) => {
         const div = document.createElement("div");
         div.className = "mini-event-title";
-
-        if (evt.isEndingToday) {
-          div.innerHTML = `${evt.title} <span style="color: var(--color-error); font-weight: 700; font-size: 0.8em; white-space: nowrap;">(FIN HOY)</span>`;
-        } else {
-          div.textContent = evt.title;
-        }
+        div.innerHTML = evt.isEndingToday 
+          ? `${evt.title} <span style="color: var(--color-error); font-weight: 700; font-size: 0.8em;">(FIN HOY)</span>`
+          : evt.title;
         fragment.appendChild(div);
       });
     }
 
+    eventsList.innerHTML = "";
     eventsList.appendChild(fragment);
+    localStorage.setItem("granaGo_events_cache", eventsList.innerHTML);
+    localStorage.setItem("granaGo_events_cache_time", now);
 
   } catch (e) {
     console.error("Error Widget Eventos:", e);
-    eventsList.innerHTML = `<div class="summary-sub">No disponible</div>`;
+    if (!cachedData) eventsList.innerHTML = `<div class="summary-sub">No disponible</div>`;
   }
 }
 
@@ -5442,7 +5430,7 @@ async function updateHomeBusWidget() {
   let detectedZones = [];
 
   try {
-    const rssRes = await fetch(URLS.rss, { priority: 'high' });
+    const rssRes = await fetch(URLS.rss);
     const rssText = await rssRes.text();
     const parser = new DOMParser();
     const items = parser.parseFromString(rssText, "text/xml").querySelectorAll("item");
