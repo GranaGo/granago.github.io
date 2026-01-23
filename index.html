@@ -71,89 +71,39 @@
           <div class="skeleton-weather"></div>
         </div>
       </div>
-
-      <div class="section-header">
-        <h2>Resumen del Día</h2>
-        <p>Estado actual de Granada</p>
+      <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <h2>Resumen del Día</h2>
+          <p>Estado actual de Granada</p>
+        </div>
+        <button onclick="openHomeEditor()" class="icon-btn"
+          style="background: var(--bg-card); border: 1px solid var(--border-subtle); width: 42px; height: 42px; border-radius: 12px; box-shadow: var(--shadow-soft);">
+          <i class="ri-edit-line" style="font-size: 1.2rem; color: var(--text-accent);"></i>
+        </button>
       </div>
 
-      <div class="home-dashboard-grid fade-in-up">
-        <div class="summary-card widget-event" onclick="navigateTo('cortes')">
-          <div class="summary-header">
-            <div class="summary-icon">
-              <i class="ri-calendar-event-fill"></i>
-            </div>
-            <span class="summary-title">Eventos Hoy</span>
-          </div>
-          <div id="home-events-list" class="mini-list-container">
-            <div class="skeleton-text"></div>
-            <div class="skeleton-text"></div>
-          </div>
+      <div id="home-dashboard-grid" class="home-dashboard-grid fade-in-up"></div>
+    </div>
+    <div id="home-editor-modal" class="modal-overlay">
+      <div class="modal-card gpu-accelerated">
+        <div class="modal-header"
+          style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
+          <h3 style="margin: 0;">Personalizar Inicio</h3>
+          <button onclick="closeHomeEditor()" class="icon-btn"
+            style="background: var(--bg-app); border: 1px solid var(--border-subtle); width: 45px; height: 45px; border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-soft); cursor: pointer; transition: transform 0.2s;">
+            <i class="ri-close-line" style="font-size: 1.8rem; color: var(--text-primary);"></i>
+          </button>
         </div>
-
-        <div class="summary-card widget-parking" onclick="navigateTo('parkings')">
-          <div class="summary-header">
-            <div class="summary-icon">
-              <i class="ri-parking-box-fill"></i>
-            </div>
-            <span class="summary-title">Parkings</span>
+        <div class="modal-body">
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px;">
+            Usa las flechas para reordenar y el interruptor para ocultar widgets.
+          </p>
+          <div id="home-editor-list" style="display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px;">
           </div>
-          <div id="home-parking-content">
-            <div class="skeleton-text"></div>
-            <div class="skeleton-text" style="width: 40%"></div>
-          </div>
-        </div>
-
-        <div class="summary-card widget-bus" onclick="navigateTo('paradas')">
-          <div class="summary-header">
-            <div class="summary-icon"><i class="ri-bus-fill"></i></div>
-            <span class="summary-title">Desvíos de Transporte</span>
-          </div>
-          <div id="home-bus-content" style="display: flex; flex-direction: column; gap: 5px">
-            <div class="skeleton-text"></div>
-          </div>
-        </div>
-
-        <div class="summary-card widget-fuel" onclick="navigateTo('repostar')">
-          <div class="summary-header">
-            <div class="summary-icon">
-              <i class="ri-gas-station-fill"></i>
-            </div>
-            <span class="summary-title" id="fuel-widget-title">Precios Medios</span>
-          </div>
-          <div id="home-fuel-content">
-            <div class="skeleton-text"></div>
-            <div class="skeleton-text"></div>
-          </div>
-        </div>
-        <div class="summary-card widget-recent-stops" onclick="navigateTo('paradas')">
-          <div class="summary-header">
-            <div class="summary-icon">
-              <i class="ri-history-line"></i>
-            </div>
-            <span class="summary-title">Paradas Recientes</span>
-          </div>
-          <div id="home-recent-stops" class="mini-list-container" style="
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-                margin-top: 10px;
-              "></div>
-        </div>
-
-        <div class="summary-card widget-recent-games" onclick="navigateTo('juegos')">
-          <div class="summary-header">
-            <div class="summary-icon">
-              <i class="ri-play-list-add-line"></i>
-            </div>
-            <span class="summary-title">Últimos Juegos</span>
-          </div>
-          <div id="home-recent-games" class="mini-list-container" style="
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-                margin-top: 10px;
-              "></div>
+          <button class="cookie-btn primary" style="width: 100%; height: 50px; font-weight: 800;"
+            onclick="saveHomeConfig()">
+            Guardar Configuración
+          </button>
         </div>
       </div>
     </div>

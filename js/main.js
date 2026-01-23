@@ -1048,26 +1048,27 @@ async function fetchWeatherData(lat, lon, locationName) {
     }
 
     container.innerHTML = `
-            <div class="weather-card-premium fade-in-up">
-                <div class="weather-left">
-                    <div class="location-badge notranslate">
-                        <i class="icon ri-map-pin-user-fill"></i> ${locationName}
+        <div class="weather-card-premium fade-in-up">
+            <div class="weather-left">
+                <div class="location-badge notranslate">
+                    <i class="icon ri-map-pin-user-fill"></i> ${locationName}
+                </div>
+                <div class="weather-temp notranslate">${temp}°</div>
+                <div class="weather-desc">${getWeatherDesc(code)}</div>
+            </div>
+            
+            <div class="weather-right">
+                <i class="icon weather-icon-lg ${weatherIconName}"></i>
+                <div class="weather-meta-row">
+                    <div class="weather-meta-item">
+                        <i class="ri-drop-line"></i> <span>${humidity}%</span>
                     </div>
-                    <div class="weather-temp notranslate">${temp}°</div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div class="weather-desc">${getWeatherDesc(code)}</div>
-                        <div style="font-size: 0.7rem; font-weight: 800; background: ${aqiColor}; color: white; padding: 2px 8px; border-radius: 20px; text-transform: uppercase;">
-                            Aire: ${aqiText}
-                        </div>
+                    <div class="weather-meta-item aq-badge" style="--aqi-color: ${aqiColor}">
+                        <i class="ri-leaf-line"></i> <span>${aqiText}</span>
                     </div>
                 </div>
-                <div class="weather-right">
-                    <i class="icon weather-icon-lg ${weatherIconName}"></i>
-                    <div class="weather-humidity">
-                        <i class="icon ri-drop-line"></i> ${humidity}%
-                    </div>
-                </div>
-            </div>`;
+            </div>
+        </div>`;
   } catch (e) {
     console.error("Error clima y aire", e);
     container.innerHTML = `
@@ -2404,6 +2405,13 @@ document.addEventListener("click", (e) => {
   const modal = document.getElementById("realtime-modal");
   if (modal && e.target === modal && modal.classList.contains("visible")) {
     closeRealTimeModal();
+  }
+});
+
+document.addEventListener("click", (e) => {
+  const modal = document.getElementById("home-editor-modal");
+  if (modal && e.target === modal && modal.classList.contains("visible")) {
+    closeHomeEditor();
   }
 });
 
@@ -4778,6 +4786,140 @@ function loadKMLData() {
     });
 }
 
+const ALL_WIDGETS = {
+  event: { id: 'event', title: 'Eventos Hoy', icon: 'ri-calendar-event-fill', class: 'widget-event', action: "navigateTo('cortes')", render: updateHomeEventsWidget },
+  parking: { id: 'parking', title: 'Parkings', icon: 'ri-parking-box-fill', class: 'widget-parking', action: "navigateTo('parkings')", render: updateHomeParking },
+  bus: { id: 'bus', title: 'Desvíos Bus', icon: 'ri-bus-fill', class: 'widget-bus', action: "navigateTo('paradas')", render: updateHomeBusWidget },
+  fuel: { id: 'fuel', title: 'Combustible', icon: 'ri-gas-station-fill', class: 'widget-fuel', action: "navigateTo('repostar')", render: updateHomeFuel },
+  stops: { id: 'stops', title: 'Paradas Recientes', icon: 'ri-history-line', class: 'widget-recent-stops', action: "navigateTo('paradas')", render: updateHomeRecentWidgets },
+  games: { id: 'games', title: 'Últimos Juegos', icon: 'ri-play-list-add-line', class: 'widget-recent-games', action: "navigateTo('juegos')", render: updateHomeRecentWidgets }
+};
+
+const DEFAULT_LAYOUT = [
+  { id: 'event', active: true },
+  { id: 'parking', active: true },
+  { id: 'bus', active: true },
+  { id: 'fuel', active: true },
+  { id: 'stops', active: true },
+  { id: 'games', active: true }
+];
+
+let homeLayout = [];
+const savedLayout = JSON.parse(localStorage.getItem('granaGo_home_layout'));
+
+if (savedLayout && Array.isArray(savedLayout)) {
+  homeLayout = savedLayout.filter(item => ALL_WIDGETS[item.id]);
+  DEFAULT_LAYOUT.forEach(def => {
+    if (!homeLayout.find(item => item.id === def.id)) homeLayout.push(def);
+  });
+} else {
+  homeLayout = [...DEFAULT_LAYOUT];
+}
+
+async function renderHomeDashboard() {
+  const container = document.getElementById('home-dashboard-grid');
+  if (!container) return;
+  container.innerHTML = '';
+
+  homeLayout.forEach(config => {
+    if (!config.active) return;
+    const w = ALL_WIDGETS[config.id];
+
+    const card = document.createElement('div');
+    card.className = `summary-card ${w.class}`;
+    card.onclick = () => eval(w.action);
+
+    card.innerHTML = `
+      <div class="summary-header">
+        <div class="summary-icon"><i class="${w.icon}"></i></div>
+        <span class="summary-title" id="${w.id}-widget-title">${w.title}</span>
+      </div>
+      <div id="home-${w.id}-content" class="mini-list-container">
+        <div class="skeleton-text"></div>
+      </div>
+    `;
+    container.appendChild(card);
+
+    if (w.render) w.render();
+  });
+}
+
+window.openHomeEditor = function () {
+  document.getElementById('home-editor-modal').classList.add('visible');
+  renderEditorList();
+};
+
+function renderEditorList() {
+  const list = document.getElementById('home-editor-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  homeLayout.forEach((item, index) => {
+    const w = ALL_WIDGETS[item.id];
+    if (!w) return;
+
+    const isActive = item.active;
+    const bgColor = isActive ? 'var(--text-accent)' : '#cbd5e1';
+    const transformX = isActive ? 'translateX(20px)' : 'translateX(0px)';
+
+    const row = document.createElement('div');
+    row.className = 'transport-card';
+    row.style.cssText = 'padding: 12px; justify-content: space-between; margin: 0;';
+
+    row.innerHTML = `
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="card-icon-wrapper" style="width:32px; height:32px; background:var(--text-accent)1A; color:var(--text-accent);">
+          <i class="${w.icon}" style="font-size:14px;"></i>
+        </div>
+        <span style="font-weight:600; font-size:0.9rem;">${w.title}</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button onclick="moveWidget(${index}, -1)" class="icon-btn-small" style="background:var(--bg-app); border:1px solid var(--border-subtle);"><i class="ri-arrow-up-s-line"></i></button>
+        <button onclick="moveWidget(${index}, 1)" class="icon-btn-small" style="background:var(--bg-app); border:1px solid var(--border-subtle);"><i class="ri-arrow-down-s-line"></i></button>
+        <div class="theme-switch ${isActive ? 'active' : ''}" 
+             onclick="toggleWidget(${index}, this)" 
+             style="transform: scale(0.8); margin-left: 5px; background: ${bgColor}; cursor: pointer;">
+          <div class="switch-handle" style="transform: ${transformX}; transition: transform 0.3s; left: 2px;"></div>
+        </div>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+window.moveWidget = function (idx, dir) {
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= homeLayout.length) return;
+  [homeLayout[idx], homeLayout[newIdx]] = [homeLayout[newIdx], homeLayout[idx]];
+  renderEditorList();
+};
+
+window.toggleWidget = function (idx, el) {
+  if (!homeLayout[idx]) return;
+
+  homeLayout[idx].active = !homeLayout[idx].active;
+  const isActive = homeLayout[idx].active;
+
+  el.classList.toggle('active', isActive);
+  el.style.background = isActive ? 'var(--text-accent)' : '#cbd5e1';
+
+  const handle = el.querySelector('.switch-handle');
+  if (handle) {
+    handle.style.transform = isActive ? 'translateX(20px)' : 'translateX(0px)';
+  }
+};
+
+window.saveHomeConfig = function () {
+  localStorage.setItem('granaGo_home_layout', JSON.stringify(homeLayout));
+  closeHomeEditor();
+  renderHomeDashboard();
+  showNotification("Éxito", "Diseño de inicio actualizado", "success");
+};
+
+window.closeHomeEditor = function () {
+  document.getElementById('home-editor-modal').classList.remove('visible');
+};
+
 async function initHomeDashboard() {
   const savedLat = localStorage.getItem("granaGo_last_lat");
   const savedLng = localStorage.getItem("granaGo_last_lng");
@@ -4814,11 +4956,7 @@ async function initHomeDashboard() {
   }
 
   Promise.allSettled([
-    updateHomeEventsWidget(),
-    updateHomeBusWidget(),
-    updateHomeParking(),
-    updateHomeFuel(),
-    updateHomeRecentWidgets(),
+    renderHomeDashboard()
   ]);
 }
 
@@ -5154,89 +5292,98 @@ function extractLinesToSet(text, setObj) {
 }
 
 async function updateHomeRecentWidgets() {
-  const stopsContainer = document.getElementById("home-recent-stops");
-  const recentStops = JSON.parse(
-    localStorage.getItem("granaGo_recent_stops") || "[]",
-  );
+  const stopsContainer = document.getElementById("home-stops-content");
+  const gamesContainer = document.getElementById("home-games-content");
 
-  if (!window.appColors || !window.appColors.urbano) {
-    try {
-      const [uCol, mCol] = await Promise.all([
-        fetch("data/urbano/colores.json").then(r => r.json()),
-        fetch("data/metro/colores.json").then(r => r.json())
-      ]);
-      window.appColors = { urbano: uCol, metro: mCol };
-    } catch (e) { console.warn("No se pudieron cargar colores para el widget"); }
+  if (!stopsContainer && !gamesContainer) return;
+
+  if (stopsContainer) {
+    const recentStops = JSON.parse(localStorage.getItem("granaGo_recent_stops") || "[]");
+
+    if (recentStops.length === 0) {
+      stopsContainer.innerHTML = `<div class="summary-sub">No has consultado paradas todavía.</div>`;
+    } else {
+      if (!window.appColors || !window.appColors.urbano) {
+        try {
+          const [uCol, mCol] = await Promise.all([
+            fetch("data/urbano/colores.json").then(r => r.json()),
+            fetch("data/metro/colores.json").then(r => r.json())
+          ]);
+          window.appColors = { urbano: uCol, metro: mCol };
+        } catch (e) {
+          console.warn("No se pudieron cargar colores para los badges del widget");
+        }
+      }
+
+      stopsContainer.innerHTML = recentStops.map((s) => {
+        const icon = s.type === "metro" ? "ri-train-fill" : "ri-bus-fill";
+        const brandColor = s.type === "metro" ? "#009a44" : "#D9281C";
+        const safeName = s.name.replace(/'/g, "\\'");
+
+        let linesHtml = "";
+        if (s.lines) {
+          const linesArr = s.lines.split(",").map(l => l.trim());
+          linesHtml = `<div style="display:flex; gap:3px; margin-top:4px; flex-wrap:wrap;">`;
+          linesArr.slice(0, 5).forEach(l => {
+            const color = (window.appColors && window.appColors[s.type]) ? window.appColors[s.type][l] || "#64748b" : "#64748b";
+            linesHtml += `<span style="background:${color}; color:white; font-size:9px; padding:1px 4px; border-radius:3px; font-weight:800;">${l}</span>`;
+          });
+          if (linesArr.length > 5) linesHtml += `<span style="font-size:9px; opacity:0.6;">+${linesArr.length - 5}</span>`;
+          linesHtml += `</div>`;
+        }
+
+        return `
+          <button class="transport-card" 
+                  style="width: 100%; padding: 10px; margin: 0; border-radius: 12px; border: 1px solid var(--border-subtle); justify-content: flex-start; gap: 10px; background: var(--bg-app); color: var(--text-primary);"
+                  onclick="event.stopPropagation(); openRealTimeModal('${s.id}', '${s.type}', '${safeName}', '${s.lines || ''}')">
+              <div class="card-icon-wrapper" style="width: 32px; height: 32px; min-width: 32px; background: ${brandColor}1A; color: ${brandColor};">
+                  <i class="${icon}" style="font-size: 14px;"></i>
+              </div>
+              <div style="display:flex; flex-direction:column; overflow:hidden;">
+                  <span style="font-size: 0.85rem; font-weight: 600; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-primary);">
+                      ${s.name}
+                  </span>
+                  ${linesHtml}
+              </div>
+          </button>`;
+      }).join("");
+    }
   }
 
-  stopsContainer.innerHTML = recentStops.map((s) => {
-    const icon = s.type === "metro" ? "ri-train-fill" : "ri-bus-fill";
-    const brandColor = s.type === "metro" ? "#009a44" : "#D9281C";
-    const safeName = s.name.replace(/'/g, "\\'");
+  if (gamesContainer) {
+    const recentGames = JSON.parse(localStorage.getItem("granaGo_recent_games") || "[]");
 
-    let linesHtml = "";
-    if (s.lines) {
-      const linesArr = s.lines.split(",").map(l => l.trim());
-      linesHtml = `<div style="display:flex; gap:3px; margin-top:4px; flex-wrap:wrap;">`;
-      linesArr.slice(0, 5).forEach(l => {
-        const color = (window.appColors && window.appColors[s.type]) ? window.appColors[s.type][l] || "#64748b" : "#64748b";
-        linesHtml += `<span style="background:${color}; color:white; font-size:9px; padding:1px 4px; border-radius:3px; font-weight:800;">${l}</span>`;
-      });
-      if (linesArr.length > 5) linesHtml += `<span style="font-size:9px; opacity:0.6;">+${linesArr.length - 5}</span>`;
-      linesHtml += `</div>`;
-    }
+    const gameActions = {
+      Granádle: "navigateTo('juegos'); openWordleMenu();",
+      Granádoku: "navigateTo('juegos'); openSudokuMenu();",
+      Granámory: "navigateTo('juegos'); openMemoryMenu();",
+      Granáquiz: "navigateTo('juegos'); openQuizMenu();",
+      Granámind: "navigateTo('juegos'); openMastermindMenu();",
+      "Granábras Encadenadas": "navigateTo('juegos'); openEncadenadasMenu();",
+      GranáJack: "navigateTo('juegos'); openBlackjackMenu();",
+    };
 
-    return `
-      <button class="transport-card" 
-              style="width: 100%; padding: 10px; margin: 0; border-radius: 12px; border: 1px solid var(--border-subtle); justify-content: flex-start; gap: 10px; background: var(--bg-app); color: var(--text-primary);"
-              onclick="event.stopPropagation(); openRealTimeModal('${s.id}', '${s.type}', '${safeName}', '${s.lines || ''}')">
-          <div class="card-icon-wrapper" style="width: 32px; height: 32px; min-width: 32px; background: ${brandColor}1A; color: ${brandColor};">
-              <i class="${icon}" style="font-size: 14px;"></i>
-          </div>
-          <div style="display:flex; flex-direction:column; overflow:hidden;">
-              <span style="font-size: 0.85rem; font-weight: 600; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-primary);">
-                  ${s.name}
-              </span>
-              ${linesHtml}
-          </div>
-      </button>`;
-  }).join("");
-
-  const gamesContainer = document.getElementById("home-recent-games");
-  const recentGames = JSON.parse(
-    localStorage.getItem("granaGo_recent_games") || "[]",
-  );
-
-  const gameActions = {
-    Granádle: "navigateTo('juegos'); openWordleMenu();",
-    Granádoku: "navigateTo('juegos'); openSudokuMenu();",
-    Granámory: "navigateTo('juegos'); openMemoryMenu();",
-    Granáquiz: "navigateTo('juegos'); openQuizMenu();",
-    Granámind: "navigateTo('juegos'); openMastermindMenu();",
-    "Granábras Encadenadas": "navigateTo('juegos'); openEncadenadasMenu();",
-    GranáJack: "navigateTo('juegos'); openBlackjackMenu();",
-  };
-
-  if (gamesContainer && recentGames.length > 0) {
-    gamesContainer.innerHTML = recentGames
-      .map((game) => {
+    if (recentGames.length === 0) {
+      gamesContainer.innerHTML = `<div class="summary-sub">Prueba algún juego para que aparezca aquí.</div>`;
+    } else {
+      gamesContainer.innerHTML = recentGames.map((game) => {
         const action = gameActions[game] || "navigateTo('juegos')";
         return `
-                <button class="transport-card" 
-                        style="width: 100%; padding: 10px; margin: 0; border-radius: 12px; border: 1px solid var(--border-subtle); justify-content: flex-start; gap: 10px; background: var(--bg-app); color: var(--text-primary);"
-                        onclick="event.stopPropagation(); ${action}">
-                    <div class="card-icon-wrapper" style="width: 32px; height: 32px; min-width: 32px; background: var(--text-accent)1A; color: var(--text-accent);">
-                        <i class="ri-play-fill" style="font-size: 14px;"></i>
-                    </div>
-                    <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">${game}</span>
-                </button>`;
-      })
-      .join("");
+            <button class="transport-card" 
+                    style="width: 100%; padding: 10px; margin: 0; border-radius: 12px; border: 1px solid var(--border-subtle); justify-content: flex-start; gap: 10px; background: var(--bg-app); color: var(--text-primary);"
+                    onclick="event.stopPropagation(); ${action}">
+                <div class="card-icon-wrapper" style="width: 32px; height: 32px; min-width: 32px; background: var(--text-accent)1A; color: var(--text-accent);">
+                    <i class="ri-play-fill" style="font-size: 14px;"></i>
+                </div>
+                <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">${game}</span>
+            </button>`;
+      }).join("");
+    }
   }
 }
 
 async function updateHomeEventsWidget() {
-  const eventsList = document.getElementById("home-events-list");
+  const eventsList = document.getElementById("home-event-content");
   if (!eventsList) return;
 
   eventsList.innerHTML = "";
@@ -5433,6 +5580,7 @@ async function updateHomeBusWidget() {
 
 async function updateHomeParking() {
   const container = document.getElementById("home-parking-content");
+  if (!container) return;
   try {
     const PROXY = "https://proxy.contacto-granago.workers.dev/?url=";
     const TABLE_URL =
@@ -5497,6 +5645,7 @@ async function updateHomeParking() {
 async function updateHomeFuel() {
   const container = document.getElementById("home-fuel-content");
   const title = document.getElementById("fuel-widget-title");
+  if (!container) return;
 
   if (!container || !title) return;
 

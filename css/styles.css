@@ -834,6 +834,42 @@ body.dark-mode .switch-handle {
   align-items: flex-end;
 }
 
+.weather-meta-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  justify-content: flex-end;
+}
+
+.weather-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: white;
+  backdrop-filter: blur(4px);
+}
+
+.weather-meta-item.aq-badge {
+  background: var(--aqi-color);
+  box-shadow: 0 2px 8px var(--aqi-color);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.weather-icon-lg {
+  margin-bottom: 5px;
+  display: block;
+}
+
+body.dark-mode .weather-meta-item:not(.aq-badge) {
+  background: rgba(0, 0, 0, 0.2);
+}
+
 .location-badge {
   font-size: 0.7rem;
   font-weight: 700;
