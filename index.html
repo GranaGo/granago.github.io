@@ -304,7 +304,8 @@
             <button id="btn-feed-idea" class="tab-pill" onclick="setFeedbackType('Sugerencia')">Sugerencia</button>
           </div>
 
-          <div class="search-box" style="height: auto; padding: 12px; margin-bottom: 20px; background: var(--bg-app);">
+          <div class="search-box"
+            style="height: auto; padding: 12px; margin-bottom: 20px; background: var(--bg-app); pointer-events: inherit;">
             <textarea id="feedback-message" placeholder="Describe brevemente el error o tu idea..."
               style="width: 100%; border: none; background: transparent; color: var(--text-primary); font-family: inherit; font-size: 0.95rem; outline: none; resize: none;"
               rows="4"></textarea>
@@ -2361,7 +2362,7 @@
         </div>
       </div>
 
-      <div id="wordle-game-container" style="display: none; margin-top: 10px" class="view-section fade-in-up">
+      <div id="wordle-game-container" style="display: none; margin-top: 10px" class="fade-in-up">
         <div class="section-header with-back-btn">
           <button onclick="closeWordle()" class="icon-btn back-btn">
             <i class="icon ri-arrow-left-line"></i>
@@ -2435,7 +2436,7 @@
           autocomplete="off" autocapitalize="characters" />
       </div>
 
-      <div id="sudoku-game-container" style="display: none; margin-top: 10px" class="view-section fade-in-up">
+      <div id="sudoku-game-container" style="display: none; margin-top: 10px" class="fade-in-up">
         <div class="section-header with-back-btn">
           <button onclick="closeSudoku()" class="icon-btn back-btn">
             <i class="icon ri-arrow-left-line"></i>
