@@ -4770,11 +4770,14 @@ function logAutomatedEcoTrip(type) {
   const lastLog = parseInt(localStorage.getItem(`granaGo_eco_last_${type}`) || "0");
   const COOLDOWN = 5 * 60 * 1000;
 
+  let totalKm = parseFloat(localStorage.getItem("granaGo_eco_km") || "0");
+
   if (now - lastLog > COOLDOWN) {
     const kmToAdd = (type === 'pt') ? ECO_CONFIG.PT_AVG_KM : ECO_CONFIG.BIKE_AVG_KM;
-    let totalKm = parseFloat(localStorage.getItem("granaGo_eco_km") || "0");
+    
+    totalKm += kmToAdd;
 
-    localStorage.setItem("granaGo_eco_km", totalKm + kmToAdd);
+    localStorage.setItem("granaGo_eco_km", totalKm);
     localStorage.setItem(`granaGo_eco_last_${type}`, now);
 
     if (document.getElementById("home-view").classList.contains("active")) {
