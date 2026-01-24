@@ -24,7 +24,7 @@ palos.forEach((palo) => {
   });
 });
 
-cartasAssets.push("./images/CartasSVG/red_joker.svg");
+cartasAssets.push("./images/CartasSVG/traseraCartas.svg");
 
 const ASSETS_TO_CACHE = [
   "./",

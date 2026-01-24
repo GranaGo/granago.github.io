@@ -109,6 +109,8 @@ let slotBet = 10;
 let slotsSpinning = false;
 let shopItemsCache = null;
 
+let currentFeedbackType = 'Error';
+
 let geoMapInstance = null;
 let geoLayer = null;
 let geoConfig = {
@@ -5361,8 +5363,8 @@ async function updateHomeEventsWidget() {
         processedTitles.add(title);
         eventsFound.push({ title, priority: isEndingToday ? 1 : 2, isEndingToday });
       }
-      
-      if (eventsFound.length >= 8) break; 
+
+      if (eventsFound.length >= 8) break;
     }
 
     eventsFound.sort((a, b) => a.priority - b.priority);
@@ -5377,7 +5379,7 @@ async function updateHomeEventsWidget() {
       eventsFound.slice(0, 4).forEach((evt) => {
         const div = document.createElement("div");
         div.className = "mini-event-title";
-        div.innerHTML = evt.isEndingToday 
+        div.innerHTML = evt.isEndingToday
           ? `${evt.title} <span style="color: var(--color-error); font-weight: 700; font-size: 0.8em;">(FIN HOY)</span>`
           : evt.title;
         fragment.appendChild(div);
@@ -9132,7 +9134,7 @@ function updateBJUI() {
       .map((c, i) => {
         const src =
           hideFirst && i === 0 && !bjState.gameOver
-            ? `images/Logo.png`
+            ? `images/CartasSVG/traseraCartas.svg`
             : `images/CartasSVG/${c.value}_of_${c.suit}.svg`;
         return `<img src="${src}" class="fade-in-up" style="height:100%; border-radius:8px; box-shadow: var(--shadow-soft);">`;
       })
@@ -9822,13 +9824,11 @@ function initSupportTimers() {
 
 function showSupportNotification() {
   if (drivingModeActive) return;
-
   const container = document.getElementById("notification-container");
   if (!container) return;
 
   const toast = document.createElement("div");
-  toast.className =
-    "notification-toast toast-info gpu-accelerated support-toast";
+  toast.className = "notification-toast toast-info gpu-accelerated support-toast";
   toast.style.animation = "slideInDown 0.5s forwards";
   toast.style.pointerEvents = "auto";
   toast.style.flexDirection = "column";
@@ -9839,25 +9839,30 @@ function showSupportNotification() {
             <i class="notification-icon icon ri-heart-3-fill" style="color: #ef4444; font-size: 1.8rem;"></i>
             <div class="notification-content">
                 <h4 class="notification-title">¿Te gusta GranáGo?</h4>
-                <p class="notification-message">Tu apoyo nos ayuda a mantener los servidores y mejorar la app.</p>
+                <p class="notification-message">Tu apoyo nos ayuda a mejorar la app cada día.</p>
             </div>
         </div>
-        <div style="display: flex; gap: 10px; width: 100%;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-bottom: 10px;">
             <button onclick="window.open('https://www.paypal.com/donate/?hosted_button_id=ELYXMJVZP5B8W', '_blank')" 
-                    style="flex: 1; background: #004ad4; color: white; border: none; padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.8rem;">
+                    style="background: #004ad4; color: white; border: none; padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.8rem;">
                 <i class="ri-paypal-fill"></i> Donar
             </button>
             <button onclick="shareAppDirectly()" 
-                    style="flex: 1; background: var(--text-accent); color: white; border: none; padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.8rem;">
-                <i class="ri-share-line"></i> Compartir App
+                    style="background: var(--text-accent); color: white; border: none; padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.8rem;">
+                <i class="ri-share-line"></i> Compartir
+            </button>
+        </div>
+        <div style="display: flex; gap: 10px; width: 100%;">
+            <button onclick="this.parentElement.parentElement.remove(); openFeedbackModal();" 
+                    style="flex: 2; background: rgba(245, 158, 11, 0.1); color: var(--color-warning); border: 1px solid var(--color-warning); padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.8rem;">
+                <i class="ri-chat-smile-2-line"></i> Reportar / Sugerir
             </button>
             <button onclick="this.parentElement.parentElement.remove()" 
-                    style="background: var(--bg-app); color: var(--text-secondary); border: 1px solid var(--border-subtle); padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 0.8rem;">
+                    style="flex: 1; background: var(--bg-app); color: var(--text-secondary); border: 1px solid var(--border-subtle); padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 0.8rem;">
                 Cerrar
             </button>
         </div>
     `;
-
   container.appendChild(toast);
 }
 
@@ -10237,3 +10242,60 @@ function finishGeoGame() {
   const recompensaFinal = geoConfig.score * 100;
   addGranaSaldo(recompensaFinal, "GeoGraná");
 }
+
+window.openFeedbackModal = function () {
+  document.getElementById("feedback-modal").classList.add("visible");
+};
+
+window.closeFeedbackModal = function () {
+  document.getElementById("feedback-modal").classList.remove("visible");
+};
+
+window.switchFeedbackTab = function (tab) {
+  document.getElementById('feedback-content-envio').style.display = tab === 'envio' ? 'block' : 'none';
+  document.getElementById('feedback-content-estado').style.display = tab === 'estado' ? 'block' : 'none';
+  document.getElementById('tab-btn-envio').classList.toggle('active', tab === 'envio');
+  document.getElementById('tab-btn-estado').classList.toggle('active', tab === 'estado');
+};
+
+window.setFeedbackType = function (type) {
+  currentFeedbackType = type;
+  document.getElementById("btn-feed-error").classList.toggle("active", type === 'Error');
+  document.getElementById("btn-feed-idea").classList.toggle("active", type === 'Sugerencia');
+};
+
+window.sendToGoogleForms = async function () {
+  const message = document.getElementById("feedback-message").value.trim();
+  if (!message) {
+    showNotification("Error", "El mensaje está vacío", "error");
+    return;
+  }
+
+  const btn = document.getElementById("btn-send-feedback");
+  btn.disabled = true;
+  btn.innerText = "Enviando...";
+
+  const FORM_ID = "1FAIpQLSf_bsFhxV3hWsS7KxOZ440cA60mZ9xWSAIXIE8lnzJduo-Zwg";
+  const ENTRY_TIPO = "entry.1729369659";
+  const ENTRY_MSG = "entry.983750409";
+
+  const url = `https://docs.google.com/forms/d/e/${FORM_ID}/formResponse?${ENTRY_TIPO}=${currentFeedbackType}&${ENTRY_MSG}=${encodeURIComponent(message)}&submit=Submit`;
+
+  try {
+    await fetch(url, { mode: 'no-cors' });
+
+    document.getElementById("feedback-message").value = "";
+    setTimeout(closeFeedbackModal, 500);
+    showNotification("¡Enviado!", "Gracias por tu feedback anónimo.", "success");
+  } catch (e) {
+    showNotification("Error", "No se pudo enviar. Inténtalo más tarde.", "error");
+  } finally {
+    btn.disabled = false;
+    btn.innerText = "Enviar Feedback";
+  }
+};
+
+document.addEventListener("click", (e) => {
+  const fbModal = document.getElementById("feedback-modal");
+  if (fbModal && e.target === fbModal) closeFeedbackModal();
+});
