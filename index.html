@@ -279,6 +279,72 @@
         </div>
       </div>
     </div>
+
+    <div id="feedback-modal" class="modal-overlay">
+      <div class="modal-card gpu-accelerated">
+        <div class="modal-header">
+          <h3>Feedback y Mejoras</h3>
+          <button onclick="closeFeedbackModal()" class="icon-btn close-modal-btn">
+            <i class="icon ri-close-line"></i>
+          </button>
+        </div>
+
+        <div class="detail-tabs" style="margin: 10px 15px;">
+          <button id="tab-btn-envio" class="detail-tab active" onclick="switchFeedbackTab('envio')">Enviar</button>
+          <button id="tab-btn-estado" class="detail-tab" onclick="switchFeedbackTab('estado')">Estado</button>
+        </div>
+
+        <div id="feedback-content-envio" class="modal-body" style="display: block; padding-top: 0;">
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 15px;">Envío anónimo a través de
+            Google Forms. No necesitas iniciar sesión.</p>
+
+          <div class="tabs-pills" style="justify-content: flex-start; margin-bottom: 15px;">
+            <button id="btn-feed-error" class="tab-pill active" onclick="setFeedbackType('Error')">Reportar
+              Error</button>
+            <button id="btn-feed-idea" class="tab-pill" onclick="setFeedbackType('Sugerencia')">Sugerencia</button>
+          </div>
+
+          <div class="search-box" style="height: auto; padding: 12px; margin-bottom: 20px; background: var(--bg-app);">
+            <textarea id="feedback-message" placeholder="Describe brevemente el error o tu idea..."
+              style="width: 100%; border: none; background: transparent; color: var(--text-primary); font-family: inherit; font-size: 0.95rem; outline: none; resize: none;"
+              rows="4"></textarea>
+          </div>
+
+          <button id="btn-send-feedback" class="cookie-btn primary" style="width: 100%; height: 50px; font-weight: 800;"
+            onclick="sendToGoogleForms()">
+            Enviar Mensaje
+          </button>
+        </div>
+
+        <div id="feedback-content-estado" class="modal-body" style="display: none; padding-top: 0;">
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px;">Estado de las últimas
+            peticiones:</p>
+          <div id="feedback-status-list" class="mini-list-container">
+            <div class="fav-card"
+              style="padding: 10px; flex-direction: column; align-items: flex-start; gap: 5px; border: 1px solid var(--border-subtle);">
+              <span class="location-chip"
+                style="background: rgba(37, 99, 235, 0.1); color: #2563eb; font-weight: 800;">EN
+                PROCESO</span>
+              <p style="font-size: 0.85rem; margin: 0; font-weight: 600; color: var(--text-primary);">Mejora del
+                rendimiento de la aplicación.</p>
+              <p style="font-size: 0.75rem; margin: 0; color: var(--text-secondary);">Estamos trabajando en esta mejora
+                para la próxima versión.</p>
+            </div>
+
+            <div class="fav-card"
+              style="padding: 10px; flex-direction: column; align-items: flex-start; gap: 5px; border: 1px solid var(--border-subtle);">
+              <span class="location-chip"
+                style="background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 800;">SOLUCIONADO</span>
+              <p style="font-size: 0.85rem; margin: 0; font-weight: 600; color: var(--text-primary);">Saldo al jugar
+                GeoGraná ajustado.</p>
+              <p style="font-size: 0.75rem; margin: 0; color: var(--text-secondary);">Ahora te indica correctamente las
+                rondas y te aplica 100G$ por ronda ganada.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="movilidad-view" class="view-section gpu-accelerated">
       <div class="section-header">
         <h2>Movilidad</h2>
@@ -3768,68 +3834,7 @@
     </div>
   </div>
 
-  <div id="feedback-modal" class="modal-overlay">
-    <div class="modal-card gpu-accelerated">
-      <div class="modal-header">
-        <h3>Feedback y Mejoras</h3>
-        <button onclick="closeFeedbackModal()" class="icon-btn close-modal-btn">
-          <i class="icon ri-close-line"></i>
-        </button>
-      </div>
 
-      <div class="detail-tabs" style="margin: 10px 15px;">
-        <button id="tab-btn-envio" class="detail-tab active" onclick="switchFeedbackTab('envio')">Enviar</button>
-        <button id="tab-btn-estado" class="detail-tab" onclick="switchFeedbackTab('estado')">Estado</button>
-      </div>
-
-      <div id="feedback-content-envio" class="modal-body" style="display: block; padding-top: 0;">
-        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 15px;">Envío anónimo a través de
-          Google Forms. No necesitas iniciar sesión.</p>
-
-        <div class="tabs-pills" style="justify-content: flex-start; margin-bottom: 15px;">
-          <button id="btn-feed-error" class="tab-pill active" onclick="setFeedbackType('Error')">Reportar Error</button>
-          <button id="btn-feed-idea" class="tab-pill" onclick="setFeedbackType('Sugerencia')">Sugerencia</button>
-        </div>
-
-        <div class="search-box" style="height: auto; padding: 12px; margin-bottom: 20px; background: var(--bg-app);">
-          <textarea id="feedback-message" placeholder="Describe brevemente el error o tu idea..."
-            style="width: 100%; border: none; background: transparent; color: var(--text-primary); font-family: inherit; font-size: 0.95rem; outline: none; resize: none;"
-            rows="4"></textarea>
-        </div>
-
-        <button id="btn-send-feedback" class="cookie-btn primary" style="width: 100%; height: 50px; font-weight: 800;"
-          onclick="sendToGoogleForms()">
-          Enviar Mensaje
-        </button>
-      </div>
-
-      <div id="feedback-content-estado" class="modal-body" style="display: none; padding-top: 0;">
-        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px;">Estado de las últimas
-          peticiones:</p>
-        <div id="feedback-status-list" class="mini-list-container">
-          <div class="fav-card"
-            style="padding: 10px; flex-direction: column; align-items: flex-start; gap: 5px; border: 1px solid var(--border-subtle);">
-            <span class="location-chip" style="background: rgba(37, 99, 235, 0.1); color: #2563eb; font-weight: 800;">EN
-              PROCESO</span>
-            <p style="font-size: 0.85rem; margin: 0; font-weight: 600; color: var(--text-primary);">Mejora del
-              rendimiento de la aplicación.</p>
-            <p style="font-size: 0.75rem; margin: 0; color: var(--text-secondary);">Estamos trabajando en esta mejora
-              para la próxima versión.</p>
-          </div>
-
-          <div class="fav-card"
-            style="padding: 10px; flex-direction: column; align-items: flex-start; gap: 5px; border: 1px solid var(--border-subtle);">
-            <span class="location-chip"
-              style="background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 800;">SOLUCIONADO</span>
-            <p style="font-size: 0.85rem; margin: 0; font-weight: 600; color: var(--text-primary);">Saldo al jugar
-              GeoGraná ajustado.</p>
-            <p style="font-size: 0.75rem; margin: 0; color: var(--text-secondary);">Ahora te indica correctamente las
-              rondas y te aplica 100G$ por ronda ganada.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <div id="cookie-banner" class="cookie-banner">
     <div class="cookie-content">
