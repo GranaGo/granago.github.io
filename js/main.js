@@ -774,6 +774,8 @@ window.navigateTo = async function (viewId, addToHistory = true) {
 
   if (viewId === "home") {
     updateHomeRecentWidgets();
+    updateHomeEcoWidget();
+    updateHomeAchievementsWidget();
   } else if (viewId === "paradas") {
     showLoader(true);
     setTimeout(() => initMapParadas(), 400);
