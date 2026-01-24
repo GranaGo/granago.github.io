@@ -33,6 +33,7 @@ let mapLayers = {
 let isMapDataLoaded = false;
 let allSearchableStops = [];
 let isNearbyPanelOpen = false;
+let realtimeCache = new Map();
 
 let lineMapInstance = null;
 let currentLineTileLayer = null;
@@ -2383,6 +2384,17 @@ document.addEventListener("click", (e) => {
 
 async function fetchRealTimeData(id, type) {
   const content = document.getElementById("realtime-content");
+  const cacheKey = `${type}_${id}`;
+  const now = Date.now();
+
+  if (realtimeCache.has(cacheKey)) {
+    const cached = realtimeCache.get(cacheKey);
+    if (now - cached.timestamp < 30000) {
+      renderRealTimeResults(cached.data, type);
+      return;
+    }
+  }
+
   try {
     let url = "";
     if (type === "urbano") {
@@ -2393,9 +2405,10 @@ async function fetchRealTimeData(id, type) {
       url = `${API_BASE}/metro/llegadas/${finalId}`;
     }
 
-    const res = await fetch(url);
+    const res = await fetch(url, { priority: 'high' });
     if (!res.ok) throw new Error("Error API");
     const data = await res.json();
+    realtimeCache.set(cacheKey, { data, timestamp: now });
     renderRealTimeResults(data, type);
   } catch (e) {
     console.error("Error Tiempos:", e);
