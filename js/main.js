@@ -638,6 +638,8 @@ function ensureMapContainerIsClean(elementId) {
 }
 
 window.navigateTo = async function (viewId, addToHistory = true) {
+  hideAllGameContainers();
+
   if (typeof destroyUnusedMaps === "function") {
     destroyUnusedMaps();
   }
