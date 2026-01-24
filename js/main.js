@@ -110,6 +110,12 @@ let slotsSpinning = false;
 let shopItemsCache = null;
 
 let currentFeedbackType = 'Error';
+const ECO_CONFIG = {
+  PT_AVG_KM: 3.5,
+  BIKE_AVG_KM: 2.5,
+  CO2_SAVED_PER_KM: 0.15,
+  EURO_SAVED_PER_KM: 0.2
+};
 
 let geoMapInstance = null;
 let geoLayer = null;
@@ -130,6 +136,29 @@ let taxiDataLoaded = false;
 let zbeMapInstance = null;
 let zbeTileLayer = null;
 let zbeDataLoaded = false;
+
+const ACHIEVEMENTS_DATA = {
+  'eco_start': { title: 'Primer paso verde', desc: 'Ahorra tu primer kg de CO2', goal: 1, reward: 100, icon: 'ri-leaf-line', type: 'eco' },
+  'eco_hero': { title: 'Héroe de Granada', desc: 'Ahorra 10 kg de CO2', goal: 10, reward: 500, icon: 'ri-plant-fill', type: 'eco' },
+  'bus_fan': { title: 'Viajero Frecuente', desc: 'Consulta 25 paradas', goal: 25, reward: 150, icon: 'ri-bus-fill', type: 'stps' },
+  'cycling': { title: 'A piñón fijo', desc: 'Registra 10km en bici', goal: 10, reward: 200, icon: 'ri-riding-fill', type: 'bike' },
+  'wordle_win': { title: 'Linguista', desc: 'Adivina 5 Granádles', goal: 5, reward: 200, icon: 'ri-chat-check-fill', type: 'game' },
+  'sudoku_master': { title: 'Mente Analítica', desc: 'Resuelve 3 Sudokus', goal: 3, reward: 250, icon: 'ri-grid-fill', type: 'game' },
+  'quiz_perfect': { title: 'Granadino de Pura Cepa', desc: 'Saca un 10/10 en el Quiz', goal: 1, reward: 300, icon: 'ri-medal-fill', type: 'game' },
+  'memory_fast': { title: 'Memoria de Lince', desc: 'Gana en Granámory', goal: 10, reward: 100, icon: 'ri-brain-fill', type: 'game' },
+  'mind_expert': { title: 'Descifrador', desc: 'Gana en Granámind', goal: 10, reward: 150, icon: 'ri-lock-unlock-fill', type: 'game' },
+  'chain_pro': { title: 'Encadenado', desc: 'Llega a 35 puntos en Encadenadas', goal: 35, reward: 200, icon: 'ri-link', type: 'game' },
+  'bj_lucky': { title: 'As del Tapete', desc: 'Gana 10 manos de Blackjack', goal: 10, reward: 200, icon: 'ri-playing-cards-fill', type: 'game' },
+  'slot_jackpot': { title: '¡Jackpot!', desc: 'Consigue una línea de Metros', goal: 1, reward: 400, icon: 'ri-money-euro-box-fill', type: 'game' },
+  'geo_expert': { title: 'Guía Turístico', desc: 'Acierta 10 municipios en GeoGraná', goal: 10, reward: 250, icon: 'ri-map-2-fill', type: 'game' },
+  'shopper': { title: 'Con Estilo', desc: 'Compra tu primer color de acento', goal: 1, reward: 100, icon: 'ri-palette-fill', type: 'shop' },
+  'collector': { title: 'Coleccionista', desc: 'Desbloquea 3 colores distintos', goal: 3, reward: 300, icon: 'ri-paint-brush-fill', type: 'shop' },
+  'powerup_user': { title: 'Ventaja Táctica', desc: 'Usa 5 power-ups', goal: 5, reward: 150, icon: 'ri-flashlight-fill', type: 'shop' },
+  'ambassador': { title: 'Embajador', desc: 'Comparte la app con amigos', goal: 5, reward: 200, icon: 'ri-share-forward-fill', type: 'soc' },
+  'night_owl': { title: 'Búho Nocturno', desc: 'Usa la app después de medianoche', goal: 5, reward: 100, icon: 'ri-moon-clear-fill', type: 'app' },
+  'driver_mode': { title: 'Al volante', desc: 'Activa el Modo Conducción', goal: 10, reward: 100, icon: 'ri-steering-2-fill', type: 'app' },
+  'loyal': { title: 'Vecino Fiel', desc: 'Abre la app 5 días distintos', goal: 5, reward: 500, icon: 'ri-calendar-check-fill', type: 'app' }
+};
 
 function getShopItems() {
   if (shopItemsCache) return shopItemsCache;
@@ -268,54 +297,76 @@ const FARE_DATA = {
   urbano: [
     {
       title: "Billete Ordinario",
-      price: "1,40€",
-      desc: "Pago directo al conductor. Permite un solo viaje.",
+      price: "1,60€",
+      desc: "Pago directo al conductor o en máquinas. Sin transbordo.",
       color: "#D9281C",
     },
     {
+      title: "Bus Búho (Nocturno)",
+      price: "1,70€",
+      desc: "Tarifa para líneas 111 y 121. Pago directo al conductor.",
+      badge: "Nocturno",
+      color: "#1e293b",
+    },
+    {
       title: "Credibús 5€",
-      price: "0,87€",
+      price: "0,54€",
       per_trip: true,
-      desc: "Tarjeta recargable. Coste de la tarjeta 2€ (fianza).",
+      desc: "Tarjeta recargable. Transbordo gratuito (60 min).",
       badge: "Recargable",
       color: "#D9281C",
     },
     {
-      title: "Credibús 10€",
-      price: "0,85€",
+      title: "Credibús 10€ / 20€",
+      price: "0,53€",
       per_trip: true,
-      desc: "Bonificación mayor al recargar 10€.",
+      desc: "Máximo ahorro urbano al recargar 10€ o 20€.",
       badge: "Más usado",
       color: "#D9281C",
     },
     {
-      title: "Credibús 20€",
-      price: "0,83€",
+      title: "Tarjeta Consorcio (Urbano)",
+      price: "0,63€",
       per_trip: true,
-      desc: "La opción más económica por viaje para usuarios frecuentes.",
-      badge: "Ahorro",
-      color: "#D9281C",
+      desc: "Válida tanto para Joven como para 0 saltos en la capital.",
+      badge: "Intermodal",
+      color: "#2757f5",
     },
     {
       title: "Bono Mensual",
-      price: "41,00€",
-      desc: "Viajes ilimitados durante 30 días naturales.",
+      price: "24,60€",
+      desc: "Viajes ilimitados durante 30 días en toda la red urbana.",
       badge: "Ilimitado",
       color: "#D9281C",
     },
     {
+      title: "Bono Joven",
+      price: "0,33€",
+      per_trip: true,
+      desc: "Para residentes en Granada (6-25 años).",
+      badge: "Jóvenes",
+      color: "#D9281C",
+    },
+    {
+      title: "Bono Pensionista / PMR",
+      price: "Gratis",
+      desc: "Uso ilimitado para mayores de 65 años o personas con discapacidad.",
+      badge: "Especial",
+      color: "#10b981",
+    },
+    {
       title: "Transbordo",
       price: "Gratis",
-      desc: "60 minutos permitidos entre distintas líneas.",
+      desc: "Permitido entre distintas líneas durante 60 min con cualquier bono.",
       color: "#475569",
-    },
+    }
   ],
   metro: [
     {
       title: "Tarjeta Monedero",
       price: "0,49€",
       per_trip: true,
-      desc: "Precio rebajado 2025 (Antes 0,82€). Saldo no caduca.",
+      desc: "Precio rebajado 2026 (Antes 0,82€). Saldo no caduca.",
       badge: "Mejor Precio",
       color: "#009a44",
     },
@@ -758,6 +809,7 @@ window.navigateTo = async function (viewId, addToHistory = true) {
     checkDailyReward();
   } else if (viewId === "movilidad-sostenible") {
     setTimeout(() => initSostenibleMap(), 200);
+    logAutomatedEcoTrip('bike');
   } else if (viewId === "tienda") {
     hideAllGameContainers();
     updateGamesMenuBalance();
@@ -853,6 +905,12 @@ window.showNotification = function (title, message, type = "info") {
 };
 
 function initTheme() {
+  const today = new Date().toDateString();
+  const lastVisit = localStorage.getItem('last_visit_achievement');
+  if (lastVisit !== today) {
+    updateAchievement('loyal', 1);
+    localStorage.setItem('last_visit_achievement', today);
+  }
   const toggle =
     document.getElementById("theme-toggle-view") ||
     document.getElementById("theme-toggle");
@@ -2297,7 +2355,8 @@ window.openRealTimeModal = function (apiId, type, stopName) {
       name: stopName,
     });
   }
-
+  updateAchievement('bus_fan', 1);
+  logAutomatedEcoTrip('pt');
   fetchRealTimeData(apiId, type);
 };
 
@@ -4691,20 +4750,46 @@ function loadKMLData() {
     });
 }
 
+function logAutomatedEcoTrip(type) {
+  const now = Date.now();
+  const lastLog = parseInt(localStorage.getItem(`granaGo_eco_last_${type}`) || "0");
+  const COOLDOWN = 5 * 60 * 1000;
+
+  if (now - lastLog > COOLDOWN) {
+    const kmToAdd = (type === 'pt') ? ECO_CONFIG.PT_AVG_KM : ECO_CONFIG.BIKE_AVG_KM;
+    let totalKm = parseFloat(localStorage.getItem("granaGo_eco_km") || "0");
+
+    localStorage.setItem("granaGo_eco_km", totalKm + kmToAdd);
+    localStorage.setItem(`granaGo_eco_last_${type}`, now);
+
+    if (document.getElementById("home-view").classList.contains("active")) {
+      updateHomeEcoWidget();
+    }
+
+    addGranaSaldo(Math.floor(kmToAdd * 50), "movilidad sostenible");
+  }
+
+  updateAchievement('eco_start', totalKm * ECO_CONFIG.CO2_SAVED_PER_KM, true);
+}
+
 const ALL_WIDGETS = {
   event: { id: 'event', title: 'Eventos Hoy', icon: 'ri-calendar-event-fill', class: 'widget-event', action: "navigateTo('cortes')", render: updateHomeEventsWidget },
+  eco: { id: 'eco', title: 'Impacto Ecológico', icon: 'ri-leaf-fill', class: 'widget-eco', action: "navigateTo('movilidad-sostenible')", render: updateHomeEcoWidget },
   parking: { id: 'parking', title: 'Parkings', icon: 'ri-parking-box-fill', class: 'widget-parking', action: "navigateTo('parkings')", render: updateHomeParking },
   bus: { id: 'bus', title: 'Desvíos Bus', icon: 'ri-bus-fill', class: 'widget-bus', action: "navigateTo('paradas')", render: updateHomeBusWidget },
   fuel: { id: 'fuel', title: 'Combustible', icon: 'ri-gas-station-fill', class: 'widget-fuel', action: "navigateTo('repostar')", render: updateHomeFuel },
+  achievements: { id: 'achievements', title: 'Próximos Logros', icon: 'ri-medal-line', class: 'widget-achievements', action: "showAllAchievements()", render: updateHomeAchievementsWidget },
   stops: { id: 'stops', title: 'Paradas Recientes', icon: 'ri-history-line', class: 'widget-recent-stops', action: "navigateTo('paradas')", render: updateHomeRecentWidgets },
   games: { id: 'games', title: 'Últimos Juegos', icon: 'ri-play-list-add-line', class: 'widget-recent-games', action: "navigateTo('juegos')", render: updateHomeRecentWidgets }
 };
 
 const DEFAULT_LAYOUT = [
   { id: 'event', active: true },
+  { id: 'eco', active: true },
   { id: 'parking', active: true },
   { id: 'bus', active: true },
   { id: 'fuel', active: true },
+  { id: 'achievements', active: true },
   { id: 'stops', active: true },
   { id: 'games', active: true }
 ];
@@ -4748,7 +4833,7 @@ async function renderHomeDashboard() {
     });
   }
 
-  const priorityOrder = ['bus', 'parking', 'fuel', 'stops', 'games', 'event'];
+  const priorityOrder = ['bus', 'parking', 'fuel', 'stops', 'eco', 'achievements', 'games', 'event'];
 
   priorityOrder.forEach((id, index) => {
     const w = ALL_WIDGETS[id];
@@ -6680,6 +6765,7 @@ function endGame(win) {
   );
 
   if (win) {
+    updateAchievement('wordle_win', 1);
     const start = wordleConfig.currentAttempt * wordleConfig.len;
     for (let i = 0; i < wordleConfig.len; i++) {
       setTimeout(() => {
@@ -7230,6 +7316,7 @@ function endSudokuGame(win) {
   const message = document.getElementById("sudoku-message");
 
   if (win) {
+    updateAchievement('sudoku_master', 1);
     showNotification("¡Excelente!", "Has completado el Sudoku", "success");
     if (sudokuConfig.mode === "daily") {
       localStorage.setItem("sudoku_last_daily_status", "completed");
@@ -7418,6 +7505,7 @@ function disableCards() {
   resetBoard();
 
   if (memoryConfig.pairsFound === memoryConfig.totalPairs) {
+    updateAchievement('memory_fast', 1);
     setTimeout(() => {
       document.getElementById("memory-message").style.display = "block";
       showNotification("¡Genial!", "Has completado el Memory", "success");
@@ -7657,6 +7745,7 @@ function finishQuizGame() {
   text.innerText = `Has acertado ${score} de ${total}`;
 
   if (score === total) {
+    updateAchievement('quiz_perfect', 1);
     title.innerText = "¡Matrícula de Honor!";
     title.style.color = "var(--color-success)";
     icon.className = "icon ri-trophy-fill";
@@ -7832,6 +7921,7 @@ async function toggleDrivingMode() {
 
   if (!drivingModeActive) {
     await Promise.all([loadSpeedLimits(), initCamarasMap()]);
+    updateAchievement('driver_mode', 1);
 
     drivingModeActive = true;
 
@@ -8612,6 +8702,7 @@ function endMastermind(win) {
   mastermindConfig.gameOver = true;
   document.getElementById("mastermind-controls").style.display = "none";
   if (win) {
+    updateAchievement('mind_expert', 1);
     const bonus =
       (mastermindConfig.maxAttempts - mastermindConfig.attempts) * 10;
     const totalReward = 40 + bonus;
@@ -8884,7 +8975,8 @@ function endEncadenadasGame(reason) {
     `Puntuación final: ${encadenadasState.score}`;
 
   if (encadenadasState.score > 0) {
-    addGranaSaldo(encadenadasState.score * 2, "palabras encadenadas");
+    updateAchievement('chain_pro', encadenadasState.score, true);
+    addGranaSaldo(encadenadasState.score * 10, "palabras encadenadas");
   }
 
   if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
@@ -9067,6 +9159,7 @@ function resolveBJWinner() {
   }
 
   if (win) {
+    updateAchievement('bj_lucky', 1);
     bjState.balance += bjState.currentBet * 2;
   } else if (push) {
     bjState.balance += bjState.currentBet;
@@ -9588,6 +9681,7 @@ window.buyItem = function (id, type) {
     if (!owned.includes(id)) owned.push(id);
     localStorage.setItem("granaGo_owned_colors", JSON.stringify(owned));
     applyAccentColor(item.hex);
+    updateAchievement('shopper', 1);
   } else {
     let inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
     inv[id] = (inv[id] || 0) + 1;
@@ -9745,6 +9839,7 @@ function resolve3x3Results(grid) {
     const icons = [grid[a], grid[b], grid[c]];
 
     if (icons[0] === icons[1] && icons[1] === icons[2]) {
+      if (icons[0] === "ri-train-fill") updateAchievement('slot_jackpot', 1);
       const mult = icons[0] === "ri-train-fill" ? 15 : 8;
       totalWin += Math.floor(slotBet * mult);
       line.forEach((idx) => winningCells.add(idx));
@@ -9893,6 +9988,8 @@ window.shareAppDirectly = function () {
       "info",
     );
   }
+
+  updateAchievement('ambassador', 1);
 };
 
 window.calculateTripFuel = function () {
@@ -10236,6 +10333,7 @@ function finishGeoGame() {
   document.getElementById("geo-gameplay").style.display = "none";
   const resultDiv = document.getElementById("geo-result");
   resultDiv.style.display = "block";
+  updateAchievement('geo_expert', geoConfig.score);
 
   document.getElementById("geo-result-score").innerText = `Puntuación final: ${geoConfig.score} puntos`;
 
@@ -10299,3 +10397,89 @@ document.addEventListener("click", (e) => {
   const fbModal = document.getElementById("feedback-modal");
   if (fbModal && e.target === fbModal) closeFeedbackModal();
 });
+
+async function updateHomeEcoWidget() {
+  const container = document.getElementById("home-eco-content");
+  if (!container) return;
+
+  const totalKm = parseFloat(localStorage.getItem("granaGo_eco_km") || "0");
+  const co2Saved = (totalKm * ECO_CONFIG.CO2_SAVED_PER_KM).toFixed(1);
+  const moneySaved = (totalKm * ECO_CONFIG.EURO_SAVED_PER_KM).toFixed(2);
+  const fragment = document.createDocumentFragment();
+  const wrapper = document.createElement("div");
+
+  if (totalKm === 0) {
+    wrapper.innerHTML = `<div class="summary-sub">Usa el bus o metro para ver tu impacto positivo.</div>`;
+  } else {
+    wrapper.innerHTML = `
+        <div class="summary-value" style="color:#10b981">${co2Saved} kg <span style="font-size:0.8rem; opacity:0.6;">CO₂</span></div>
+        <div class="summary-sub">Has ahorrado <strong>${moneySaved}€</strong> en combustible.</div>
+        <div style="font-size:0.65rem; opacity:0.5; margin-top:5px;">Trayectos registrados: ${Math.round(totalKm)} km</div>
+    `;
+  }
+
+  fragment.appendChild(wrapper);
+  container.innerHTML = "";
+  container.appendChild(fragment);
+}
+
+async function updateHomeAchievementsWidget() {
+  const container = document.getElementById("home-achievements-content");
+  if (!container) return;
+
+  const stats = JSON.parse(localStorage.getItem('granaGo_achievements') || '{}');
+
+  let pending = Object.keys(ACHIEVEMENTS_DATA)
+    .map(id => {
+      const current = stats[id] ? stats[id].progress : 0;
+      const goal = ACHIEVEMENTS_DATA[id].goal;
+      return { id, percent: (current / goal) * 100, ...ACHIEVEMENTS_DATA[id], current };
+    })
+    .filter(a => !stats[a.id]?.completed)
+    .sort((a, b) => b.percent - a.percent)
+    .slice(0, 2);
+
+  if (pending.length === 0) {
+    container.innerHTML = `<div class="summary-sub">¡Increíble! Has completado todos los logros.</div>`;
+    return;
+  }
+
+  container.innerHTML = pending.map(a => `
+    <div style="margin-bottom: 8px;">
+      <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:4px;">
+        <span style="font-weight:700;"><i class="${a.icon}"></i> ${a.title}</span>
+        <span>${a.current}/${a.goal}</span>
+      </div>
+      <div style="height:6px; background:var(--bg-app); border-radius:3px; overflow:hidden;">
+        <div style="width:${a.percent}%; height:100%; background:var(--text-accent); transition:width 0.5s;"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.updateAchievement = function (id, amount, isAbsolute = false) {
+  let stats = JSON.parse(localStorage.getItem('granaGo_achievements') || '{}');
+  const meta = ACHIEVEMENTS_DATA[id];
+  if (!meta) return;
+
+  if (!stats[id]) stats[id] = { progress: 0, completed: false };
+  if (stats[id].completed) return;
+
+  if (isAbsolute) stats[id].progress = amount;
+  else stats[id].progress += amount;
+
+  if (stats[id].progress >= meta.goal) {
+    stats[id].progress = meta.goal;
+    stats[id].completed = true;
+
+    addGranaSaldo(meta.reward, `logro: ${meta.title}`);
+    showNotification("¡Logro Desbloqueado!", meta.title, "success");
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+  }
+
+  localStorage.setItem('granaGo_achievements', JSON.stringify(stats));
+
+  if (document.getElementById("home-view").classList.contains("active")) {
+    updateHomeAchievementsWidget();
+  }
+};

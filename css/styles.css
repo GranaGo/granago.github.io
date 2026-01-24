@@ -4312,3 +4312,32 @@ body.keyboard-open .glass-dock {
 .geo-recenter-btn i {
   font-size: 1.4rem;
 }
+
+.widget-eco .summary-icon {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.widget-eco:active {
+  transform: scale(0.98);
+}
+
+.widget-achievements .summary-icon {
+  background: rgba(251, 191, 36, 0.15); /* Color ámbar/medalla */
+  color: #fbbf24;
+}
+
+.widget-achievements .summary-sub {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  line-height: 1.2;
+}
+
+#home-achievements-content {
+  gap: 12px;
+}
+
+#home-achievements-content i {
+  color: var(--text-accent);
+  margin-right: 4px;
+}
