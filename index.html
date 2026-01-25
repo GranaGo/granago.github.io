@@ -145,7 +145,7 @@
           </div>
         </div>
 
-        <div class="summary-card widget-eco" onclick="navigateTo('movilidad-sostenible')">
+        <div class="summary-card widget-eco" onclick="openEcoCalculator()">
           <div class="summary-header">
             <div class="summary-icon"><i class="ri-leaf-fill"></i></div>
             <span class="summary-title">Impacto Eco</span>
@@ -155,7 +155,7 @@
           </div>
         </div>
 
-        <div class="summary-card widget-achievements" onclick="showAllAchievements()">
+        <div class="summary-card widget-achievements">
           <div class="summary-header">
             <div class="summary-icon"><i class="ri-medal-line"></i></div>
             <span class="summary-title">Próximos Logros</span>
@@ -185,6 +185,41 @@
           <button class="cookie-btn primary" style="width: 100%; height: 50px; font-weight: 800;"
             onclick="saveHomeConfig()">
             Guardar Configuración
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="eco-modal" class="modal-overlay">
+      <div class="modal-card gpu-accelerated">
+        <div class="modal-header">
+          <h3>Calculadora Ecológica</h3>
+          <button onclick="closeEcoModal()" class="icon-btn close-modal-btn">
+            <i class="ri-close-line"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px;">
+            Registra tu trayecto sostenible para calcular tu impacto positivo.
+          </p>
+
+          <div class="search-box" style="margin-bottom: 15px; background: var(--bg-app);">
+            <i class="ri-road-map-line search-icon"></i>
+            <input type="number" id="eco-input-km" placeholder="Distancia recorrida (km)" inputmode="decimal" />
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <p style="font-size: 0.85rem; font-weight: 600; margin-bottom: 8px;">Medio de transporte:</p>
+            <select id="eco-input-type" class="tab-pill"
+              style="width: 100%; border: 1px solid var(--border-subtle); background: var(--bg-app); color: var(--text-primary); padding: 10px; border-radius: 12px;">
+              <option value="bike">Bicicleta / VMP</option>
+              <option value="pt">Bus / Metro</option>
+              <option value="walk">Andando</option>
+            </select>
+          </div>
+
+          <button class="cookie-btn primary" style="width: 100%; height: 50px; font-weight: 800;"
+            onclick="saveManualEcoTrip()">
+            Guardar y Sumar Impacto
           </button>
         </div>
       </div>
@@ -339,29 +374,11 @@
         </div>
 
         <div id="feedback-content-estado" class="modal-body" style="display: none; padding-top: 0;">
-          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px;">Estado de las últimas
-            peticiones:</p>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px;">
+            Estado de las últimas peticiones:
+          </p>
           <div id="feedback-status-list" class="mini-list-container">
-            <div class="fav-card"
-              style="padding: 10px; flex-direction: column; align-items: flex-start; gap: 5px; border: 1px solid var(--border-subtle);">
-              <span class="location-chip"
-                style="background: rgba(37, 99, 235, 0.1); color: #2563eb; font-weight: 800;">EN
-                PROCESO</span>
-              <p style="font-size: 0.85rem; margin: 0; font-weight: 600; color: var(--text-primary);">Mejora del
-                rendimiento de la aplicación.</p>
-              <p style="font-size: 0.75rem; margin: 0; color: var(--text-secondary);">Estamos trabajando en esta mejora
-                para la próxima versión.</p>
-            </div>
-
-            <div class="fav-card"
-              style="padding: 10px; flex-direction: column; align-items: flex-start; gap: 5px; border: 1px solid var(--border-subtle);">
-              <span class="location-chip"
-                style="background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 800;">SOLUCIONADO</span>
-              <p style="font-size: 0.85rem; margin: 0; font-weight: 600; color: var(--text-primary);">Saldo al jugar
-                GeoGraná ajustado.</p>
-              <p style="font-size: 0.75rem; margin: 0; color: var(--text-secondary);">Ahora te indica correctamente las
-                rondas y te aplica 100G$ por ronda ganada.</p>
-            </div>
+            <div class="spinner" style="margin: 30px auto"></div>
           </div>
         </div>
       </div>

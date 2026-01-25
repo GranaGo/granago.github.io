@@ -4774,7 +4774,7 @@ function logAutomatedEcoTrip(type) {
 
   if (now - lastLog > COOLDOWN) {
     const kmToAdd = (type === 'pt') ? ECO_CONFIG.PT_AVG_KM : ECO_CONFIG.BIKE_AVG_KM;
-    
+
     totalKm += kmToAdd;
 
     localStorage.setItem("granaGo_eco_km", totalKm);
@@ -4792,11 +4792,11 @@ function logAutomatedEcoTrip(type) {
 
 const ALL_WIDGETS = {
   event: { id: 'event', title: 'Eventos Hoy', icon: 'ri-calendar-event-fill', class: 'widget-event', action: "navigateTo('cortes')", render: updateHomeEventsWidget },
-  eco: { id: 'eco', title: 'Impacto Ecológico', icon: 'ri-leaf-fill', class: 'widget-eco', action: "navigateTo('movilidad-sostenible')", render: updateHomeEcoWidget },
+  eco: { id: 'eco', title: 'Impacto Ecológico', icon: 'ri-leaf-fill', class: 'widget-eco', action: "navigateTo(openEcoCalculator())", render: updateHomeEcoWidget },
   parking: { id: 'parking', title: 'Parkings', icon: 'ri-parking-box-fill', class: 'widget-parking', action: "navigateTo('parkings')", render: updateHomeParking },
   bus: { id: 'bus', title: 'Desvíos Bus', icon: 'ri-bus-fill', class: 'widget-bus', action: "navigateTo('paradas')", render: updateHomeBusWidget },
   fuel: { id: 'fuel', title: 'Combustible', icon: 'ri-gas-station-fill', class: 'widget-fuel', action: "navigateTo('repostar')", render: updateHomeFuel },
-  achievements: { id: 'achievements', title: 'Próximos Logros', icon: 'ri-medal-line', class: 'widget-achievements', action: "showAllAchievements()", render: updateHomeAchievementsWidget },
+  achievements: { id: 'achievements', title: 'Próximos Logros', icon: 'ri-medal-line', class: 'widget-achievements', render: updateHomeAchievementsWidget },
   stops: { id: 'stops', title: 'Paradas Recientes', icon: 'ri-history-line', class: 'widget-recent-stops', action: "navigateTo('paradas')", render: updateHomeRecentWidgets },
   games: { id: 'games', title: 'Últimos Juegos', icon: 'ri-play-list-add-line', class: 'widget-recent-games', action: "navigateTo('juegos')", render: updateHomeRecentWidgets }
 };
@@ -10372,6 +10372,10 @@ window.switchFeedbackTab = function (tab) {
   document.getElementById('feedback-content-estado').style.display = tab === 'estado' ? 'block' : 'none';
   document.getElementById('tab-btn-envio').classList.toggle('active', tab === 'envio');
   document.getElementById('tab-btn-estado').classList.toggle('active', tab === 'estado');
+
+  if (tab === 'estado') {
+    fetchFeedbackStatus();
+  }
 };
 
 window.setFeedbackType = function (type) {
@@ -10462,17 +10466,20 @@ async function updateHomeAchievementsWidget() {
     return;
   }
 
-  container.innerHTML = pending.map(a => `
+  container.innerHTML = pending.map(a => {
+    const currentDisplay = Number(parseFloat(a.current).toFixed(1));
+
+    return `
     <div style="margin-bottom: 8px;">
       <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:4px;">
         <span style="font-weight:700;"><i class="${a.icon}"></i> ${a.title}</span>
-        <span>${a.current}/${a.goal}</span>
-      </div>
+        <span>${currentDisplay}/${a.goal}</span> </div>
       <div style="height:6px; background:var(--bg-app); border-radius:3px; overflow:hidden;">
         <div style="width:${a.percent}%; height:100%; background:var(--text-accent); transition:width 0.5s;"></div>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 window.updateAchievement = function (id, amount, isAbsolute = false) {
@@ -10501,3 +10508,116 @@ window.updateAchievement = function (id, amount, isAbsolute = false) {
     updateHomeAchievementsWidget();
   }
 };
+
+const FEEDBACK_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-9HhWj41654zlzt77s9c2qSxAWJIpAttia0jRagHB5ALBhd8yitBDr8lvCiYpaEYS9NHMUDe6cfU-/pub?gid=1560052631&single=true&output=csv";
+
+async function fetchFeedbackStatus() {
+  const container = document.getElementById('feedback-status-list');
+  if (!container) return;
+
+  container.innerHTML = '<div class="spinner" style="margin: 30px auto"></div>';
+
+  try {
+    const response = await fetch(FEEDBACK_SHEET_CSV);
+    const data = await response.text();
+
+    const rows = data.split('\n').slice(1);
+    container.innerHTML = "";
+
+    let hasUpdates = false;
+
+    rows.forEach(row => {
+      const columns = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+
+      const publicTitle = columns[3]?.replace(/"/g, "").trim();
+      const publicDesc = columns[4]?.replace(/"/g, "").trim();
+      const status = columns[5]?.replace(/"/g, "").trim().toUpperCase();
+
+      if (status && (status === "EN PROCESO" || status === "SOLUCIONADO" || status === "IMPLEMENTADO")) {
+        hasUpdates = true;
+
+        const isPending = status === "EN PROCESO";
+        const color = isPending ? "#2563eb" : "#10b981";
+        const bg = isPending ? "rgba(37, 99, 235, 0.1)" : "rgba(16, 185, 129, 0.1)";
+
+        const card = document.createElement('div');
+        card.className = "fav-card fade-in-up";
+        card.style.cssText = "padding: 12px; flex-direction: column; align-items: flex-start; gap: 5px; border: 1px solid var(--border-subtle); margin-bottom: 10px; width: 100%;";
+
+        card.innerHTML = `
+          <span class="location-chip" style="background: ${bg}; color: ${color}; font-weight: 800; font-size: 0.7rem;">${status}</span>
+          <p style="font-size: 0.85rem; margin: 0; font-weight: 600; color: var(--text-primary);">${publicTitle || 'Mejora en curso'}</p>
+          <p style="font-size: 0.75rem; margin: 0; color: var(--text-secondary); line-height: 1.3;">${publicDesc || 'Sin descripción disponible.'}</p>
+        `;
+        container.appendChild(card);
+      }
+    });
+
+    if (!hasUpdates) {
+      container.innerHTML = '<p style="text-align:center; font-size:0.8rem; opacity:0.6; padding: 20px;">No hay actualizaciones públicas en este momento.</p>';
+    }
+
+  } catch (e) {
+    container.innerHTML = '<p style="text-align:center; color:var(--color-error); font-size:0.8rem; padding: 20px;">Error al conectar con la base de datos.</p>';
+  }
+}
+
+window.openEcoCalculator = function () {
+  document.getElementById('eco-modal').classList.add('visible');
+};
+
+window.closeEcoModal = function () {
+  document.getElementById('eco-modal').classList.remove('visible');
+  document.getElementById('eco-input-km').value = '';
+};
+
+window.saveManualEcoTrip = function () {
+  const kmInput = document.getElementById('eco-input-km');
+  const typeSelect = document.getElementById('eco-input-type');
+
+  if (!kmInput || !typeSelect) return;
+
+  const km = parseFloat(kmInput.value);
+  const type = typeSelect.value;
+
+  if (isNaN(km) || km <= 0) {
+    showNotification("Error", "Introduce una distancia válida", "error");
+    return;
+  }
+
+  let typeLabel = "andando";
+  if (type === 'bike') typeLabel = "en bici/VMP";
+  if (type === 'pt') typeLabel = "en transporte público";
+
+  let totalKm = parseFloat(localStorage.getItem("granaGo_eco_km") || "0");
+  totalKm += km;
+  localStorage.setItem("granaGo_eco_km", totalKm);
+
+  const co2 = (km * ECO_CONFIG.CO2_SAVED_PER_KM).toFixed(2);
+  const money = (km * ECO_CONFIG.EURO_SAVED_PER_KM).toFixed(2);
+
+  const reward = Math.floor(km * 50);
+  if (reward > 0) {
+    addGranaSaldo(reward, "movilidad sostenible");
+  }
+
+  closeEcoModal();
+
+  updateHomeEcoWidget();
+  updateAchievement('eco_start', totalKm * ECO_CONFIG.CO2_SAVED_PER_KM, true);
+
+  navigateTo('home');
+
+  showNotification(
+    "¡Impacto Registrado!",
+    `Has recorrido ${km}km ${typeLabel}. Ahorro: ${co2}kg CO2 y ${money}€`,
+    "success"
+  );
+
+  if (navigator.vibrate) navigator.vibrate(50);
+};
+
+document.addEventListener("click", (e) => {
+  const ecoModal = document.getElementById("eco-modal");
+  if (ecoModal && e.target === ecoModal) closeEcoModal();
+});
