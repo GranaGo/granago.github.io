@@ -4792,7 +4792,7 @@ function logAutomatedEcoTrip(type) {
 
 const ALL_WIDGETS = {
   event: { id: 'event', title: 'Eventos Hoy', icon: 'ri-calendar-event-fill', class: 'widget-event', action: "navigateTo('cortes')", render: updateHomeEventsWidget },
-  eco: { id: 'eco', title: 'Impacto Ecológico', icon: 'ri-leaf-fill', class: 'widget-eco', action: "navigateTo(openEcoCalculator())", render: updateHomeEcoWidget },
+  eco: { id: 'eco', title: 'Impacto Ecológico', icon: 'ri-leaf-fill', class: 'widget-eco', action: "openEcoCalculator()", render: updateHomeEcoWidget },
   parking: { id: 'parking', title: 'Parkings', icon: 'ri-parking-box-fill', class: 'widget-parking', action: "navigateTo('parkings')", render: updateHomeParking },
   bus: { id: 'bus', title: 'Desvíos Bus', icon: 'ri-bus-fill', class: 'widget-bus', action: "navigateTo('paradas')", render: updateHomeBusWidget },
   fuel: { id: 'fuel', title: 'Combustible', icon: 'ri-gas-station-fill', class: 'widget-fuel', action: "navigateTo('repostar')", render: updateHomeFuel },
@@ -10605,8 +10605,6 @@ window.saveManualEcoTrip = function () {
 
   updateHomeEcoWidget();
   updateAchievement('eco_start', totalKm * ECO_CONFIG.CO2_SAVED_PER_KM, true);
-
-  navigateTo('home');
 
   showNotification(
     "¡Impacto Registrado!",
