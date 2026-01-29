@@ -226,6 +226,47 @@
         </div>
       </div>
     </div>
+
+    <div id="vehicle-config-modal" class="modal-overlay">
+      <div class="modal-card gpu-accelerated">
+        <div class="modal-header"
+          style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
+          <h3 style="margin: 0;">Mi Vehículo</h3>
+          <button onclick="closeVehicleConfig()" class="icon-btn" aria-label="Cerrar"
+            style="background: var(--bg-app); border: 1px solid var(--border-subtle); width: 45px; height: 45px; border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-soft); cursor: pointer;">
+            <i class="ri-close-line" style="font-size: 1.8rem; color: var(--text-primary);"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 20px;">
+            Configura tu perfil para recibir avisos de la ZBE en tiempo real durante la conducción.
+          </p>
+
+          <div
+            style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding: 12px; background: var(--bg-app); border-radius: 12px; border: 1px solid var(--border-subtle);">
+            <span style="font-size: 0.9rem; font-weight: 600;">¿Eres residente en Granada?</span>
+            <button id="btn-residente-toggle" onclick="toggleResidentStatus()" class="tab-pill"
+              style="width: 80px;">NO</button>
+          </div>
+
+          <div style="margin-bottom: 25px;">
+            <p style="font-size: 0.85rem; font-weight: 600; margin-bottom: 10px;">Distintivo Ambiental:</p>
+            <div class="tabs-pills" style="justify-content: space-between; gap: 5px; margin-bottom: 0;">
+              <button class="tab-pill badge-opt" data-badge="NONE" onclick="setVehicleBadge('NONE', this)">SIN</button>
+              <button class="tab-pill badge-opt" data-badge="B" onclick="setVehicleBadge('B', this)">B</button>
+              <button class="tab-pill badge-opt" data-badge="C" onclick="setVehicleBadge('C', this)">C</button>
+              <button class="tab-pill badge-opt" data-badge="ECO" onclick="setVehicleBadge('ECO', this)">ECO</button>
+              <button class="tab-pill badge-opt" data-badge="CERO" onclick="setVehicleBadge('CERO', this)">0</button>
+            </div>
+          </div>
+
+          <button class="cookie-btn primary" style="width: 100%; height: 50px; font-weight: 800;"
+            onclick="closeVehicleConfig()">
+            Guardar Configuración
+          </button>
+        </div>
+      </div>
+    </div>
     <div id="ajustes-view" class="view-section">
       <div class="section-header">
         <h2>Ajustes</h2>
@@ -917,14 +958,21 @@
     </div>
 
     <div id="personal-view" class="view-section">
-      <div class="section-header with-back-btn">
-        <button onclick="navigateTo('transporte')" class="icon-btn back-btn" aria-label="Volver atrás">
-          <i class="icon ri-arrow-left-line"></i>
-        </button>
-        <div>
-          <h2>Vehículo Personal</h2>
-          <p>Selecciona una opción</p>
+      <div class="section-header with-back-btn"
+        style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button onclick="navigateTo('transporte')" class="icon-btn back-btn" aria-label="Volver atrás">
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div>
+            <h2>Vehículo Personal</h2>
+            <p>Selecciona una opción</p>
+          </div>
         </div>
+        <button onclick="openVehicleConfig()" class="icon-btn" aria-label="Configurar Vehículo"
+          style="background: var(--bg-card); border: 1px solid var(--border-subtle); width: 42px; height: 42px; border-radius: 12px; box-shadow: var(--shadow-soft);">
+          <i class="ri-car-line" style="font-size: 1.2rem; color: var(--text-accent);"></i>
+        </button>
       </div>
       <div class="dashboard-grid fade-in-up">
         <div class="square-card" onclick="navigateTo('acceso-selection')">

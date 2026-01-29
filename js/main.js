@@ -95,6 +95,12 @@ let parkingsTileLayer = null;
 let motoParkingsLayerGroup = null;
 let oraTileLayer = null;
 let staticParkingsLayerGroup = null;
+let vehicleConfig = {
+  isResident: localStorage.getItem("granaGo_is_resident") === "true",
+  badge: localStorage.getItem("granaGo_vehicle_badge") || "NONE"
+};
+let zbePolygon = null;
+let lastZBEAlertTime = 0;
 
 let sostenibleMap = null;
 let sostenibleTileLayer = null;
@@ -7947,11 +7953,54 @@ function animateSpeedLoop() {
   speedAnimationId = requestAnimationFrame(animateSpeedLoop);
 }
 
+async function loadZBEDataForHUD() {
+  if (zbePolygon) return;
+  try {
+    const response = await fetch("data/zbe.geojson");
+    const data = await response.json();
+    zbePolygon = data.features[0].geometry.coordinates[0];
+  } catch (e) { console.error("Error ZBE GeoJSON", e); }
+}
+
+function isPointInZBE(lat, lng) {
+  if (!zbePolygon) return false;
+  let x = lat, y = lng;
+  let inside = false;
+  for (let i = 0, j = zbePolygon.length - 1; i < zbePolygon.length; j = i++) {
+    let xi = zbePolygon[i][1], yi = zbePolygon[i][0];
+    let xj = zbePolygon[j][1], yj = zbePolygon[j][0];
+    let intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+function checkZBEAlert(lat, lng) {
+  const now = Date.now();
+  if (now - lastZBEAlertTime < 120000) return;
+
+  const isRestricted = !vehicleConfig.isResident && vehicleConfig.badge === "NONE";
+
+  if (isRestricted && isPointInZBE(lat, lng)) {
+    speak("Atención: Has accedido a la Zona de Bajas Emisiones con un vehículo restringido.");
+    lastZBEAlertTime = now;
+
+    const alertBox = document.getElementById("hud-alert");
+    if (alertBox) {
+      alertBox.innerHTML = `
+                <i class="ri-leaf-fill" style="font-size: 4rem; color: #ef4444; animation: pulse 1s infinite;"></i>
+                <div style="font-size: 1.5rem; font-weight:bold; margin-top: 10px; color:#ef4444">ALERTA ZBE</div>
+                <div style="font-size: 1rem;">Acceso Restringido</div>
+            `;
+    }
+  }
+}
+
 async function toggleDrivingMode() {
   const hud = document.getElementById("driving-hud");
 
   if (!drivingModeActive) {
-    await Promise.all([loadSpeedLimits(), initCamarasMap()]);
+    await Promise.all([loadSpeedLimits(), initCamarasMap(), loadZBEDataForHUD()]);
     updateAchievement('driver_mode', 1);
 
     drivingModeActive = true;
@@ -8048,6 +8097,7 @@ function processDrivingPosition(position) {
 
   checkNearbyRadars(lat, lng, heading);
   checkCurrentSpeedLimit(lat, lng, heading);
+  checkZBEAlert(lat, lng);
 }
 
 function checkNearbyRadars(userLat, userLng, userHeading) {
@@ -10798,3 +10848,41 @@ function endMinesGame(win) {
     if (navigator.vibrate) navigator.vibrate(500);
   }
 }
+
+window.openVehicleConfig = function () {
+  document.getElementById('vehicle-config-modal').classList.add('visible');
+
+  const resBtn = document.getElementById("btn-residente-toggle");
+  resBtn.innerText = vehicleConfig.isResident ? "SÍ" : "NO";
+  resBtn.classList.toggle("active", vehicleConfig.isResident);
+
+  document.querySelectorAll(".badge-opt").forEach(b => {
+    b.classList.toggle("active", b.dataset.badge === vehicleConfig.badge);
+  });
+};
+
+window.closeVehicleConfig = function () {
+  document.getElementById('vehicle-config-modal').classList.remove('visible');
+};
+
+window.toggleResidentStatus = function () {
+  vehicleConfig.isResident = !vehicleConfig.isResident;
+  localStorage.setItem("granaGo_is_resident", vehicleConfig.isResident);
+
+  const btn = document.getElementById("btn-residente-toggle");
+  btn.innerText = vehicleConfig.isResident ? "SÍ" : "NO";
+  btn.classList.toggle("active", vehicleConfig.isResident);
+};
+
+window.setVehicleBadge = function (badgeType, btn) {
+  vehicleConfig.badge = badgeType;
+  localStorage.setItem("granaGo_vehicle_badge", badgeType);
+
+  document.querySelectorAll(".badge-opt").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+};
+
+document.addEventListener("click", (e) => {
+  const vModal = document.getElementById("vehicle-config-modal");
+  if (vModal && e.target === vModal) closeVehicleConfig();
+});
