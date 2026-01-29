@@ -129,6 +129,16 @@ let geoConfig = {
   isAnswered: false
 };
 
+let minesConfig = {
+  rows: 8,
+  cols: 8,
+  mines: 10,
+  board: [],
+  gameOver: false,
+  flags: 0,
+  diff: 'easy'
+};
+
 let taxiMapInstance = null;
 let taxiLayersGroup = null;
 let taxiTileLayer = null;
@@ -152,6 +162,7 @@ const ACHIEVEMENTS_DATA = {
   'bj_lucky': { title: 'As del Tapete', desc: 'Gana 10 manos de Blackjack', goal: 10, reward: 200, icon: 'ri-playing-cards-fill', type: 'game' },
   'slot_jackpot': { title: '¡Jackpot!', desc: 'Consigue una línea de Metros', goal: 1, reward: 400, icon: 'ri-money-euro-box-fill', type: 'game' },
   'geo_expert': { title: 'Guía Turístico', desc: 'Acierta 10 municipios en GeoGraná', goal: 10, reward: 250, icon: 'ri-map-2-fill', type: 'game' },
+  'mines_expert': { title: 'Barrendero Mayor', desc: 'Gana 5 partidas de BuscaGraná', goal: 5, reward: 200, icon: 'ri-blur-off-fill', type: 'game' },
   'shopper': { title: 'Con Estilo', desc: 'Compra tu primer color de acento', goal: 1, reward: 100, icon: 'ri-palette-fill', type: 'shop' },
   'collector': { title: 'Coleccionista', desc: 'Desbloquea 3 colores distintos', goal: 3, reward: 300, icon: 'ri-paint-brush-fill', type: 'shop' },
   'powerup_user': { title: 'Ventaja Táctica', desc: 'Usa 5 power-ups', goal: 5, reward: 150, icon: 'ri-flashlight-fill', type: 'shop' },
@@ -1341,6 +1352,7 @@ function hideAllGameContainers() {
     "blackjack-game-container",
     "slots-game-container",
     "geograna-game-container",
+    "minesweeper-game-container",
   ];
 
   containers.forEach((id) => {
@@ -5394,6 +5406,7 @@ async function updateHomeRecentWidgets() {
       GranáJack: "navigateTo('juegos'); openBlackjackMenu();",
       GranáSlots: "navigateTo('juegos'); openSlotsMenu();",
       GeoGraná: "navigateTo('juegos'); openGeoMenu();",
+      BuscaGraná: "navigateTo('juegos'); openMinesweeperMenu();"
     };
 
     recentGames.forEach((game) => {
@@ -10619,3 +10632,169 @@ document.addEventListener("click", (e) => {
   const ecoModal = document.getElementById("eco-modal");
   if (ecoModal && e.target === ecoModal) closeEcoModal();
 });
+
+window.openMinesweeperMenu = function () {
+  hideAllGameContainers();
+  document.getElementById("games-menu").style.display = "none";
+  document.getElementById("minesweeper-game-container").style.display = "block";
+  document.getElementById("mines-setup").style.display = "block";
+  document.getElementById("mines-board-wrapper").style.display = "none";
+  document.getElementById("mines-message").style.display = "none";
+  trackRecentItem("granaGo_recent_games", "BuscaGraná");
+};
+
+window.closeMinesweeper = function () {
+  document.getElementById("games-menu").style.display = "flex";
+  document.getElementById("minesweeper-game-container").style.display = "none";
+};
+
+window.setMinesDiff = function (diff, btn) {
+  minesConfig.diff = diff;
+  const btns = document.querySelectorAll("#mines-setup .tab-pill");
+  btns.forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+
+  if (diff === 'easy') { minesConfig.rows = 8; minesConfig.cols = 8; minesConfig.mines = 10; }
+  else if (diff === 'medium') { minesConfig.rows = 12; minesConfig.cols = 10; minesConfig.mines = 20; }
+  else { minesConfig.rows = 16; minesConfig.cols = 10; minesConfig.mines = 35; }
+};
+
+window.startMinesGame = function () {
+  document.getElementById("mines-setup").style.display = "none";
+  document.getElementById("mines-board-wrapper").style.display = "block";
+  initMinesBoard();
+};
+
+function initMinesBoard() {
+  minesConfig.gameOver = false;
+  minesConfig.flags = 0;
+  minesConfig.board = [];
+  const totalCells = minesConfig.rows * minesConfig.cols;
+
+  for (let i = 0; i < totalCells; i++) {
+    minesConfig.board.push({ mine: false, revealed: false, flagged: false, count: 0 });
+  }
+
+  let placedMines = 0;
+  while (placedMines < minesConfig.mines) {
+    let idx = Math.floor(Math.random() * totalCells);
+    if (!minesConfig.board[idx].mine) {
+      minesConfig.board[idx].mine = true;
+      placedMines++;
+    }
+  }
+
+  for (let i = 0; i < totalCells; i++) {
+    if (!minesConfig.board[i].mine) {
+      let neighbors = getNeighbors(i);
+      minesConfig.board[i].count = neighbors.filter(n => minesConfig.board[n].mine).length;
+    }
+  }
+
+  renderMinesBoard();
+  updateMinesStats();
+}
+
+function getNeighbors(idx) {
+  const r = Math.floor(idx / minesConfig.cols);
+  const c = idx % minesConfig.cols;
+  const neighbors = [];
+
+  for (let i = -1; i <= 1; i++) {
+    for (let j = -1; j <= 1; j++) {
+      if (i === 0 && j === 0) continue;
+      let nr = r + i;
+      let nc = c + j;
+      if (nr >= 0 && nr < minesConfig.rows && nc >= 0 && nc < minesConfig.cols) {
+        neighbors.push(nr * minesConfig.cols + nc);
+      }
+    }
+  }
+  return neighbors;
+}
+
+function renderMinesBoard() {
+  const boardEl = document.getElementById("mines-board");
+  boardEl.style.gridTemplateColumns = `repeat(${minesConfig.cols}, 1fr)`;
+  boardEl.innerHTML = "";
+
+  minesConfig.board.forEach((cell, i) => {
+    const div = document.createElement("div");
+    div.className = "mine-cell";
+    if (cell.revealed) {
+      div.classList.add("revealed");
+      if (cell.mine) {
+        div.innerHTML = '<i class="ri-close-circle-fill" style="color:#ef4444"></i>';
+        div.style.background = "rgba(239, 68, 68, 0.2)";
+      } else {
+        div.innerText = cell.count > 0 ? cell.count : "";
+        div.dataset.count = cell.count;
+      }
+    } else if (cell.flagged) {
+      div.innerHTML = "🚩";
+    }
+
+    let timer;
+    div.onclick = () => revealCell(i);
+    div.oncontextmenu = (e) => { e.preventDefault(); toggleFlag(i); };
+    div.ontouchstart = () => { timer = setTimeout(() => toggleFlag(i), 500); };
+    div.ontouchend = () => { clearTimeout(timer); };
+
+    boardEl.appendChild(div);
+  });
+}
+
+function revealCell(idx) {
+  if (minesConfig.gameOver || minesConfig.board[idx].revealed || minesConfig.board[idx].flagged) return;
+
+  minesConfig.board[idx].revealed = true;
+
+  if (minesConfig.board[idx].mine) {
+    endMinesGame(false);
+  } else {
+    if (minesConfig.board[idx].count === 0) {
+      getNeighbors(idx).forEach(n => revealCell(n));
+    }
+    if (checkMinesWin()) endMinesGame(true);
+  }
+  renderMinesBoard();
+}
+
+function toggleFlag(idx) {
+  if (minesConfig.gameOver || minesConfig.board[idx].revealed) return;
+  minesConfig.board[idx].flagged = !minesConfig.board[idx].flagged;
+  minesConfig.flags += minesConfig.board[idx].flagged ? 1 : -1;
+  if (navigator.vibrate) navigator.vibrate(30);
+  renderMinesBoard();
+  updateMinesStats();
+}
+
+function checkMinesWin() {
+  return minesConfig.board.every(c => c.mine || c.revealed);
+}
+
+function updateMinesStats() {
+  document.getElementById("mines-stats-text").innerText =
+    `Obstáculos: ${minesConfig.mines} | 🚩: ${minesConfig.flags}`;
+}
+
+function endMinesGame(win) {
+  minesConfig.gameOver = true;
+  minesConfig.board.forEach(c => { if (c.mine) c.revealed = true; });
+
+  const msg = document.getElementById("mines-message");
+  const title = document.getElementById("mines-result-title");
+  msg.style.display = "block";
+  msg.style.borderLeft = `4px solid ${win ? "#10b981" : "#ef4444"}`;
+
+  if (win) {
+    updateAchievement('mines_expert', 1);
+    title.innerText = "¡Ciudad Limpia!";
+    const reward = minesConfig.diff === 'easy' ? 30 : minesConfig.diff === 'medium' ? 60 : 120;
+    addGranaSaldo(reward, "despejar la ciudad");
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+  } else {
+    title.innerText = "¡BOOM! Obstáculo chocado";
+    if (navigator.vibrate) navigator.vibrate(500);
+  }
+}

@@ -4323,7 +4323,7 @@ body.keyboard-open .glass-dock {
 }
 
 .widget-achievements .summary-icon {
-  background: rgba(251, 191, 36, 0.15); /* Color ámbar/medalla */
+  background: rgba(251, 191, 36, 0.15);
   color: #fbbf24;
 }
 
@@ -4340,4 +4340,56 @@ body.keyboard-open .glass-dock {
 #home-achievements-content i {
   color: var(--text-accent);
   margin-right: 4px;
+}
+
+.mines-board {
+  display: grid;
+  gap: 4px;
+  margin: 0 auto;
+  padding: 10px;
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-subtle);
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.mine-cell {
+  aspect-ratio: 1;
+  background: var(--bg-app);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.1s;
+  border: 1px solid var(--border-subtle);
+  min-width: 30px;
+}
+
+.mine-cell.revealed {
+  background: transparent;
+  border-color: transparent;
+}
+
+.mine-cell.revealed[data-count="1"] {
+  color: #2563eb;
+}
+
+.mine-cell.revealed[data-count="2"] {
+  color: #10b981;
+}
+
+.mine-cell.revealed[data-count="3"] {
+  color: #ef4444;
+}
+
+.mine-cell.revealed[data-count="4"] {
+  color: #8b5cf6;
+}
+
+.mine-cell:active {
+  transform: scale(0.9);
 }

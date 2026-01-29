@@ -2400,6 +2400,16 @@
           </div>
           <i class="icon arrow-icon ri-arrow-right-s-line"></i>
         </div>
+        <div class="transport-card" onclick="openMinesweeperMenu()">
+          <div class="card-icon-wrapper" style="background: rgba(100, 116, 139, 0.1); color: #64748b">
+            <i class="icon ri-blur-off-fill"></i>
+          </div>
+          <div class="transport-info">
+            <h3>BuscaGraná</h3>
+            <p>Limpia las calles de obstáculos sin tocar ninguno</p>
+          </div>
+          <i class="icon arrow-icon ri-arrow-right-s-line"></i>
+        </div>
       </div>
 
       <div id="wordle-game-container" style="display: none; margin-top: 10px" class="fade-in-up">
@@ -2586,6 +2596,7 @@
           </p>
         </div>
       </div>
+
       <div id="memory-game-container" style="display: none; margin-top: 10px" class="fade-in-up">
         <div class="section-header with-back-btn">
           <button onclick="closeMemory()" class="icon-btn back-btn">
@@ -2620,6 +2631,7 @@
           </button>
         </div>
       </div>
+
       <div id="quiz-game-container" style="display: none; margin-top: 10px" class="fade-in-up">
         <div class="section-header with-back-btn">
           <button onclick="closeQuiz()" class="icon-btn back-btn">
@@ -2709,6 +2721,7 @@
           </div>
         </div>
       </div>
+
       <div id="mastermind-game-container" style="display: none; margin-top: 10px" class="fade-in-up">
         <div class="section-header with-back-btn">
           <button onclick="closeMastermind()" class="icon-btn back-btn">
@@ -2777,6 +2790,7 @@
           </button>
         </div>
       </div>
+
       <div id="encadenadas-game-container" style="display: none; margin-top: 10px" class="fade-in-up">
         <div class="section-header with-back-btn">
           <button onclick="closeEncadenadas()" class="icon-btn back-btn">
@@ -2905,6 +2919,7 @@
               justify-content: center;
             "></div>
       </div>
+
       <div id="blackjack-game-container" style="display: none; margin-top: 10px" class="fade-in-up">
         <div class="section-header with-back-btn">
           <button onclick="closeBlackjack()" class="icon-btn back-btn">
@@ -3014,6 +3029,7 @@
           ¡BLACKJACK!
         </div>
       </div>
+
       <div id="slots-game-container" style="display: none; margin-top: 10px" class="fade-in-up">
         <div class="section-header with-back-btn">
           <button onclick="closeSlots()" class="icon-btn back-btn">
@@ -3132,6 +3148,7 @@
           </div>
         </div>
       </div>
+
       <div id="geograna-game-container" style="display: none; margin-top: 10px; height: 100%;" class="fade-in-up">
         <div class="section-header with-back-btn">
           <button onclick="closeGeo()" class="icon-btn back-btn">
@@ -3195,6 +3212,42 @@
           <h3 id="geo-result-title">¡Partida Terminada!</h3>
           <p id="geo-result-score" style="font-size: 1.2rem; font-weight: 700; margin-bottom: 20px"></p>
           <button class="cookie-btn primary" style="width: 100%" onclick="openGeoMenu()">Jugar de nuevo</button>
+        </div>
+      </div>
+
+      <div id="minesweeper-game-container" style="display: none; margin-top: 10px" class="fade-in-up">
+        <div class="section-header with-back-btn">
+          <button onclick="closeMinesweeper()" class="icon-btn back-btn">
+            <i class="icon ri-arrow-left-line"></i>
+          </button>
+          <div>
+            <h2>Busca<span class="text-accent">Graná</span></h2>
+            <p id="mines-stats-text">Obstáculos: 0 | 🚩: 0</p>
+          </div>
+        </div>
+
+        <div id="mines-setup" class="info-card" style="margin-bottom: 20px">
+          <h3 class="info-title" style="margin-top: 0">Dificultad</h3>
+          <div class="tabs-pills" style="justify-content: flex-start; margin-bottom: 15px">
+            <button class="tab-pill active" onclick="setMinesDiff('easy', this)">Fácil</button>
+            <button class="tab-pill" onclick="setMinesDiff('medium', this)">Medio</button>
+            <button class="tab-pill" onclick="setMinesDiff('hard', this)">Experto</button>
+          </div>
+          <button class="cookie-btn primary" onclick="startMinesGame()" style="width: 100%">Empezar Partida</button>
+        </div>
+
+        <div id="mines-board-wrapper" style="display: none; text-align: center;">
+          <div id="mines-board" class="mines-board"></div>
+          <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 10px;">
+            💡 Mantén pulsado para poner una bandera (🚩)
+          </p>
+        </div>
+
+        <div id="mines-message" class="info-card" style="display: none; margin-top: 20px; text-align: center;">
+          <h3 id="mines-result-title"></h3>
+          <p id="mines-result-text"></p>
+          <button class="cookie-btn primary" onclick="openMinesweeperMenu()" style="width: 100%; margin-top: 10px">Jugar
+            de nuevo</button>
         </div>
       </div>
     </div>
@@ -3517,7 +3570,7 @@
 
           <div class="info-card">
             <h3 class="info-title" style="margin-top: 0">
-              <i class="icon ri-gamepad-fill"></i> Detalle de los 9 Juegos
+              <i class="icon ri-gamepad-fill"></i> Detalle de los 10 Juegos
             </h3>
             <div class="info-body-text" style="background: transparent; border: none; padding: 0">
               <ul class="limits-list">
@@ -3565,6 +3618,11 @@
                   <strong>9. GeoGraná:</strong> Pon a prueba tu orientación identificando municipios de Granada,
                   provincias de España o países del mundo en el mapa durante 10 rondas. Pista: "Geo-Lince" resalta la
                   respuesta correcta y "Geo 50/50" elimina dos opciones falsas.
+                </li>
+                <li>
+                  <strong>10. BuscaGraná:</strong> Despeja el tablero de obstáculos de tráfico en este clásico juego de
+                  lógica. Selecciona una dificultad y utiliza los números indicadores para descubrir las casillas
+                  seguras y limpiar la ciudad de peligros sin chocar con ninguno.
                 </li>
               </ul>
             </div>
