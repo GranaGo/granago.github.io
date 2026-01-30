@@ -310,9 +310,11 @@ async function getGPSLocationName(lat, lon) {
   try {
     const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=es`);
     const data = await res.json();
-    return data.locality || data.city || data.principalSubdivision || "Tu Ubicación";
+
+    return data.locality || data.city || data.principalSubdivision || "Zona desconocida";
   } catch (e) {
-    return "Tu Ubicación";
+    console.error("Error en geocodificación inversa:", e);
+    return "Granada";
   }
 }
 
@@ -10960,8 +10962,14 @@ document.addEventListener("click", (e) => {
 });
 
 async function initWeatherView(lat, lon, cityName) {
+  if (cityName === "Tu Ubicación") {
+    const realName = await getGPSLocationName(lat, lon);
+    cityName = realName;
+  }
+
   weatherLocationActive = { lat, lon, name: cityName };
   document.getElementById('weather-detail-city').innerText = cityName;
+
   const cacheKey = `${parseFloat(lat).toFixed(4)},${parseFloat(lon).toFixed(4)}`;
   const now = Date.now();
 
@@ -10971,6 +10979,7 @@ async function initWeatherView(lat, lon, cityName) {
   } else {
     await fetchFullWeatherData(lat, lon, cacheKey);
   }
+
   setupWeatherSearch();
   updateWeatherFavIcon();
 }
