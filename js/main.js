@@ -10872,10 +10872,37 @@ function renderMinesBoard() {
     }
 
     let timer;
-    div.onclick = () => revealCell(i);
-    div.oncontextmenu = (e) => { e.preventDefault(); toggleFlag(i); };
-    div.ontouchstart = () => { timer = setTimeout(() => toggleFlag(i), 500); };
-    div.ontouchend = () => { clearTimeout(timer); };
+    let isLongPress = false;
+
+    div.onclick = (e) => {
+      if (isLongPress) {
+        isLongPress = false;
+        return;
+      }
+      revealCell(i);
+    };
+
+    div.oncontextmenu = (e) => {
+      e.preventDefault();
+      toggleFlag(i);
+    };
+
+    div.ontouchstart = (e) => {
+      isLongPress = false;
+      timer = setTimeout(() => {
+        isLongPress = true;
+        toggleFlag(i);
+        if (navigator.vibrate) navigator.vibrate(50);
+      }, 500);
+    };
+
+    div.ontouchmove = () => {
+      clearTimeout(timer);
+    };
+
+    div.ontouchend = () => {
+      clearTimeout(timer);
+    };
 
     boardEl.appendChild(div);
   });
