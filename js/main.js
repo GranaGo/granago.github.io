@@ -21,6 +21,9 @@ const UNAVAILABLE_MESSAGE = "Sin llegadas próximas...";
 let newWorker;
 let deferredPrompt;
 let isManualUpdate = false;
+let weatherCache = {};
+let currentWeatherData = null;
+let weatherLocationActive = null;
 
 let mapInstance = null;
 let currentTileLayer = null;
@@ -302,6 +305,16 @@ window.applyAccentColor = function (hex) {
 
 const savedColor = localStorage.getItem("granaGo_accent_color");
 if (savedColor) applyAccentColor(savedColor);
+
+async function getGPSLocationName(lat, lon) {
+  try {
+    const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=es`);
+    const data = await res.json();
+    return data.locality || data.city || data.principalSubdivision || "Tu Ubicación";
+  } catch (e) {
+    return "Tu Ubicación";
+  }
+}
 
 const loadedScripts = {};
 let googleTranslateScriptLoaded = false;
@@ -733,6 +746,7 @@ window.navigateTo = async function (viewId, addToHistory = true) {
     "zbe",
     "taxi-vtc",
     "movilidad-sostenible",
+    "weather",
   ];
   if (fullScreenMapViews.includes(viewId)) {
     document.body.classList.add("noscroll");
@@ -794,6 +808,27 @@ window.navigateTo = async function (viewId, addToHistory = true) {
     updateHomeRecentWidgets();
     updateHomeEcoWidget();
     updateHomeAchievementsWidget();
+  } else if (viewId === "weather") {
+    if (!weatherLocationActive) {
+      const favs = getWeatherFavorites();
+      const locations = [];
+      const savedLat = localStorage.getItem("granaGo_last_lat");
+      const savedLng = localStorage.getItem("granaGo_last_lng");
+      const gpsName = localStorage.getItem("granaGo_gps_name") || "Tu Ubicación";
+
+      if (savedLat && savedLng) {
+        locations.push({ lat: savedLat, lon: savedLng, name: gpsName, isGPS: true });
+      }
+      locations.push({ lat: GRANADA_COORDS.lat, lon: GRANADA_COORDS.lon, name: "Granada" });
+      favs.forEach(f => {
+        if (f.name !== "Granada" && f.name !== gpsName) locations.push(f);
+      });
+
+      const savedIdx = parseInt(localStorage.getItem("granaGo_weather_active_idx") || "0");
+      weatherLocationActive = locations[savedIdx] || locations[0];
+    }
+
+    initWeatherView(weatherLocationActive.lat, weatherLocationActive.lon, weatherLocationActive.name);
   } else if (viewId === "paradas") {
     showLoader(true);
     setTimeout(() => initMapParadas(), 400);
@@ -960,60 +995,112 @@ function initTheme() {
   }
 }
 
-function initWeather() {
-  const savedLat = localStorage.getItem("granaGo_last_lat");
-  const savedLng = localStorage.getItem("granaGo_last_lng");
+function getWeatherFavorites() {
+  return JSON.parse(localStorage.getItem("granaGo_weather_favs") || "[]");
+}
 
-  if (savedLat && savedLng) {
-    fetchWeatherData(
-      parseFloat(savedLat),
-      parseFloat(savedLng),
-      "Tu Ubicación",
-    );
-  } else {
-    fetchWeatherData(GRANADA_COORDS.lat, GRANADA_COORDS.lon, "Granada");
+window.toggleWeatherFavorite = function () {
+  if (!weatherLocationActive) return;
+
+  if (weatherLocationActive.name === "Granada") {
+    showNotification("Información", "Granada es una ubicación fija de la app", "info");
+    return;
   }
 
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        localStorage.setItem("granaGo_last_lat", position.coords.latitude);
-        localStorage.setItem("granaGo_last_lng", position.coords.longitude);
+  let favs = getWeatherFavorites();
+  const index = favs.findIndex(f => f.name === weatherLocationActive.name);
 
-        fetchWeatherData(
-          position.coords.latitude,
-          position.coords.longitude,
-          "Tu Ubicación",
-        );
-      },
-      (error) => {
-        console.warn("GPS clima no disponible, manteniendo datos anteriores.");
-      },
-      { timeout: 5000, maximumAge: 600000 },
-    );
+  if (index > -1) {
+    favs.splice(index, 1);
+    showNotification("Eliminado", "Ubicación quitada de favoritos", "info");
+  } else {
+    favs.push(weatherLocationActive);
+    showNotification("Guardado", "Ubicación añadida a favoritos", "success");
+  }
+
+  localStorage.setItem("granaGo_weather_favs", JSON.stringify(favs));
+  updateWeatherFavIcon();
+  initWeather();
+};
+
+function updateWeatherFavIcon() {
+  const btn = document.getElementById('btn-fav-weather');
+  if (!btn || !weatherLocationActive) return;
+
+  const favs = getWeatherFavorites();
+  const isFav = favs.some(f => f.name === weatherLocationActive.name) || weatherLocationActive.name === "Granada";
+
+  const icon = btn.querySelector('i');
+  if (icon) {
+    icon.className = isFav ? 'ri-star-fill' : 'ri-star-line';
+    btn.style.color = isFav ? '#fbbf24' : 'inherit';
   }
 }
 
-async function fetchWeatherData(lat, lon, locationName) {
-  const container = document.getElementById("weather-widget-container");
+async function initWeather() {
+  const container = document.getElementById('weather-widget-carousel');
   if (!container) return;
 
+  const favs = getWeatherFavorites();
+  const locations = [];
+
+  const savedLat = localStorage.getItem("granaGo_last_lat");
+  const savedLng = localStorage.getItem("granaGo_last_lng");
+  const gpsName = localStorage.getItem("granaGo_gps_name") || "Tu Ubicación";
+
+  if (savedLat && savedLng) {
+    locations.push({ lat: savedLat, lon: savedLng, name: gpsName, isGPS: true });
+  }
+
+  locations.push({ lat: GRANADA_COORDS.lat, lon: GRANADA_COORDS.lon, name: "Granada" });
+
+  favs.forEach(f => {
+    if (f.name !== "Granada" && f.name !== gpsName) locations.push(f);
+  });
+
+  container.innerHTML = "";
+
+  locations.forEach((loc, index) => {
+    const card = document.createElement('div');
+    card.className = "weather-card-snap notranslate";
+    card.onclick = () => {
+      weatherLocationActive = loc;
+      navigateTo('weather');
+    };
+    card.innerHTML = `<div class="skeleton-text" style="height:80px; width:100%"></div>`;
+    container.appendChild(card);
+    fetchWidgetData(loc, card);
+  });
+
+  const savedIndex = parseInt(localStorage.getItem("granaGo_weather_active_idx") || "0");
+  setTimeout(() => {
+    const cardWidth = container.querySelector('.weather-card-snap')?.offsetWidth || 0;
+    container.scrollTo({ left: savedIndex * (cardWidth + 10), behavior: 'auto' });
+  }, 100);
+
+  container.onscroll = debounce(() => {
+    const idx = Math.round(container.scrollLeft / container.offsetWidth);
+    localStorage.setItem("granaGo_weather_active_idx", idx);
+  }, 150);
+}
+
+async function fetchWidgetData(loc, cardElement) {
   try {
     const [weatherRes, aqiRes] = await Promise.all([
-      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto`, { priority: 'high' }),
-      fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`, { priority: 'high' }),
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto`),
+      fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${loc.lat}&longitude=${loc.lon}&current=european_aqi`)
     ]);
 
     if (!weatherRes.ok || !aqiRes.ok) throw new Error("Error API");
 
     const data = await weatherRes.json();
     const aqiData = await aqiRes.json();
-
     const temp = Math.round(data.current.temperature_2m);
     const code = data.current.weather_code;
     const humidity = data.current.relative_humidity_2m;
     const aqi = aqiData.current.european_aqi;
     const weatherIconName = getWeatherIconName(code);
+    const weatherDesc = getWeatherDesc(code);
 
     let aqiText = "Excelente", aqiColor = "#10b981";
     if (aqi > 20) { aqiText = "Bueno"; aqiColor = "#84cc16"; }
@@ -1021,48 +1108,42 @@ async function fetchWeatherData(lat, lon, locationName) {
     else if (aqi > 60) { aqiText = "Pobre"; aqiColor = "#ef4444"; }
     else if (aqi > 80) { aqiText = "Muy Pobre"; aqiColor = "#991b1b"; }
 
-    const fragment = document.createDocumentFragment();
-    const card = document.createElement("div");
-    card.className = "weather-card-premium fade-in-up";
-
-    card.innerHTML = `
-        <div class="weather-left">
-            <div class="location-badge notranslate">
-                <i class="icon ri-map-pin-user-fill"></i> ${locationName}
-            </div>
-            <div class="weather-temp notranslate">${temp}°</div>
-            <div class="weather-desc">${getWeatherDesc(code)}</div>
-        </div>
-        
-        <div class="weather-right">
-            <i class="icon weather-icon-lg ${weatherIconName}"></i>
-            <div class="weather-meta-row">
-                <div class="weather-meta-item">
-                    <i class="ri-drop-line"></i> <span>${humidity}%</span>
+    cardElement.innerHTML = `
+            <div class="weather-card-premium">
+                <div class="weather-left">
+                    <div class="location-badge notranslate">
+                        <i class="icon ${loc.isGPS ? 'ri-map-pin-user-fill' : 'ri-map-pin-2-fill'}"></i> ${loc.name}
+                    </div>
+                    <div class="weather-temp notranslate">${temp}°</div>
+                    <div class="weather-desc">${weatherDesc}</div>
                 </div>
-                <div class="weather-meta-item aq-badge" style="--aqi-color: ${aqiColor}">
-                    <i class="ri-leaf-line"></i> <span>${aqiText}</span>
+                
+                <div class="weather-right">
+                    <i class="icon weather-icon-lg ${weatherIconName}"></i>
+                    <div class="weather-meta-row">
+                        <div class="weather-meta-item">
+                            <i class="ri-drop-line"></i> <span>${humidity}%</span>
+                        </div>
+                        <div class="weather-meta-item aq-badge" style="--aqi-color: ${aqiColor}">
+                            <i class="ri-leaf-line"></i> <span>${aqiText}</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>`;
-
-    fragment.appendChild(card);
-
-    container.innerHTML = "";
-    container.appendChild(fragment);
+            </div>`;
 
   } catch (e) {
-    console.error("Error clima y aire", e);
-    container.innerHTML = `
-        <div class="weather-card-premium" style="background: var(--bg-card); color: var(--text-secondary); justify-content: center;">
-            <span class="text-sm flex items-center gap-2"><i class="ri-cloud-off-line"></i> Sin conexión</span>
-        </div>`;
+    console.error("Error cargando tarjeta de carrusel:", e);
+    cardElement.innerHTML = `
+            <div class="weather-card-premium" style="justify-content: center; opacity: 0.7;">
+                <span class="text-sm"><i class="ri-cloud-off-line"></i> Error de conexión</span>
+            </div>`;
   }
 }
 
 function getWeatherIconName(code) {
   if (code === 0) return "ri-sun-line";
-  if (code >= 1 && code <= 3) return "ri-sun-cloudy-line";
+  if (code === 1 || code === 2) return "ri-sun-cloudy-line";
+  if (code === 3) return "ri-cloudy-line";
   if (code >= 45 && code <= 48) return "ri-foggy-line";
   if (code >= 51 && code <= 67) return "ri-showers-line";
   if (code >= 71) return "ri-snowy-line";
@@ -4960,35 +5041,26 @@ async function initHomeDashboard() {
   const savedLng = localStorage.getItem("granaGo_last_lng");
 
   await renderHomeDashboard();
-
-  if (savedLat && savedLng) {
-    window.currentLat = parseFloat(savedLat);
-    window.currentLng = parseFloat(savedLng);
-    console.log(
-      "Usando ubicación guardada:",
-      window.currentLat,
-      window.currentLng,
-    );
-  }
+  initWeather();
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
-
         window.currentLat = lat;
         window.currentLng = lng;
         localStorage.setItem("granaGo_last_lat", lat);
         localStorage.setItem("granaGo_last_lng", lng);
 
-        updateHomeFuel();
-        fetchWeatherData(lat, lng, "Tu Ubicación");
+        getGPSLocationName(lat, lng).then(name => {
+          localStorage.setItem("granaGo_gps_name", name);
+          initWeather();
+          updateHomeFuel();
+        });
       },
-      (err) => {
-        console.log("GPS no permitido o error, usando caché o defecto");
-      },
-      { timeout: 10000, maximumAge: 60000 },
+      null,
+      { timeout: 10000, maximumAge: 60000 }
     );
   }
 }
@@ -10886,3 +10958,169 @@ document.addEventListener("click", (e) => {
   const vModal = document.getElementById("vehicle-config-modal");
   if (vModal && e.target === vModal) closeVehicleConfig();
 });
+
+async function initWeatherView(lat, lon, cityName) {
+  weatherLocationActive = { lat, lon, name: cityName };
+  document.getElementById('weather-detail-city').innerText = cityName;
+  const cacheKey = `${parseFloat(lat).toFixed(4)},${parseFloat(lon).toFixed(4)}`;
+  const now = Date.now();
+
+  if (weatherCache[cacheKey] && (now - weatherCache[cacheKey].timestamp < 1800000)) {
+    currentWeatherData = weatherCache[cacheKey].data;
+    renderWeatherFull(currentWeatherData, weatherCache[cacheKey].aqi);
+  } else {
+    await fetchFullWeatherData(lat, lon, cacheKey);
+  }
+  setupWeatherSearch();
+  updateWeatherFavIcon();
+}
+
+async function fetchFullWeatherData(lat, lon, cacheKey) {
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&hourly=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=4`;
+    const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`;
+
+    const [res, resAqi] = await Promise.all([fetch(url), fetch(aqiUrl)]);
+    const data = await res.json();
+    const aqiData = await resAqi.json();
+
+    weatherCache[cacheKey] = {
+      timestamp: Date.now(),
+      data: data,
+      aqi: aqiData
+    };
+
+    currentWeatherData = data;
+    renderWeatherFull(data, aqiData);
+  } catch (e) {
+    showNotification("Error", "No se pudo obtener el tiempo", "error");
+  }
+}
+
+function renderWeatherFull(data, aqiData) {
+  const current = data.current;
+  document.getElementById('hero-temp').innerText = `${Math.round(current.temperature_2m)}°`;
+  document.getElementById('hero-wind').innerText = `${Math.round(current.wind_speed_10m)} km/h`;
+  document.getElementById('hero-humidity').innerText = `${current.relative_humidity_2m}%`;
+  document.getElementById('hero-aqi').innerText = `AQI ${aqiData.current.european_aqi}`;
+  document.getElementById('weather-detail-status').innerText = getWeatherDesc(current.weather_code);
+  applyWeatherTheme(current.weather_code);
+
+  const daySelector = document.getElementById('weather-day-selector');
+  daySelector.innerHTML = "";
+
+  data.daily.time.forEach((day, i) => {
+    const date = new Date(day);
+    const weekdayName = date.toLocaleDateString('es-ES', { weekday: 'long' });
+    const capitalizedDay = weekdayName.charAt(0).toUpperCase() + weekdayName.slice(1);
+    const label = i === 0 ? `Hoy (${capitalizedDay})` : capitalizedDay;
+
+    const btn = document.createElement('button');
+    btn.className = `tab-pill ${i === 0 ? 'active' : ''}`;
+    btn.innerText = label;
+    btn.onclick = () => {
+      document.querySelectorAll('#weather-day-selector .tab-pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderHourlyForDay(i);
+    };
+    daySelector.appendChild(btn);
+  });
+
+  renderHourlyForDay(0);
+
+  const dailyContainer = document.getElementById('daily-forecast-container');
+  dailyContainer.innerHTML = data.daily.time.map((day, i) => {
+    const date = new Date(day);
+    const weekdayName = date.toLocaleDateString('es-ES', { weekday: 'long' });
+    const capitalizedDay = weekdayName.charAt(0).toUpperCase() + weekdayName.slice(1);
+    const label = i === 0 ? `Hoy (${capitalizedDay})` : capitalizedDay;
+
+    return `
+            <div class="daily-row">
+                <span class="day-name" style="width: auto; min-width: 110px; text-align: left; margin-right: 10px;">${label}</span>
+                <i class="${getWeatherIconName(data.daily.weather_code[i])}"></i>
+                <div class="day-temps">
+                    <span class="max">${Math.round(data.daily.temperature_2m_max[i])}°</span>
+                    <span class="min">${Math.round(data.daily.temperature_2m_min[i])}°</span>
+                </div>
+            </div>`;
+  }).join('');
+}
+
+function renderHourlyForDay(dayIndex) {
+  const container = document.getElementById('hourly-forecast-container');
+  container.innerHTML = "";
+
+  const start = dayIndex * 24;
+  const end = start + 24;
+
+  for (let i = start; i < end; i++) {
+    const time = new Date(currentWeatherData.hourly.time[i]);
+    const temp = Math.round(currentWeatherData.hourly.temperature_2m[i]);
+    const code = currentWeatherData.hourly.weather_code[i];
+    const wind = Math.round(currentWeatherData.hourly.wind_speed_10m[i]);
+
+    const item = document.createElement('div');
+    item.className = "hourly-item";
+    item.innerHTML = `
+            <span class="h-time">${time.getHours()}:00</span>
+            <i class="${getWeatherIconName(code)}"></i>
+            <span class="h-temp">${temp}°</span>
+            <span class="h-wind"><i class="ri-windy-line"></i> ${wind}</span>
+        `;
+    container.appendChild(item);
+  }
+  container.scrollLeft = 0;
+}
+
+function setupWeatherSearch() {
+  const input = document.getElementById('weather-search-input');
+  const results = document.getElementById('weather-search-results');
+
+  input.oninput = debounce(async (e) => {
+    const query = e.target.value.trim();
+    if (query.length < 3) { results.classList.remove('visible'); return; }
+
+    try {
+      const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${query}&count=5&language=es&format=json`);
+      const data = await res.json();
+      if (!data.results) return;
+
+      results.innerHTML = data.results.map(loc => `
+                <div class="search-result-item" onclick="selectWeatherLoc(${loc.latitude}, ${loc.longitude}, '${loc.name}')">
+                    <i class="ri-map-pin-2-line result-icon"></i>
+                    <div class="result-info">
+                        <strong>${loc.name}</strong>
+                        <span>${loc.admin1 || ''}, ${loc.country}</span>
+                    </div>
+                </div>
+            `).join('');
+      results.classList.add('visible');
+    } catch (e) { console.error(e); }
+  }, 300);
+}
+
+window.selectWeatherLoc = function (lat, lon, name) {
+  document.getElementById('weather-search-results').classList.remove('visible');
+  document.getElementById('weather-search-input').value = "";
+  weatherLocationActive = { lat, lon, name };
+  initWeatherView(lat, lon, name);
+};
+
+function applyWeatherTheme(code) {
+  const hero = document.getElementById('weather-hero-card');
+  const icon = document.getElementById('hero-icon');
+  let theme = "theme-sunny";
+
+  if (code >= 1 && code <= 3) theme = "theme-cloudy";
+  else if (code >= 45 && code <= 48) theme = "theme-fog";
+  else if (code >= 51 && code <= 67) theme = "theme-rainy";
+  else if (code >= 71 && code <= 77) theme = "theme-snowy";
+  else if (code >= 80 && code <= 99) theme = "theme-storm";
+
+  hero.className = `weather-hero-card ${theme}`;
+
+  if (icon) {
+    icon.className = `icon ${getWeatherIconName(code)}`;
+  }
+}

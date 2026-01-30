@@ -70,8 +70,8 @@
 
   <main id="app">
     <div id="home-view" class="view-section active gpu-accelerated">
-      <div id="weather-section">
-        <div id="weather-widget-container">
+      <div id="weather-section" onclick="navigateTo('weather')" style="cursor: pointer;">
+        <div id="weather-widget-carousel" class="weather-carousel-container">
           <div class="skeleton-weather"></div>
         </div>
       </div>
@@ -265,6 +265,53 @@
             Guardar Configuración
           </button>
         </div>
+      </div>
+    </div>
+    <div id="weather-view" class="view-section">
+      <div class="section-header with-back-btn">
+        <button onclick="navigateTo('home')" class="icon-btn back-btn" aria-label="Volver atrás">
+          <i class="icon ri-arrow-left-line"></i>
+        </button>
+        <div>
+          <h2 id="weather-detail-city">El Tiempo</h2>
+          <p id="weather-detail-status">Cargando previsión...</p>
+        </div>
+        <button id="btn-fav-weather" class="icon-btn" onclick="toggleWeatherFavorite()" style="margin-left: auto;">
+          <i class="ri-star-line" style="font-size: 1.5rem;"></i>
+        </button>
+      </div>
+
+      <div class="weather-container fade-in-up">
+        <div class="search-box-container" style="position: relative; margin-bottom: 20px;">
+          <div class="search-box" style="background: var(--bg-card); border: 1px solid var(--border-subtle);">
+            <i class="ri-search-line search-icon"></i>
+            <input type="text" id="weather-search-input" placeholder="Buscar pueblo o ciudad..." autocomplete="off">
+          </div>
+          <div id="weather-search-results" class="search-dropdown"></div>
+        </div>
+
+        <div id="weather-hero-card" class="weather-hero-card">
+          <div class="hero-main">
+            <span id="hero-temp" class="notranslate">--°</span>
+            <i id="hero-icon" class="ri-sun-line"></i>
+          </div>
+          <div class="hero-details">
+            <div class="hero-item"><i class="ri-windy-line"></i> <span id="hero-wind">-- km/h</span></div>
+            <div class="hero-item"><i class="ri-drop-line"></i> <span id="hero-humidity">--%</span></div>
+            <div class="hero-item"><i class="ri-leaf-line"></i> <span id="hero-aqi">AQI --</span></div>
+          </div>
+        </div>
+
+        <div id="weather-day-selector" class="tabs-pills"
+          style="margin-bottom: 15px; justify-content: flex-start; overflow-x: auto; white-space: nowrap; padding-bottom: 5px;">
+        </div>
+
+        <div id="hourly-forecast-container" class="hourly-scroll">
+          <div class="spinner" style="margin: 20px auto"></div>
+        </div>
+
+        <h3 class="info-title">Próximos 4 días</h3>
+        <div id="daily-forecast-container" class="daily-list"></div>
       </div>
     </div>
     <div id="ajustes-view" class="view-section">
