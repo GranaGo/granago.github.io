@@ -10858,6 +10858,7 @@ function renderMinesBoard() {
   minesConfig.board.forEach((cell, i) => {
     const div = document.createElement("div");
     div.className = "mine-cell";
+
     if (cell.revealed) {
       div.classList.add("revealed");
       if (cell.mine) {
@@ -10871,37 +10872,14 @@ function renderMinesBoard() {
       div.innerHTML = "🚩";
     }
 
-    let timer;
-    let isLongPress = false;
-
     div.onclick = (e) => {
-      if (isLongPress) {
-        isLongPress = false;
-        return;
-      }
       revealCell(i);
     };
 
     div.oncontextmenu = (e) => {
       e.preventDefault();
       toggleFlag(i);
-    };
-
-    div.ontouchstart = (e) => {
-      isLongPress = false;
-      timer = setTimeout(() => {
-        isLongPress = true;
-        toggleFlag(i);
-        if (navigator.vibrate) navigator.vibrate(50);
-      }, 500);
-    };
-
-    div.ontouchmove = () => {
-      clearTimeout(timer);
-    };
-
-    div.ontouchend = () => {
-      clearTimeout(timer);
+      if (navigator.vibrate) navigator.vibrate(30);
     };
 
     boardEl.appendChild(div);
@@ -10928,7 +10906,6 @@ function toggleFlag(idx) {
   if (minesConfig.gameOver || minesConfig.board[idx].revealed) return;
   minesConfig.board[idx].flagged = !minesConfig.board[idx].flagged;
   minesConfig.flags += minesConfig.board[idx].flagged ? 1 : -1;
-  if (navigator.vibrate) navigator.vibrate(30);
   renderMinesBoard();
   updateMinesStats();
 }
