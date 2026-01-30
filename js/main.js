@@ -1029,6 +1029,13 @@ function updateWeatherFavIcon() {
   const btn = document.getElementById('btn-fav-weather');
   if (!btn || !weatherLocationActive) return;
 
+  if (weatherLocationActive.name === "Tu Ubicación") {
+    btn.style.display = "none";
+    return;
+  } else {
+    btn.style.display = "flex";
+  }
+
   const favs = getWeatherFavorites();
   const isFav = favs.some(f => f.name === weatherLocationActive.name) || weatherLocationActive.name === "Granada";
 
@@ -5042,6 +5049,11 @@ async function initHomeDashboard() {
   const savedLat = localStorage.getItem("granaGo_last_lat");
   const savedLng = localStorage.getItem("granaGo_last_lng");
 
+  if (savedLat && savedLng) {
+    window.currentLat = parseFloat(savedLat);
+    window.currentLng = parseFloat(savedLng);
+  }
+
   await renderHomeDashboard();
   initWeather();
 
@@ -5050,6 +5062,7 @@ async function initHomeDashboard() {
       (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
+
         window.currentLat = lat;
         window.currentLng = lng;
         localStorage.setItem("granaGo_last_lat", lat);
