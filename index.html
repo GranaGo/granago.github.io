@@ -150,6 +150,7 @@
         </div>
       </div>
     </div>
+
     <div id="home-editor-modal" class="modal-overlay">
       <div class="modal-card gpu-accelerated">
         <div class="modal-header"
@@ -173,6 +174,7 @@
         </div>
       </div>
     </div>
+
     <div id="eco-modal" class="modal-overlay">
       <div class="modal-card gpu-accelerated">
         <div class="modal-header">
@@ -204,6 +206,109 @@
           <button class="cookie-btn primary" style="width: 100%; height: 50px; font-weight: 800;"
             onclick="saveManualEcoTrip()">
             Guardar y Sumar Impacto
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="welcome-modal" class="modal-overlay">
+      <div class="modal-card gpu-accelerated" style="max-width: 450px;">
+        <div class="modal-header">
+          <h3 style="margin: 0;">Bienvenido a Graná<span class="text-accent">Go</span></h3>
+          <button onclick="closeWelcomeModal()" class="icon-btn close-modal-btn">
+            <i class="ri-close-line"></i>
+          </button>
+        </div>
+        <div class="modal-body" style="padding-top: 0;">
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 20px;">
+            Granada en la palma de tu mano. Todo lo que necesitas para moverte por la ciudad de forma inteligente:
+          </p>
+
+          <div style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px;">
+
+            <div style="display: flex; gap: 15px;">
+              <div
+                style="min-width: 35px; height: 35px; background: rgba(217, 40, 28, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #D9281C;">
+                <i class="ri-bus-fill"></i>
+              </div>
+              <div>
+                <span style="display: block; font-size: 0.9rem; font-weight: 700;">Transporte Público</span>
+                <span style="display: block; font-size: 0.8rem; color: var(--text-secondary);">Tiempos de Bus y Metro en
+                  tiempo real, líneas y tarifas actualizadas.</span>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+              <div
+                style="min-width: 35px; height: 35px; background: rgba(37, 99, 235, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #2563eb;">
+                <i class="ri-steering-2-fill"></i>
+              </div>
+              <div>
+                <span style="display: block; font-size: 0.9rem; font-weight: 700;">Asistente de Conducción</span>
+                <span style="display: block; font-size: 0.8rem; color: var(--text-secondary);">Modo HUD con velocímetro,
+                  avisos de radares por voz y cámaras de tráfico.</span>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+              <div
+                style="min-width: 35px; height: 35px; background: rgba(245, 158, 11, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #f59e0b;">
+                <i class="ri-gas-station-fill"></i>
+              </div>
+              <div>
+                <span style="display: block; font-size: 0.9rem; font-weight: 700;">Ahorro en Ruta</span>
+                <span style="display: block; font-size: 0.8rem; color: var(--text-secondary);">Gasolineras más baratas,
+                  carga eléctrica y calculadoras de gastos.</span>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+              <div
+                style="min-width: 35px; height: 35px; background: rgba(16, 185, 129, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #10b981;">
+                <i class="ri-parking-box-fill"></i>
+              </div>
+              <div>
+                <span style="display: block; font-size: 0.9rem; font-weight: 700;">Parking y ZBE</span>
+                <span style="display: block; font-size: 0.8rem; color: var(--text-secondary);">Plazas libres, zonas ORA
+                  (azul/verde) y límites de la Zona de Bajas Emisiones.</span>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+              <div
+                style="min-width: 35px; height: 35px; background: rgba(139, 92, 246, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #8b5cf6;">
+                <i class="ri-gamepad-line"></i>
+              </div>
+              <div>
+                <span style="display: block; font-size: 0.9rem; font-weight: 700;">Juegos y Personalización</span>
+                <span style="display: block; font-size: 0.8rem; color: var(--text-secondary);">Gana GranáSaldo jugando
+                  para desbloquear colores de acento y mejoras.</span>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+              <div
+                style="min-width: 35px; height: 35px; background: rgba(239, 68, 68, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #ef4444;">
+                <i class="ri-barricade-fill"></i>
+              </div>
+              <div>
+                <span style="display: block; font-size: 0.9rem; font-weight: 700;">Cortes y Eventos</span>
+                <span style="display: block; font-size: 0.8rem; color: var(--text-secondary);">Infórmate sobre
+                  procesiones, obras y cortes de tráfico al instante.</span>
+              </div>
+            </div>
+
+          </div>
+
+          <button class="cookie-btn primary" style="width: 100%; height: 50px; font-weight: 800; font-size: 1rem;"
+            onclick="navigateTo('manual'); closeWelcomeModal();">
+            LEER MANUAL DE USO
+          </button>
+
+          <button class="cookie-btn secondary"
+            style="width: 100%; height: 45px; margin-top: 10px; border: none; background: transparent; font-weight: 700; color: var(--text-primary);"
+            onclick="closeWelcomeModal()">
+            Saltar e ir al Inicio
           </button>
         </div>
       </div>
@@ -3446,6 +3551,23 @@
 
           <div class="info-card">
             <h3 class="info-title" style="margin-top: 0">
+              <i class="icon ri-leaf-line"></i> Registro Ecológico Manual
+            </h3>
+            <div class="info-body-text" style="background: transparent; border: none; padding: 0">
+              <p>Además del rastreo automático, puedes registrar tus desplazamientos manualmente:</p>
+              <ul class="limits-list">
+                <li><strong>Calculadora Manual:</strong> Pulsa en el widget "Impacto Eco" de inicio para abrir la
+                  calculadora.</li>
+                <li><strong>Modos:</strong> Registra trayectos andando, en bici/VMP o transporte público indicando los
+                  kilómetros.</li>
+                <li><strong>Recompensa:</strong> Cada kilómetro sostenible registrado te otorga <strong>50 G$</strong>
+                  adicionales.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h3 class="info-title" style="margin-top: 0">
               <i class="icon ri-bus-wifi-fill"></i> Transporte Público
             </h3>
             <div class="info-body-text" style="background: transparent; border: none; padding: 0">
@@ -3583,6 +3705,24 @@
             </div>
           </div>
 
+          <div class="info-card" style="border-left: 4px solid var(--color-warning)">
+            <h3 class="info-title" style="margin-top: 0">
+              <i class="icon ri-calculator-line"></i> Herramientas de Ahorro y Perfil
+            </h3>
+            <div class="info-body-text" style="background: transparent; border: none; padding: 0">
+              <p>GranáGo incluye asistentes inteligentes para optimizar tus gastos:</p>
+              <ul class="limits-list">
+                <li><strong>Calculadora de Combustible:</strong> Disponible en la sección "Repostar". Permite calcular
+                  el coste de un viaje según el consumo de tu coche o cuánto te costará llenar el depósito.</li>
+                <li><strong>Configuración "Mi Vehículo":</strong> Pulsa el icono del coche (<i class="ri-car-line"></i>)
+                  en la sección de Vehículo Personal.</li>
+                <li><strong>Residencia y Distintivo:</strong> Configura si eres residente y tu etiqueta ambiental (B, C,
+                  ECO, 0). Esto permite que el <strong>Modo Conducción</strong> te avise mediante voz si intentas entrar
+                  en una zona restringida de la ZBE no permitida para tu vehículo.</li>
+              </ul>
+            </div>
+          </div>
+
           <div class="info-card">
             <h3 class="info-title" style="margin-top: 0">
               <i class="icon ri-taxi-fill"></i> Servicio de Taxi
@@ -3609,6 +3749,21 @@
                   aproximados desde el centro al Aeropuerto, Sierra Nevada y
                   otras capitales andaluzas.
                 </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h3 class="info-title" style="margin-top: 0">
+              <i class="icon ri-funds-box-line"></i> Estimador de Tarifas de Taxi
+            </h3>
+            <div class="info-body-text" style="background: transparent; border: none; padding: 0">
+              <p>Para evitar sorpresas, utiliza el estimador al final de la sección de Taxi:</p>
+              <ul class="limits-list">
+                <li><strong>Cálculo Dinámico:</strong> Introduce los kilómetros y el tipo de tarifa (Urbana, Interurbana
+                  o Mixta).</li>
+                <li><strong>Variables:</strong> El sistema aplica automáticamente los suplementos de 2026 y estima el
+                  tiempo de trayecto según el tráfico medio.</li>
               </ul>
             </div>
           </div>
@@ -3790,15 +3945,33 @@
               <ul class="limits-list">
                 <li>
                   <strong>🤖 Android / PC:</strong> Ve a la pestaña de
-                  **Ajustes** y pulsa en **"Instalar App"**. También puedes
+                  "Ajustes" y pulsa en "Instalar App". También puedes
                   usar el menú de tres puntos de tu navegador y seleccionar
                   "Instalar aplicación".
                 </li>
                 <li>
                   <strong>🍎 iOS (iPhone/iPad):</strong> Pulsa el botón
-                  **Compartir** (el icono del cuadrado con una flecha hacia
-                  arriba) en Safari y selecciona la opción **"Añadir a
-                  pantalla de inicio"**.
+                  "Compartir" (el icono del cuadrado con una flecha hacia
+                  arriba) en Safari y selecciona la opción "Añadir a
+                  pantalla de inicio".
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h3 class="info-title" style="margin-top: 0">
+              <i class="icon ri-chat-check-line"></i> Sugerencias y Estado de Mejoras
+            </h3>
+            <div class="info-body-text" style="background: transparent; border: none; padding: 0">
+              <p>Tu opinión influye directamente en las actualizaciones de la app:</p>
+              <ul class="limits-list">
+                <li><strong>Envío de Feedback:</strong> Desde Ajustes, puedes reportar errores o proponer ideas de forma
+                  anónima.</li>
+                <li><strong>Panel de Estado:</strong> En la pestaña "Estado" del formulario de feedback, podrás ver en
+                  tiempo real qué mejoras están <strong>en proceso</strong>, cuáles han sido
+                  <strong>solucionadas</strong> o qué nuevas funciones se han <strong>implementado</strong>
+                  recientemente.
                 </li>
               </ul>
             </div>
@@ -3818,6 +3991,7 @@
         </div>
       </div>
     </div>
+
     <div id="legal-view" class="view-section">
       <div class="section-header with-back-btn">
         <button onclick="navigateTo('ajustes')" class="icon-btn back-btn" aria-label="Volver atrás">

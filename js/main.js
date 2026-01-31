@@ -145,7 +145,8 @@ let minesConfig = {
   board: [],
   gameOver: false,
   flags: 0,
-  diff: 'easy'
+  diff: 'easy',
+  firstClick: true
 };
 
 let taxiMapInstance = null;
@@ -693,6 +694,10 @@ document.addEventListener("DOMContentLoaded", () => {
   initHomeDashboard();
   initCookieConsent();
   initSupportTimers();
+  const hasSeenWelcome = localStorage.getItem("granaGo_welcome_seen");
+  if (!hasSeenWelcome) {
+    document.getElementById("welcome-modal").classList.add("visible");
+  }
   const savedLang = localStorage.getItem("granaGo_selected_lang");
   const consent = localStorage.getItem("granaGo_cookie_consent");
 
@@ -6750,12 +6755,9 @@ window.useWordlePowerup = function () {
   if (useInventoryItem("pista-wordle")) {
     const letters = wordleConfig.originalTarget.split("");
     const randomChar = letters[Math.floor(Math.random() * letters.length)];
-    showNotification(
-      "Pista",
-      `La palabra contiene la letra: ${randomChar}`,
-      "info",
-    );
-    document.getElementById("btn-pwr-wordle").style.display = "none";
+    showNotification("Pista", `La palabra contiene la letra: ${randomChar}`, "info");
+
+    updatePowerUpButton("btn-pwr-wordle", "pista-wordle");
   }
 };
 
@@ -7271,18 +7273,14 @@ window.useSudokuPowerup = function () {
   }
 
   const idx = sudokuConfig.selectedCell;
-  if (
-    sudokuConfig.fixed[idx] ||
-    sudokuConfig.board[idx] === sudokuConfig.solution[idx]
-  ) {
-    return;
-  }
+  if (sudokuConfig.fixed[idx] || sudokuConfig.board[idx] === sudokuConfig.solution[idx]) return;
 
   if (useInventoryItem("celda-sudoku")) {
     const correctNum = sudokuConfig.solution[idx];
     handleSudokuLogic(correctNum);
-    document.getElementById("btn-pwr-sudoku").style.display = "none";
-    showNotification("Saber-doku", "Celda resuelta correctamente", "success");
+
+    updatePowerUpButton("btn-pwr-sudoku", "celda-sudoku");
+    showNotification("Saber-doku", "Celda resuelta", "success");
   }
 };
 
@@ -7659,33 +7657,20 @@ function updateMemoryStats() {
 }
 
 window.useMemoryPowerup = function () {
-  if (
-    memoryConfig.lockBoard ||
-    memoryConfig.pairsFound === memoryConfig.totalPairs
-  )
-    return;
+  if (memoryConfig.lockBoard || memoryConfig.pairsFound === memoryConfig.totalPairs) return;
 
   if (useInventoryItem("ojo-memory")) {
     memoryConfig.lockBoard = true;
-
     const allCards = document.querySelectorAll(".memory-card:not(.matched)");
-
     allCards.forEach((c) => c.classList.add("flip"));
 
     setTimeout(() => {
       allCards.forEach((c) => {
-        if (c !== memoryConfig.firstCard) {
-          c.classList.remove("flip");
-        }
+        if (c !== memoryConfig.firstCard) c.classList.remove("flip");
       });
-
       memoryConfig.lockBoard = false;
-      document.getElementById("btn-pwr-memory").style.display = "none";
-      showNotification(
-        "Ojo de Lince",
-        "¡Espero que las hayas memorizado!",
-        "info",
-      );
+
+      updatePowerUpButton("btn-pwr-memory", "ojo-memory");
     }, 2000);
 
     showNotification("Power-up", "Visualizando tablero...", "info");
@@ -7826,10 +7811,9 @@ window.useQuizPowerup = function () {
   if (useInventoryItem("mitad-quiz")) {
     const qData = quizConfig.roundQuestions[quizConfig.currentIdx];
     const btns = Array.from(document.querySelectorAll(".quiz-btn"));
-
     const incorrectBtns = btns.filter((btn) => {
       const btnText = btn.querySelector("span").innerText.trim();
-      return btnText !== qData.respuesta_correcta;
+      return btnText !== qData.respuesta_correcta && btn.style.opacity !== "0.2";
     });
 
     incorrectBtns.sort(() => 0.5 - Math.random());
@@ -7838,17 +7822,12 @@ window.useQuizPowerup = function () {
       if (incorrectBtns[i]) {
         incorrectBtns[i].style.opacity = "0.2";
         incorrectBtns[i].style.pointerEvents = "none";
-        incorrectBtns[i].querySelector("i").className =
-          "icon ri-close-circle-line";
+        incorrectBtns[i].querySelector("i").className = "icon ri-close-circle-line";
       }
     }
 
-    document.getElementById("btn-pwr-quiz").style.display = "none";
-    showNotification(
-      "Power-up",
-      "Se han eliminado dos respuestas incorrectas",
-      "info",
-    );
+    updatePowerUpButton("btn-pwr-quiz", "mitad-quiz");
+    showNotification("Power-up", "Opciones incorrectas eliminadas", "info");
   }
 };
 
@@ -8854,15 +8833,10 @@ window.useMastermindPowerup = function () {
       "ri-camera-lens-fill": "Cámara",
     };
 
-    const name = iconNames[iconClass] || "icono desconocido";
+    const name = iconNames[iconClass] || "icono";
+    showNotification("Eco-Código", `Pista: en el hueco ${pos + 1} hay un ${name}`, "info");
 
-    showNotification(
-      "Eco-Código",
-      `En la posición ${pos + 1} hay un: ${name}`,
-      "info",
-    );
-
-    document.getElementById("btn-pwr-mastermind").style.display = "none";
+    updatePowerUpButton("btn-pwr-mastermind", "codigo-mind");
   }
 };
 
@@ -9020,12 +8994,11 @@ window.useEncadenadasPowerup = function () {
 
   if (useInventoryItem("tiempo-encadenadas")) {
     encadenadasState.timeLeft += 15;
-
     if (encadenadasState.timeLeft > 45) encadenadasState.timeLeft = 45;
 
-    showNotification("Tiempo Extra", "¡Has ganado 15 segundos!", "success");
+    showNotification("Tiempo Extra", "¡+15 segundos añadidos!", "success");
 
-    document.getElementById("btn-pwr-encadenadas").style.display = "none";
+    updatePowerUpButton("btn-pwr-encadenadas", "tiempo-encadenadas");
 
     if (navigator.vibrate) navigator.vibrate(100);
   }
@@ -9048,26 +9021,14 @@ window.useAutoEncadenadasPowerup = function () {
     if (foundWord) {
       const input = document.getElementById("encadenadas-input");
       input.value = foundWord;
-
-      showNotification(
-        "Auto-Cadena",
-        `Palabra encontrada: ${foundWord.toUpperCase()}`,
-        "success",
-      );
+      showNotification("Auto-Cadena", `Palabra: ${foundWord.toUpperCase()}`, "success");
 
       setTimeout(() => {
         submitEncadenada();
-
-        document.getElementById("btn-auto-encadenadas").style.display = "none";
+        updatePowerUpButton("btn-auto-encadenadas", "auto-encadenadas");
       }, 500);
 
       if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
-    } else {
-      showNotification(
-        "Error",
-        "No se encontró ninguna palabra disponible",
-        "error",
-      );
     }
   }
 };
@@ -9738,6 +9699,17 @@ window.updateGamesMenuBalance = function () {
   }
 };
 
+const GAME_NAMES = {
+  "wordle": "Granádle",
+  "sudoku": "Granádoku",
+  "memory": "Granámory",
+  "quiz": "Granáquiz",
+  "mastermind": "Granámind",
+  "encadenadas": "Granábras Encadenadas",
+  "blackjack": "GranáJack",
+  "geograna": "GeoGraná",
+};
+
 window.renderShop = function () {
   const items = getShopItems();
   const savedBalance = localStorage.getItem("granaGo_bj_balance");
@@ -9802,22 +9774,28 @@ window.renderShop = function () {
     pwrContainer.innerHTML = items.powerups
       .map((p) => {
         const count = inventory[p.id] || 0;
+        const gameName = GAME_NAMES[p.game] || "Juego";
+
         return `
-        <div class="square-card" style="height: auto; min-height: 185px; padding: 18px 15px 15px 15px; display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
-          <div class="square-icon" style="background: var(--text-accent)1A; color: var(--text-accent); margin: 0 auto 8px auto; width: 44px; height: 44px;">
-            <i class="${p.icon}" style="font-size: 1.3rem;"></i>
-          </div>
-          <div style="text-align:center; flex: 1; display:flex; flex-direction:column; justify-content:center; width: 100%; margin-bottom: 12px;">
-             <span style="font-size:0.85rem; font-weight:800; display:block; line-height:1.2; margin-bottom: 3px;">${p.name}</span>
-             <p style="font-size:0.65rem; opacity:0.6; margin:0; line-height: 1.3;">${p.desc}</p>
-          </div>
-          <button class="cookie-btn secondary" 
-                  style="width: 100%; height: 42px; padding: 0; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0;" 
-                  onclick="buyItem('${p.id}', 'powerup')">
-            <span style="font-weight: 800;">${p.price} G$</span>
-            <span style="opacity: 0.5; font-size: 0.7rem; font-weight: 400;">(${count})</span>
-          </button>
-        </div>`;
+      <div class="square-card" style="height: auto; min-height: 200px; padding: 18px 15px 15px 15px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; position: relative;">
+        <span style="font-size: 0.6rem; font-weight: 800; text-transform: uppercase; color: var(--text-accent); background: var(--text-accent)1A; padding: 2px 8px; border-radius: 6px; margin-bottom: 8px;">
+          ${gameName}
+        </span>
+
+        <div class="square-icon" style="background: var(--text-accent)1A; color: var(--text-accent); margin: 0 auto 8px auto; width: 44px; height: 44px;">
+          <i class="${p.icon}" style="font-size: 1.3rem;"></i>
+        </div>
+        <div style="text-align:center; flex: 1; display:flex; flex-direction:column; justify-content:center; width: 100%; margin-bottom: 12px;">
+           <span style="font-size:0.85rem; font-weight:800; display:block; line-height:1.2; margin-bottom: 3px;">${p.name}</span>
+           <p style="font-size:0.65rem; opacity:0.6; margin:0; line-height: 1.3;">${p.desc}</p>
+        </div>
+        <button class="cookie-btn secondary" 
+                style="width: 100%; height: 42px; padding: 0; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0;" 
+                onclick="buyItem('${p.id}', 'powerup')">
+          <span style="font-weight: 800;">${p.price} G$</span>
+          <span style="opacity: 0.5; font-size: 0.7rem; font-weight: 400;">(${count})</span>
+        </button>
+      </div>`;
       })
       .join("");
   }
@@ -9886,6 +9864,14 @@ window.claimDailyReward = function () {
 
   if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 };
+
+function updatePowerUpButton(buttonId, itemId) {
+  const inventory = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+  if (!inventory[itemId] || inventory[itemId] <= 0) {
+    const btn = document.getElementById(buttonId);
+    if (btn) btn.style.display = "none";
+  }
+}
 
 const slotIcons = [
   "ri-bus-fill",
@@ -10309,14 +10295,14 @@ window.useGeoPowerUp = function (type) {
           btn.style.transform = "scale(1.05)";
         }
       });
-      document.getElementById("pu-reveal-btn").style.display = "none";
+      updatePowerUpButton("pu-reveal-btn", "geo-lince");
       showNotification("Geo-Lince", "Respuesta correcta resaltada", "success");
     }
   }
   else if (type === '5050') {
     if (useInventoryItem("geo-5050")) {
       const buttons = Array.from(document.querySelectorAll("#geo-options-grid .quiz-btn"));
-      let incorrectButtons = buttons.filter(btn => btn.dataset.answer !== correctAnswer);
+      let incorrectButtons = buttons.filter(btn => btn.dataset.answer !== correctAnswer && btn.style.opacity !== "0.2");
 
       incorrectButtons.sort(() => 0.5 - Math.random())
         .slice(0, 2)
@@ -10325,8 +10311,9 @@ window.useGeoPowerUp = function (type) {
           btn.disabled = true;
           btn.style.pointerEvents = "none";
         });
-      document.getElementById("pu-5050-btn").style.display = "none";
-      showNotification("50/50", "Eliminadas dos opciones falsas", "info");
+
+      updatePowerUpButton("pu-5050-btn", "geo-5050");
+      showNotification("50/50", "Opciones falsas eliminadas", "info");
     }
   }
 };
@@ -10806,16 +10793,25 @@ function initMinesBoard() {
   minesConfig.gameOver = false;
   minesConfig.flags = 0;
   minesConfig.board = [];
+  minesConfig.firstClick = true;
   const totalCells = minesConfig.rows * minesConfig.cols;
 
   for (let i = 0; i < totalCells; i++) {
     minesConfig.board.push({ mine: false, revealed: false, flagged: false, count: 0 });
   }
 
+  renderMinesBoard();
+  updateMinesStats();
+}
+
+function placeMinesSafe(firstIdx) {
+  const totalCells = minesConfig.rows * minesConfig.cols;
+  const forbiddenIdxs = new Set([firstIdx, ...getNeighbors(firstIdx)]);
+
   let placedMines = 0;
   while (placedMines < minesConfig.mines) {
     let idx = Math.floor(Math.random() * totalCells);
-    if (!minesConfig.board[idx].mine) {
+    if (!minesConfig.board[idx].mine && !forbiddenIdxs.has(idx)) {
       minesConfig.board[idx].mine = true;
       placedMines++;
     }
@@ -10827,9 +10823,6 @@ function initMinesBoard() {
       minesConfig.board[i].count = neighbors.filter(n => minesConfig.board[n].mine).length;
     }
   }
-
-  renderMinesBoard();
-  updateMinesStats();
 }
 
 function getNeighbors(idx) {
@@ -10888,6 +10881,11 @@ function renderMinesBoard() {
 
 function revealCell(idx) {
   if (minesConfig.gameOver || minesConfig.board[idx].revealed || minesConfig.board[idx].flagged) return;
+
+  if (minesConfig.firstClick) {
+    placeMinesSafe(idx);
+    minesConfig.firstClick = false;
+  }
 
   minesConfig.board[idx].revealed = true;
 
@@ -11150,3 +11148,18 @@ function applyWeatherTheme(code) {
     icon.className = `icon ${getWeatherIconName(code)}`;
   }
 }
+
+window.closeWelcomeModal = function () {
+  const modal = document.getElementById("welcome-modal");
+  if (modal) {
+    modal.classList.remove("visible");
+    localStorage.setItem("granaGo_welcome_seen", "true");
+  }
+};
+
+document.addEventListener("click", (e) => {
+  const welcomeModal = document.getElementById("welcome-modal");
+  if (welcomeModal && e.target === welcomeModal && welcomeModal.classList.contains("visible")) {
+    closeWelcomeModal();
+  }
+});
