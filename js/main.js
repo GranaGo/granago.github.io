@@ -9366,7 +9366,7 @@ function updateBJUI() {
           hideFirst && i === 0 && !bjState.gameOver
             ? `images/CartasSVG/traseraCartas.svg`
             : `images/CartasSVG/${c.value}_of_${c.suit}.svg`;
-        return `<img src="${src}" class="fade-in-up" style="height:100%; border-radius:8px; box-shadow: var(--shadow-soft);">`;
+        return `<img src="${src}" loading="lazy" class="fade-in-up" style="height:100%; border-radius:8px; box-shadow: var(--shadow-soft);">`;
       })
       .join("");
   };
@@ -11225,7 +11225,7 @@ function renderRadioList() {
 
     card.innerHTML = `
             <div class="radio-logo-wrapper">
-                <img src="${station.logo}" onerror="this.src='images/Logo.png'" alt="${station.name}">
+                <img src="${station.logo}" loading="lazy" onerror="this.src='images/Logo.png'" alt="${station.name}">
                 <div class="radio-equalizer">
                     <div class="eq-bar"></div>
                     <div class="eq-bar"></div>
