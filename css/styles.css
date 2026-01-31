@@ -3922,7 +3922,6 @@ body.driving-mode-on #cookie-banner {
   background: #000000 !important;
   opacity: 1 !important;
   z-index: 1001 !important;
-  padding-top: 5vh !important;
 }
 
 .taxi-container-card {
