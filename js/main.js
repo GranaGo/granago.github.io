@@ -37,6 +37,9 @@ let isMapDataLoaded = false;
 let allSearchableStops = [];
 let isNearbyPanelOpen = false;
 let realtimeCache = new Map();
+let currentRadioIdx = -1;
+let radioIsPlaying = false;
+let RADIO_STATIONS = [];
 
 let lineMapInstance = null;
 let currentLineTileLayer = null;
@@ -8068,6 +8071,7 @@ async function toggleDrivingMode() {
   if (!drivingModeActive) {
     await Promise.all([loadSpeedLimits(), initCamarasMap(), loadZBEDataForHUD()]);
     updateAchievement('driver_mode', 1);
+    cargarRadiosDesdeAPI();
 
     drivingModeActive = true;
 
@@ -8106,6 +8110,10 @@ async function toggleDrivingMode() {
     speak(msgs.active);
   } else {
     drivingModeActive = false;
+
+    const audio = document.getElementById('hud-audio-element');
+    audio.pause();
+    radioIsPlaying = false;
 
     if (hudUpdateInterval) clearInterval(hudUpdateInterval);
 
@@ -11163,3 +11171,125 @@ document.addEventListener("click", (e) => {
     closeWelcomeModal();
   }
 });
+
+async function cargarRadiosDesdeAPI() {
+  const listContainer = document.getElementById('radio-list-horizontal');
+  const statusInfo = document.getElementById('radio-status-info');
+
+  try {
+    const serversRes = await fetch("https://all.api.radio-browser.info/json/servers");
+    const servers = await serversRes.json();
+    const base_url = `https://${servers[0].name}/json/stations/search?`;
+    const urlEspana = `${base_url}countrycode=ES&https=true&order=clickcount&reverse=true&limit=1000`;
+    const urlMusicaMundo = `${base_url}tag=music&https=true&order=clickcount&reverse=true&limit=150`;
+    const [resEspana, resMundo] = await Promise.all([
+      fetch(urlEspana),
+      fetch(urlMusicaMundo)
+    ]);
+
+    const dataEspana = await resEspana.json();
+    const dataMundo = await resMundo.json();
+    const mapaRadios = new Map();
+
+    [...dataEspana, ...dataMundo].forEach(s => {
+      if (s.name && s.url_resolved && !mapaRadios.has(s.url_resolved)) {
+        mapaRadios.set(s.url_resolved, {
+          name: s.name.trim(),
+          url: s.url_resolved,
+          logo: s.favicon || 'images/Logo.png'
+        });
+      }
+    });
+
+    RADIO_STATIONS = Array.from(mapaRadios.values());
+
+    renderRadioList();
+    statusInfo.innerText = `${RADIO_STATIONS.length} emisoras listas para sonar`;
+
+  } catch (error) {
+    console.error("Error API Radio:", error);
+    statusInfo.innerText = "ERROR DE CARGA. REINTENTANDO...";
+    setTimeout(cargarRadiosDesdeAPI, 5000);
+  }
+}
+
+function renderRadioList() {
+  const container = document.getElementById('radio-list-horizontal');
+  container.innerHTML = "";
+
+  RADIO_STATIONS.forEach((station, index) => {
+    const card = document.createElement('div');
+    card.className = "radio-station-card";
+    card.id = `radio-card-${index}`;
+    card.onclick = () => toggleStation(index);
+
+    card.innerHTML = `
+            <div class="radio-logo-wrapper">
+                <img src="${station.logo}" onerror="this.src='images/Logo.png'" alt="${station.name}">
+                <div class="radio-equalizer">
+                    <div class="eq-bar"></div>
+                    <div class="eq-bar"></div>
+                    <div class="eq-bar"></div>
+                    <div class="eq-bar"></div>
+                </div>
+                <div class="radio-play-overlay">
+                    <i class="ri-play-fill"></i>
+                </div>
+            </div>
+            <span class="radio-card-name">${station.name}</span>
+        `;
+    container.appendChild(card);
+  });
+}
+
+window.toggleStation = async function (index) {
+  const audio = document.getElementById('hud-audio-element');
+  const statusInfo = document.getElementById('radio-status-info');
+
+  if (currentRadioIdx === index && radioIsPlaying) {
+    audio.pause();
+    audio.removeAttribute('src');
+    radioIsPlaying = false;
+    actualizarUIPlayer();
+    statusInfo.innerText = "PAUSADO";
+    return;
+  }
+
+  try {
+    if (currentRadioIdx !== index) {
+      audio.pause();
+      audio.src = RADIO_STATIONS[index].url;
+      currentRadioIdx = index;
+    }
+
+    statusInfo.innerText = "CONECTANDO...";
+    actualizarUIPlayer(true);
+
+    await audio.play();
+    radioIsPlaying = true;
+    actualizarUIPlayer();
+    statusInfo.innerText = `EN DIRECTO: ${RADIO_STATIONS[index].name}`;
+
+    if (navigator.vibrate) navigator.vibrate(30);
+  } catch (err) {
+    statusInfo.innerText = "ERROR DE CONEXIÓN";
+    actualizarUIPlayer();
+  }
+};
+
+function actualizarUIPlayer(isConnecting = false) {
+  document.querySelectorAll('.radio-station-card').forEach(c => c.classList.remove('active', 'playing'));
+
+  if (currentRadioIdx !== -1) {
+    const activeCard = document.getElementById(`radio-card-${currentRadioIdx}`);
+    if (activeCard) {
+      activeCard.classList.add('active');
+      if (radioIsPlaying) activeCard.classList.add('playing');
+
+      const icon = activeCard.querySelector('.radio-play-overlay i');
+      icon.className = radioIsPlaying ? 'ri-pause-fill' : 'ri-play-fill';
+
+      activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }
+}
