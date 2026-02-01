@@ -70,6 +70,7 @@ const ASSETS_TO_CACHE = [
   "./data/espprovincias.json",
   "./data/municipiosgranada.json",
   "./data/paisesmundo.json",
+  "./data/interurbano/tiempos_proximos.json",
   ...cartasAssets,
 ];
 

@@ -1681,6 +1681,7 @@ async function loadAndProcessStops() {
     if (!window.appColors) window.appColors = {};
     window.appColors.urbano = urbanoColors;
     window.appColors.metro = metroColors;
+    window.appColors.interurbano = interColors;
 
     processStops(
       metroStops,
@@ -1770,10 +1771,11 @@ function processStops(
     const marker = L.marker([stop.lat, stop.lon], { icon: customIcon });
     let buttonHTML = "";
 
-    if (layerKey === "urbano" || layerKey === "metro") {
+    if (layerKey === "urbano" || layerKey === "metro" || layerKey === "interurbano") {
       let apiId = "";
       if (layerKey === "urbano") apiId = stop.stop_code;
       else if (layerKey === "metro") apiId = stop.stop_id;
+      else if (layerKey === "interurbano") apiId = stop.stop_id;
 
       if (apiId) {
         const safeName = stop.n.replace(/'/g, "\\'");
@@ -2523,6 +2525,57 @@ async function fetchRealTimeData(id, type) {
       const numericId = parseInt(id);
       const finalId = 100 + numericId;
       url = `${API_BASE}/metro/llegadas/${finalId}`;
+    } else if (type === "interurbano") {
+      const [resTiempos, resParadas] = await Promise.all([
+        fetch("data/interurbano/tiempos_proximos.json"),
+        fetch("data/interurbano/paradas.json")
+      ]);
+
+      const allData = await resTiempos.json();
+      const paradasInfo = await resParadas.json();
+      const stopData = allData[id];
+
+      if (!stopData) {
+        content.innerHTML = `<div class="status-message" style="text-align:center; padding:20px;">Sin horarios disponibles para esta parada.</div>`;
+        return;
+      }
+
+      const proximos = [];
+      const nowDate = new Date();
+      const currentTime = nowDate.getHours().toString().padStart(2, '0') + ":" +
+        nowDate.getMinutes().toString().padStart(2, '0');
+
+      const day = nowDate.getDay();
+      let dayKey = "L-J";
+      if (day === 5) dayKey = "V";
+      else if (day === 6) dayKey = "S";
+      else if (day === 0) dayKey = "D";
+
+      for (const [lineaId, schedule] of Object.entries(stopData)) {
+        const times = schedule[dayKey] || [];
+        const nextTimes = times.filter(t => t > currentTime).slice(0, 2);
+        const lineName = paradasInfo[lineaId]?.ida[0]?.nombre_linea || `Línea ${lineaId}`;
+
+        nextTimes.forEach(t => {
+          const [h, m] = t.split(":").map(Number);
+          const arrivalDate = new Date();
+          arrivalDate.setHours(h, m, 0, 0);
+          const diffMin = Math.round((arrivalDate - nowDate) / 60000);
+
+          proximos.push({
+            linea: lineaId,
+            destino: lineName,
+            minutos: diffMin,
+            horaExacta: t
+          });
+        });
+      }
+
+      proximos.sort((a, b) => a.minutos - b.minutos);
+
+      renderRealTimeResults({ proximos }, "interurbano");
+      realtimeCache.set(cacheKey, { data: { proximos }, timestamp: Date.now() });
+      return;
     }
 
     const res = await fetch(url, { priority: 'high' });
@@ -2598,13 +2651,18 @@ function renderRealTimeResults(data, type) {
         "i",
       );
       const destinoClean = p.destino.replace(regexRedundancy, "").trim();
-      const timeObj = formatTime(p.minutos, "urbano");
+      let timeObj;
+      if (type === "interurbano" && p.minutos > 30) {
+        timeObj = { text: p.horaExacta, class: "time-bus" };
+      } else {
+        timeObj = formatTime(p.minutos, "urbano");
+      }
       const realColor =
         window.appColors &&
-          window.appColors.urbano &&
-          window.appColors.urbano[lineId]
-          ? window.appColors.urbano[lineId]
-          : "#D9281C";
+          window.appColors[type] &&
+          window.appColors[type][lineId]
+          ? window.appColors[type][lineId]
+          : (type === "interurbano" ? "#2757f5" : "#D9281C");
       html += createRowHTML(timeObj, lineId, realColor, null, destinoClean);
     });
   }
@@ -2790,10 +2848,14 @@ function renderFavoritesList() {
 
     favStops.forEach((f) => {
       let iconClass = f.type === "metro" ? "ri-train-fill" : "ri-bus-fill";
-      let bgStyle =
-        f.type === "metro"
-          ? "background: rgba(0, 154, 68, 0.1); color:#009a44;"
-          : "background: rgba(217, 40, 28, 0.1); color:#D9281C;";
+      let bgStyle = f.type === "metro"
+        ? "background: rgba(0, 154, 68, 0.1); color:#009a44;"
+        : "background: rgba(217, 40, 28, 0.1); color:#D9281C;";
+
+      if (f.type === "interurbano") {
+        iconClass = "ri-bus-2-fill";
+        bgStyle = "background: rgba(39, 87, 245, 0.1); color:#2757f5;";
+      }
       const safeName = f.name.replace(/'/g, "\\'");
 
       const card = document.createElement("div");
