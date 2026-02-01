@@ -2470,7 +2470,7 @@ window.openRealTimeModal = function (apiId, type, stopName) {
   title.innerText = stopName;
   content.innerHTML = '<div class="spinner" style="margin: 30px auto;"></div>';
   modal.classList.add("visible");
-  if (type === "urbano" || type === "metro") {
+  if (type === "urbano" || type === "metro" || type === "interurbano") {
     trackRecentItem("granaGo_recent_stops", {
       id: apiId,
       type,
@@ -5498,13 +5498,14 @@ async function updateHomeRecentWidgets() {
     if (recentStops.length === 0) {
       stopsContainer.innerHTML = `<div class="summary-sub">No has consultado paradas todavía.</div>`;
     } else {
-      if (!window.appColors || !window.appColors.urbano || !window.appColors.metro) {
+      if (!window.appColors || !window.appColors.urbano || !window.appColors.metro || !window.appColors.interurbano) {
         try {
           const [uCol, mCol] = await Promise.all([
             fetch("data/urbano/colores.json").then(r => r.json()),
-            fetch("data/metro/colores.json").then(r => r.json())
+            fetch("data/metro/colores.json").then(r => r.json()),
+            fetch("data/interurbano/colores.json").then(r => r.json())
           ]);
-          window.appColors = { ...window.appColors, urbano: uCol, metro: mCol };
+          window.appColors = { ...window.appColors, urbano: uCol, metro: mCol, interurbano: iCol };
         } catch (e) {
           console.warn("Error cargando colores");
         }
@@ -5516,8 +5517,15 @@ async function updateHomeRecentWidgets() {
         btn.className = "transport-card";
         btn.style.cssText = "width: 100%; padding: 10px; margin: 0; border-radius: 12px; border: 1px solid var(--border-subtle); justify-content: flex-start; gap: 10px; background: var(--bg-app); color: var(--text-primary); display: flex; align-items: center;";
 
-        const icon = s.type === "metro" ? "ri-train-fill" : "ri-bus-fill";
-        const brandColor = s.type === "metro" ? "#009a44" : "#D9281C";
+        let icon = "ri-bus-fill";
+        let brandColor = "#D9281C";
+        if (s.type === "metro") {
+          icon = "ri-train-fill";
+          brandColor = "#009a44";
+        } else if (s.type === "interurbano") {
+          icon = "ri-bus-2-fill";
+          brandColor = "#2757f5";
+        }
         const safeName = s.name.replace(/'/g, "\\'");
 
         let linesHtml = "";
@@ -6397,7 +6405,6 @@ function calculateNearbyStops(lat, lng) {
 }
 
 function createNearbyItemHTML(stop) {
-  const isInter = stop.layerKey === "interurbano";
   const distDisplay =
     stop.distance < 1
       ? Math.round(stop.distance * 1000) + " m"
@@ -6408,28 +6415,22 @@ function createNearbyItemHTML(stop) {
   if (stop.layerKey === "metro") color = "#009a44";
   if (stop.layerKey === "interurbano") color = "#2757f5";
 
-  let actionsHtml = "";
-  if (!isInter) {
-    const safeName = stop.name.replace(/'/g, "\\'");
-    const safeLines = (stop.lines || "").replace(/'/g, "\\'");
+  const safeName = stop.name.replace(/'/g, "\\'");
+  const safeLines = (stop.lines || "").replace(/'/g, "\\'");
 
-    const favs = getFavorites();
-    const isFav = favs.some((f) => f.id == stop.id);
-    const starIcon = isFav ? "ri-star-fill" : "ri-star-line";
-    const starClass = isFav ? "active" : "";
+  const favs = getFavorites();
+  const isFav = favs.some((f) => f.id == stop.id);
+  const starIcon = isFav ? "ri-star-fill" : "ri-star-line";
+  const starClass = isFav ? "active" : "";
 
-    actionsHtml = `
-            <button class="icon-btn-small" onclick="openRealTimeModal('${stop.id
-      }', '${stop.layerKey}', '${safeName}')">
-                <i class="icon ri-search-line" style="font-size:1.2rem; color:var(--text-primary);"></i>
-            </button>
-            <button class="icon-btn-small ${starClass}" onclick="toggleFavorite('${stop.id
-      }', '${stop.layerKey}', '${safeName}', '${safeLines}', this)">
-                <i class="icon ${starIcon}" style="font-size:1.2rem; color:${isFav ? "#fbbf24" : "var(--text-secondary)"
-      };"></i>
-            </button>
-        `;
-  }
+  let actionsHtml = `
+          <button class="icon-btn-small" onclick="openRealTimeModal('${stop.id}', '${stop.layerKey}', '${safeName}')">
+              <i class="icon ri-search-line" style="font-size:1.2rem; color:var(--text-primary);"></i>
+          </button>
+          <button class="icon-btn-small ${starClass}" onclick="toggleFavorite('${stop.id}', '${stop.layerKey}', '${safeName}', '${safeLines}', this)">
+              <i class="icon ${starIcon}" style="font-size:1.2rem; color:${isFav ? "#fbbf24" : "var(--text-secondary)"};"></i>
+          </button>
+      `;
 
   const mapBtn = `
         <button class="icon-btn-small" onclick="flyToStopFromList(${stop.lat}, ${stop.lon})">
