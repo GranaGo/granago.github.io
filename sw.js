@@ -1,31 +1,5 @@
 const CACHE_NAME = 'granago-v1769978513';
 
-const palos = ["clubs", "diamonds", "hearts", "spades"];
-const valores = [
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "10",
-  "jack",
-  "queen",
-  "king",
-  "ace",
-];
-const cartasAssets = [];
-
-palos.forEach((palo) => {
-  valores.forEach((valor) => {
-    cartasAssets.push(`./images/CartasSVG/${valor}_of_${palo}.svg`);
-  });
-});
-
-cartasAssets.push("./images/CartasSVG/traseraCartas.svg");
-
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -40,38 +14,7 @@ const ASSETS_TO_CACHE = [
   "./images/Logo.png",
   "./images/Logo192x192.png",
   "./images/Logo512x512.png",
-  "./fonts/remixicon.woff2",
-  "./data/metro/paradas.json",
-  "./data/metro/colores.json",
-  "./data/metro/rutas.json",
-  "./data/metro/horarios.json",
-  "./data/urbano/paradas.json",
-  "./data/urbano/colores.json",
-  "./data/urbano/rutas.json",
-  "./data/urbano/horarios.json",
-  "./data/interurbano/paradas.json",
-  "./data/interurbano/colores.json",
-  "./data/interurbano/rutas.json",
-  "./data/interurbano/horarios.json",
-  "./data/poi_final.geojson",
-  "./data/camaras_granada.kml",
-  "./data/aparcamiento_limitado_granada.kml",
-  "./data/zonas_restringidas.kml",
-  "./data/radares.json",
-  "./data/palabras.json",
-  "./data/trivial.json",
-  "./data/taxi_granada.kml",
-  "./data/parkings.csv",
-  "./data/encadenadas.json",
-  "./data/zbe.geojson",
-  "./data/velocidad.json",
-  "./data/carrilbici.kml",
-  "./data/parkingbici.kml",
-  "./data/espprovincias.json",
-  "./data/municipiosgranada.json",
-  "./data/paisesmundo.json",
-  "./data/interurbano/tiempos_proximos.json",
-  ...cartasAssets,
+  "./fonts/remixicon.woff2"
 ];
 
 self.addEventListener("install", (event) => {
