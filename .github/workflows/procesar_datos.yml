@@ -25,8 +25,11 @@ jobs:
       - name: 📦 Instalar dependencias
         run: pip install pandas pypdf
 
-      - name: ⚙️ Ejecutar script de conversión
+      - name: ⚙️ Ejecutar script de conversión de GTFS
         run: python scripts/procesar_gtfs.py
+
+      - name: ⚙️ Ejecutar script de tiempos estimados Interurbanos
+        run: python scripts/gtfs_tiempos_int.py
 
       - name: 📸 Procesar Radares PDF
         run: python scripts/procesar_radares.py
