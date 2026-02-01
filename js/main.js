@@ -40,6 +40,7 @@ let realtimeCache = new Map();
 let currentRadioIdx = -1;
 let radioIsPlaying = false;
 let RADIO_STATIONS = [];
+let currentRTController = null;
 
 let lineMapInstance = null;
 let currentLineTileLayer = null;
@@ -2505,11 +2506,14 @@ async function fetchRealTimeData(id, type) {
 
   if (realtimeCache.has(cacheKey)) {
     const cached = realtimeCache.get(cacheKey);
-    if (now - cached.timestamp < 30000) {
+    if (now - cached.timestamp < 20000) {
       renderRealTimeResults(cached.data, type);
       return;
     }
   }
+
+  if (currentRTController) currentRTController.abort();
+  currentRTController = new AbortController();
 
   try {
     let url = "";
@@ -2527,6 +2531,7 @@ async function fetchRealTimeData(id, type) {
     realtimeCache.set(cacheKey, { data, timestamp: now });
     renderRealTimeResults(data, type);
   } catch (e) {
+    if (e.name === 'AbortError') return;
     console.error("Error Tiempos:", e);
     const currentHour = new Date().getHours();
     const isNightTime = currentHour >= 0 && currentHour < 7;
@@ -6273,16 +6278,17 @@ window.toggleNearbyPanel = function () {
 function calculateNearbyStops(lat, lng) {
   const content = document.getElementById("nearby-list-content");
 
-  if (!allSearchableStops || allSearchableStops.length === 0) {
-    content.innerHTML =
-      '<p style="text-align:center;">No hay datos de paradas cargados aún.</p>';
-    return;
-  }
+  if (!allSearchableStops || allSearchableStops.length === 0) return;
 
-  const withDistance = allSearchableStops.map((stop) => {
-    const dist = getDistanceFromLatLonInKm(lat, lng, stop.lat, stop.lon);
-    return { ...stop, distance: dist };
-  });
+  const ROUGH_DELTA = 0.02;
+  const candidates = allSearchableStops.filter(stop =>
+    Math.abs(stop.lat - lat) < ROUGH_DELTA && Math.abs(stop.lon - lng) < ROUGH_DELTA
+  );
+
+  const withDistance = candidates.map((stop) => ({
+    ...stop,
+    distance: getDistanceFromLatLonInKm(lat, lng, stop.lat, stop.lon)
+  }));
 
   const urbanos = withDistance
     .filter((s) => s.layerKey === "urbano")

@@ -2808,18 +2808,25 @@ body.dark-mode .map-loader {
 
 .arrival-badge-box {
   color: #fff;
-  padding: 4px 0;
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: 800;
   width: 40px;
+  height: 32px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   text-align: center;
-  display: inline-block;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .arrival-dest-text {
   font-weight: 600;
   font-size: 0.95rem;
   line-height: 1.2;
+  margin-left: 10px;
+  margin-right: 10px;
 }
 
 .arrival-time-value {
