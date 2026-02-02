@@ -701,6 +701,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initHomeDashboard();
   initCookieConsent();
   initSupportTimers();
+  initConnectionTracker();
   const hasSeenWelcome = localStorage.getItem("granaGo_welcome_seen");
   if (!hasSeenWelcome) {
     document.getElementById("welcome-modal").classList.add("visible");
@@ -938,18 +939,14 @@ function showPlacesLoader(visible) {
   }
 }
 
-window.showNotification = function (title, message, type = "info") {
+window.showNotification = function (title, message, type = "info", duration = 2500) {
   const container = document.getElementById("notification-container");
   if (!container) return;
 
   const lastToast = container.lastElementChild;
   if (lastToast) {
-    const lastTitle = lastToast.querySelector(
-      ".notification-title",
-    )?.textContent;
-    const lastMessage = lastToast.querySelector(
-      ".notification-message",
-    )?.textContent;
+    const lastTitle = lastToast.querySelector(".notification-title")?.textContent;
+    const lastMessage = lastToast.querySelector(".notification-message")?.textContent;
 
     if (lastTitle === title && lastMessage === message) {
       return;
@@ -978,7 +975,7 @@ window.showNotification = function (title, message, type = "info") {
     toast.addEventListener("animationend", () => {
       toast.remove();
     });
-  }, 2500);
+  }, duration);
 };
 
 function initTheme() {
@@ -11581,3 +11578,37 @@ window.prevRadio = function () {
   let prev = (currentRadioIdx - 1 + RADIO_STATIONS.length) % RADIO_STATIONS.length;
   toggleStation(prev);
 };
+
+function initConnectionTracker() {
+  if (!navigator.onLine) {
+    showOfflineNotice();
+  }
+
+  window.addEventListener('offline', () => {
+    showOfflineNotice();
+  });
+
+  window.addEventListener('online', () => {
+    const container = document.getElementById("notification-container");
+    if (container) {
+      const activeOfflineToasts = container.querySelectorAll(".toast-error");
+      activeOfflineToasts.forEach(t => t.remove());
+    }
+
+    showNotification(
+      "Conexión restablecida",
+      "Vuelves a tener internet. Todas las funciones de la aplicación están accesibles de nuevo.",
+      "success",
+      5000
+    );
+  });
+}
+
+function showOfflineNotice() {
+  showNotification(
+    "Sin conexión",
+    "Estás navegando sin internet. Recuerda que algunas funciones pueden dar error o no ser accesibles.",
+    "error",
+    15000
+  );
+}
