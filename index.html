@@ -69,6 +69,26 @@
       </div>
 
       <div id="home-dashboard-grid" class="home-dashboard-grid fade-in-up">
+        <div class="summary-card widget-driving" onclick="toggleDrivingMode()">
+          <div class="summary-header">
+            <div class="summary-icon"><i class="ri-steering-2-fill"></i></div>
+            <span class="summary-title" id="driving-widget-title">Modo Conducción</span>
+          </div>
+          <div id="home-driving-content" class="mini-list-container">
+            <div class="skeleton-text"></div>
+          </div>
+        </div>
+
+        <div class="summary-card widget-radio" onclick="navigateTo('radio')">
+          <div class="summary-header">
+            <div class="summary-icon"><i class="ri-radio-2-fill"></i></div>
+            <span class="summary-title" id="radio-widget-title">Radio Graná</span>
+          </div>
+          <div id="home-radio-content" class="mini-list-container">
+            <div class="skeleton-text"></div>
+          </div>
+        </div>
+
         <div class="summary-card widget-event" onclick="navigateTo('cortes')">
           <div class="summary-header">
             <div class="summary-icon"><i class="ri-calendar-event-fill"></i></div>
@@ -354,6 +374,55 @@
         </div>
       </div>
     </div>
+
+    <div id="radio-view" class="view-section">
+      <div class="section-header with-back-btn">
+        <button onclick="navigateTo('home')" class="icon-btn back-btn" aria-label="Volver atrás">
+          <i class="icon ri-arrow-left-line"></i>
+        </button>
+        <div>
+          <h2>Radio Graná</h2>
+          <p>Emisoras en directo</p>
+        </div>
+      </div>
+
+      <div class="fade-in-up" style="padding-bottom: 120px">
+        <div class="info-card radio-player-container"
+          style="text-align: center; padding: 30px 20px; margin-bottom: 25px;">
+          <div id="radio-current-logo" class="player-logo-large">
+            <i class="ri-radio-2-line" style="font-size: 4rem; opacity: 0.2;"></i>
+          </div>
+          <h3 id="radio-current-name" style="margin: 15px 0 5px 0;">Selecciona una emisora</h3>
+          <p id="radio-current-status" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 20px;">
+            Listo para sonar</p>
+
+          <div class="player-controls">
+            <button class="icon-btn control-btn" onclick="prevRadio()" aria-label="Atrás"><i
+                class="ri-skip-back-fill"></i></button>
+            <button id="radio-main-play-btn" class="icon-btn play-btn-large" onclick="toggleMainPlayer()"
+              aria-label="Reproducir/Pausa">
+              <i class="ri-play-fill"></i>
+            </button>
+            <button class="icon-btn control-btn" onclick="nextRadio()" aria-label="Siguiente"><i
+                class="ri-skip-forward-fill"></i></button>
+          </div>
+
+          <button id="btn-fav-radio" class="icon-btn fav-main-btn" onclick="toggleRadioFav()">
+            <i class="ri-star-line"></i> Añadir a favoritos
+          </button>
+        </div>
+
+        <h3 class="info-title">Todas las emisoras</h3>
+        <div id="radio-view-list" class="radio-list-horizontal-large">
+          <div class="spinner" style="margin: 20px auto"></div>
+        </div>
+        <div id="radio-view-status-info"
+          style="text-align: center; font-size: 0.75rem; color: var(--text-secondary); margin-top: 10px; text-transform: uppercase;">
+          Cargando sintonías...
+        </div>
+      </div>
+    </div>
+
     <div id="weather-view" class="view-section">
       <div class="section-header with-back-btn">
         <button onclick="navigateTo('home')" class="icon-btn back-btn" aria-label="Volver atrás">
@@ -964,7 +1033,6 @@
         <button id="btn-nearby-trigger" onclick="toggleNearbyPanel()" class="btn-nearby-float">
           <i class="icon ri-map-pin-user-fill"></i> Paradas Cercanas
         </button>
-
         <div id="nearby-overlay" class="nearby-overlay" onclick="toggleNearbyPanel()">
           <div class="nearby-card gpu-accelerated" onclick="event.stopPropagation()">
             <div class="modal-header">

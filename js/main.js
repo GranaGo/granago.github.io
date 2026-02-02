@@ -41,6 +41,7 @@ let currentRadioIdx = -1;
 let radioIsPlaying = false;
 let RADIO_STATIONS = [];
 let currentRTController = null;
+let radioStartedFromHUD = false;
 
 let lineMapInstance = null;
 let currentLineTileLayer = null;
@@ -115,6 +116,7 @@ let carrilBiciLayer = null;
 let parkingBiciLayer = null;
 let sostenibleDataLoaded = false;
 let sostenibleUserMarker = null;
+let dragStartIndex = null;
 
 let wordleSetupHTML = "";
 let isMuted = false;
@@ -757,7 +759,7 @@ window.navigateTo = async function (viewId, addToHistory = true) {
     "zbe",
     "taxi-vtc",
     "movilidad-sostenible",
-    "weather",
+    "weather"
   ];
   if (fullScreenMapViews.includes(viewId)) {
     document.body.classList.add("noscroll");
@@ -819,6 +821,7 @@ window.navigateTo = async function (viewId, addToHistory = true) {
     updateHomeRecentWidgets();
     updateHomeEcoWidget();
     updateHomeAchievementsWidget();
+    updateHomeRadioWidget();
   } else if (viewId === "weather") {
     if (!weatherLocationActive) {
       const favs = getWeatherFavorites();
@@ -884,6 +887,13 @@ window.navigateTo = async function (viewId, addToHistory = true) {
       '.dock-item[data-target="juegos"]',
     );
     if (juegosBtn) juegosBtn.classList.add("active");
+  } else if (viewId === "radio") {
+    if (RADIO_STATIONS.length === 0) {
+      cargarRadiosDesdeAPI();
+    } else {
+      renderRadioList();
+      actualizarUIPlayer();
+    }
   }
 };
 
@@ -4981,10 +4991,14 @@ const ALL_WIDGETS = {
   fuel: { id: 'fuel', title: 'Combustible', icon: 'ri-gas-station-fill', class: 'widget-fuel', action: "navigateTo('repostar')", render: updateHomeFuel },
   achievements: { id: 'achievements', title: 'Próximos Logros', icon: 'ri-medal-line', class: 'widget-achievements', render: updateHomeAchievementsWidget },
   stops: { id: 'stops', title: 'Paradas Recientes', icon: 'ri-history-line', class: 'widget-recent-stops', action: "navigateTo('paradas')", render: updateHomeRecentWidgets },
-  games: { id: 'games', title: 'Últimos Juegos', icon: 'ri-play-list-add-line', class: 'widget-recent-games', action: "navigateTo('juegos')", render: updateHomeRecentWidgets }
+  games: { id: 'games', title: 'Últimos Juegos', icon: 'ri-play-list-add-line', class: 'widget-recent-games', action: "navigateTo('juegos')", render: updateHomeRecentWidgets },
+  driving: { id: 'driving', title: 'Modo Conducción', icon: 'ri-steering-2-fill', class: 'widget-driving', action: "toggleDrivingMode()", render: updateHomeDrivingWidget },
+  radio: { id: 'radio', title: 'Radio Graná', icon: 'ri-radio-2-fill', class: 'widget-radio', action: "navigateTo('radio')", render: updateHomeRadioWidget }
 };
 
 const DEFAULT_LAYOUT = [
+  { id: 'driving', active: true },
+  { id: 'radio', active: true },
   { id: 'event', active: true },
   { id: 'eco', active: true },
   { id: 'parking', active: true },
@@ -5034,7 +5048,7 @@ async function renderHomeDashboard() {
     });
   }
 
-  const priorityOrder = ['bus', 'parking', 'fuel', 'stops', 'eco', 'achievements', 'games', 'event'];
+  const priorityOrder = ['driving', 'bus', 'parking', 'fuel', 'radio', 'stops', 'eco', 'achievements', 'games', 'event'];
 
   priorityOrder.forEach((id, index) => {
     const w = ALL_WIDGETS[id];
@@ -5058,33 +5072,56 @@ function renderEditorList() {
     const w = ALL_WIDGETS[item.id];
     if (!w) return;
 
-    const isActive = item.active;
-    const bgColor = isActive ? 'var(--text-accent)' : '#cbd5e1';
-    const transformX = isActive ? 'translateX(20px)' : 'translateX(0px)';
-
     const row = document.createElement('div');
-    row.className = 'transport-card';
-    row.style.cssText = 'padding: 12px; justify-content: space-between; margin: 0;';
+    row.className = 'transport-card editor-row';
+    row.style.cssText = 'padding: 10px 15px; justify-content: space-between; margin: 0; cursor: grab;';
+    row.setAttribute('draggable', true);
+    row.dataset.index = index;
+
+    row.addEventListener('dragstart', (e) => {
+      dragStartIndex = index;
+      row.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    row.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      row.classList.add('drag-over');
+    });
+
+    row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+
+    row.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const dragEndIndex = index;
+      swapWidgets(dragStartIndex, dragEndIndex);
+      renderEditorList();
+    });
+
+    row.addEventListener('dragend', () => row.classList.remove('dragging'));
+
+    const isActive = item.active;
 
     row.innerHTML = `
-      <div style="display:flex; align-items:center; gap:12px;">
-        <div class="card-icon-wrapper" style="width:32px; height:32px; background:var(--text-accent)1A; color:var(--text-accent);">
-          <i class="${w.icon}" style="font-size:14px;"></i>
-        </div>
-        <span style="font-weight:600; font-size:0.9rem;">${w.title}</span>
-      </div>
-      <div style="display:flex; align-items:center; gap:8px;">
-        <button onclick="moveWidget(${index}, -1)" class="icon-btn-small" style="background:var(--bg-app); border:1px solid var(--border-subtle);"><i class="ri-arrow-up-s-line"></i></button>
-        <button onclick="moveWidget(${index}, 1)" class="icon-btn-small" style="background:var(--bg-app); border:1px solid var(--border-subtle);"><i class="ri-arrow-down-s-line"></i></button>
-        <div class="theme-switch ${isActive ? 'active' : ''}" 
-             onclick="toggleWidget(${index}, this)" 
-             style="transform: scale(0.8); margin-left: 5px; background: ${bgColor}; cursor: pointer;">
-          <div class="switch-handle" style="transform: ${transformX}; transition: transform 0.3s; left: 2px;"></div>
-        </div>
-      </div>
-    `;
+  <div style="display:flex; align-items:center; gap:12px; pointer-events:none;">
+    <i class="ri-drag-move-2-fill" aria-hidden="true"></i>
+    <span style="font-weight:600;">${w.title}</span>
+  </div>
+  <div style="display:flex; gap:8px;">
+    <button onclick="moveWidget(${index}, -1)" aria-label="Subir ${w.title}" class="icon-btn-small"><i class="ri-arrow-up-s-line"></i></button>
+    <button onclick="moveWidget(${index}, 1)" aria-label="Bajar ${w.title}" class="icon-btn-small"><i class="ri-arrow-down-s-line"></i></button>
+    <div role="switch" aria-checked="${isActive}" onclick="toggleWidget(${index}, this)" class="theme-switch ${isActive ? 'active' : ''}">
+      <div class="switch-handle"></div>
+    </div>
+  </div>
+`;
     list.appendChild(row);
   });
+}
+
+function swapWidgets(from, to) {
+  const item = homeLayout.splice(from, 1)[0];
+  homeLayout.splice(to, 0, item);
 }
 
 window.moveWidget = function (idx, dir) {
@@ -5486,6 +5523,59 @@ function extractLinesToSet(text, setObj) {
   }
 }
 
+function updateHomeDrivingWidget() {
+  const container = document.getElementById("home-driving-content");
+  if (!container) return;
+  container.innerHTML = `
+    <div class="summary-value" style="color:var(--text-accent); font-size:1.1rem;">Asistente Activo</div>
+    <div class="summary-sub">Toca para abrir el modo HUD, radares y velocidad.</div>
+  `;
+}
+
+function updateHomeRadioWidget() {
+  const container = document.getElementById("home-radio-content");
+  if (!container) return;
+
+  if (RADIO_STATIONS.length === 0) {
+    container.innerHTML = `<div class="skeleton-text" style="width:90%; height:44px; border-radius:12px;"></div>`;
+    cargarRadiosDesdeAPI();
+    return;
+  }
+
+  const favUrls = getRadioFavorites();
+  const recentStations = JSON.parse(localStorage.getItem("granaGo_recent_radios") || "[]");
+
+  const favorites = RADIO_STATIONS.filter(s => favUrls.includes(s.url)).slice(0, 2);
+
+  const filteredRecents = recentStations
+    .filter(rs => !favUrls.includes(rs.url))
+    .slice(0, 2);
+
+  const totalToShow = [...favorites, ...filteredRecents];
+
+  if (totalToShow.length === 0) {
+    container.innerHTML = `<div class="summary-sub">Tus emisoras favoritas y recientes aparecerán aquí.</div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="display: flex; gap: 10px; margin-top: 5px; overflow-x: auto; padding: 5px 2px;">
+      ${totalToShow.map(s => {
+    const isFav = favUrls.includes(s.url);
+    const originalIdx = RADIO_STATIONS.findIndex(rs => rs.url === s.url);
+    return `
+          <div class="radio-mini-logo ${isFav ? 'is-fav' : ''}" 
+               onclick="event.stopPropagation(); navigateTo('radio'); setTimeout(() => toggleStation(${originalIdx}), 300);"
+               style="cursor:pointer; position:relative;">
+            <img src="${s.logo}" onerror="this.src='images/Logo.png'" alt="${s.name}">
+            ${isFav ? '<i class="ri-star-fill mini-star"></i>' : ''}
+          </div>
+        `;
+  }).join('')}
+    </div>
+  `;
+}
+
 async function updateHomeRecentWidgets() {
   const stopsContainer = document.getElementById("home-stops-content");
   const gamesContainer = document.getElementById("home-games-content");
@@ -5500,7 +5590,7 @@ async function updateHomeRecentWidgets() {
     } else {
       if (!window.appColors || !window.appColors.urbano || !window.appColors.metro || !window.appColors.interurbano) {
         try {
-          const [uCol, mCol] = await Promise.all([
+          const [uCol, mCol, iCol] = await Promise.all([
             fetch("data/urbano/colores.json").then(r => r.json()),
             fetch("data/metro/colores.json").then(r => r.json()),
             fetch("data/interurbano/colores.json").then(r => r.json())
@@ -8138,9 +8228,18 @@ async function toggleDrivingMode() {
   const hud = document.getElementById("driving-hud");
 
   if (!drivingModeActive) {
+    if (!document.getElementById('camaras-view').classList.contains('active')) {
+      await navigateTo('camaras');
+    }
+    showNotification("Iniciando", "Cargando asistente de conducción...", "info");
     await Promise.all([loadSpeedLimits(), initCamarasMap(), loadZBEDataForHUD()]);
     updateAchievement('driver_mode', 1);
-    cargarRadiosDesdeAPI();
+    if (RADIO_STATIONS.length === 0) {
+      await cargarRadiosDesdeAPI();
+    } else {
+      renderRadioList();
+      actualizarUIPlayer();
+    }
 
     drivingModeActive = true;
 
@@ -8180,9 +8279,14 @@ async function toggleDrivingMode() {
   } else {
     drivingModeActive = false;
 
-    const audio = document.getElementById('hud-audio-element');
-    audio.pause();
-    radioIsPlaying = false;
+    if (radioStartedFromHUD && radioIsPlaying) {
+      const audio = document.getElementById('hud-audio-element');
+      if (audio) {
+        audio.pause();
+        radioIsPlaying = false;
+        actualizarUIPlayer();
+      }
+    }
 
     if (hudUpdateInterval) clearInterval(hudUpdateInterval);
 
@@ -11242,27 +11346,37 @@ document.addEventListener("click", (e) => {
 });
 
 async function cargarRadiosDesdeAPI() {
-  const listContainer = document.getElementById('radio-list-horizontal');
-  const statusInfo = document.getElementById('radio-status-info');
+  const statusInfoHUD = document.getElementById('radio-status-info');
+  const statusInfoView = document.getElementById('radio-view-status-info');
+
+  const updateStatusText = (text) => {
+    if (statusInfoHUD) statusInfoHUD.innerText = text;
+    if (statusInfoView) statusInfoView.innerText = text;
+  };
+
+  const cached = localStorage.getItem("granaGo_radio_cache");
+  if (cached) {
+    RADIO_STATIONS = JSON.parse(cached);
+    renderRadioList();
+    if (document.getElementById("home-view").classList.contains("active")) updateHomeRadioWidget();
+  }
 
   try {
-    const serversRes = await fetch("https://all.api.radio-browser.info/json/servers");
+    const serversRes = await fetch("https://all.api.radio-browser.info/json/servers", { priority: 'low' });
     const servers = await serversRes.json();
     const base_url = `https://${servers[0].name}/json/stations/search?`;
-    const urlEspana = `${base_url}countrycode=ES&https=true&order=clickcount&reverse=true&limit=1000`;
-    const urlMusicaMundo = `${base_url}tag=music&https=true&order=clickcount&reverse=true&limit=150`;
     const [resEspana, resMundo] = await Promise.all([
-      fetch(urlEspana),
-      fetch(urlMusicaMundo)
+      fetch(`${base_url}countrycode=ES&https=true&order=clickcount&reverse=true&limit=1000`),
+      fetch(`${base_url}tag=music&https=true&order=clickcount&reverse=true&limit=150`)
     ]);
 
-    const dataEspana = await resEspana.json();
-    const dataMundo = await resMundo.json();
+    const [dataEspana, dataMundo] = await Promise.all([resEspana.json(), resMundo.json()]);
     const mapaRadios = new Map();
 
     [...dataEspana, ...dataMundo].forEach(s => {
       if (s.name && s.url_resolved && !mapaRadios.has(s.url_resolved)) {
         mapaRadios.set(s.url_resolved, {
+          id: btoa(s.url_resolved).substring(0, 16),
           name: s.name.trim(),
           url: s.url_resolved,
           logo: s.favicon || 'images/Logo.png'
@@ -11271,56 +11385,78 @@ async function cargarRadiosDesdeAPI() {
     });
 
     RADIO_STATIONS = Array.from(mapaRadios.values());
+    localStorage.setItem("granaGo_radio_cache", JSON.stringify(RADIO_STATIONS));
 
-    renderRadioList();
-    statusInfo.innerText = `${RADIO_STATIONS.length} emisoras listas para sonar`;
+    requestIdleCallback(() => {
+      renderRadioList();
+      if (document.getElementById("home-view").classList.contains("active")) updateHomeRadioWidget();
+      updateStatusText(`${RADIO_STATIONS.length} EMISORAS SINTONIZADAS`);
+    });
 
   } catch (error) {
     console.error("Error API Radio:", error);
-    statusInfo.innerText = "ERROR DE CARGA. REINTENTANDO...";
-    setTimeout(cargarRadiosDesdeAPI, 5000);
+    updateStatusText("MODO OFFLINE / ERROR RED");
   }
 }
 
 function renderRadioList() {
-  const container = document.getElementById('radio-list-horizontal');
-  container.innerHTML = "";
+  const hudContainer = document.getElementById('radio-list-horizontal');
+  const viewContainer = document.getElementById('radio-view-list');
+  if (!hudContainer && !viewContainer) return;
 
-  RADIO_STATIONS.forEach((station, index) => {
-    const card = document.createElement('div');
-    card.className = "radio-station-card";
-    card.id = `radio-card-${index}`;
-    card.onclick = () => toggleStation(index);
-
-    card.innerHTML = `
-            <div class="radio-logo-wrapper">
-                <img src="${station.logo}" loading="lazy" onerror="this.src='images/Logo.png'" alt="${station.name}">
-                <div class="radio-equalizer">
-                    <div class="eq-bar"></div>
-                    <div class="eq-bar"></div>
-                    <div class="eq-bar"></div>
-                    <div class="eq-bar"></div>
-                </div>
-                <div class="radio-play-overlay">
-                    <i class="ri-play-fill"></i>
-                </div>
-            </div>
-            <span class="radio-card-name">${station.name}</span>
-        `;
-    container.appendChild(card);
+  const favs = getRadioFavorites();
+  const sortedIndices = RADIO_STATIONS.map((_, i) => i).sort((a, b) => {
+    return favs.includes(RADIO_STATIONS[b].url) - favs.includes(RADIO_STATIONS[a].url);
   });
+
+  const buildHTML = (container, isLarge = false) => {
+    if (!container) return;
+    const fragment = document.createDocumentFragment();
+
+    sortedIndices.forEach((idx) => {
+      const station = RADIO_STATIONS[idx];
+      const isFav = favs.includes(station.url);
+      const isCurrent = currentRadioIdx === idx;
+
+      const card = document.createElement('div');
+      card.className = `radio-station-card ${isFav ? 'is-favorite' : ''} ${isCurrent ? 'active' : ''}`;
+      if (isCurrent && radioIsPlaying) card.classList.add('playing');
+
+      card.innerHTML = `
+        <div class="radio-logo-wrapper" style="position: relative;">
+          <img src="${station.logo}" loading="lazy" decoding="async" onerror="this.src='images/Logo.png'" alt="${station.name}">
+          ${isFav ? '<i class="ri-star-fill" style="position:absolute; top:5px; right:5px; color:#fbbf24; z-index:10; text-shadow: 0 0 4px rgba(0,0,0,0.8);"></i>' : ''}
+          <div class="radio-equalizer"><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div></div>
+          <div class="radio-play-overlay"><i class="${isCurrent && radioIsPlaying ? 'ri-pause-fill' : 'ri-play-fill'}"></i></div>
+        </div>
+        <span class="radio-card-name">${station.name}</span>
+      `;
+      card.onclick = () => toggleStation(idx);
+      fragment.appendChild(card);
+    });
+
+    container.innerHTML = "";
+    container.appendChild(fragment);
+  };
+
+  buildHTML(hudContainer);
+  buildHTML(viewContainer, true);
 }
 
 window.toggleStation = async function (index) {
   const audio = document.getElementById('hud-audio-element');
   const statusInfo = document.getElementById('radio-status-info');
+  const station = RADIO_STATIONS[index];
+
+  if (!radioIsPlaying || currentRadioIdx !== index) {
+    radioStartedFromHUD = drivingModeActive;
+  }
 
   if (currentRadioIdx === index && radioIsPlaying) {
     audio.pause();
-    audio.removeAttribute('src');
     radioIsPlaying = false;
     actualizarUIPlayer();
-    statusInfo.innerText = "PAUSADO";
+    if (statusInfo) statusInfo.innerText = "PAUSADO";
     return;
   }
 
@@ -11344,21 +11480,95 @@ window.toggleStation = async function (index) {
     statusInfo.innerText = "ERROR DE CONEXIÓN";
     actualizarUIPlayer();
   }
+
+  if (station) {
+    trackRecentItem("granaGo_recent_radios", station, 4);
+
+    if (document.getElementById("home-view").classList.contains("active")) {
+      updateHomeRadioWidget();
+    }
+  }
 };
 
-function actualizarUIPlayer(isConnecting = false) {
-  document.querySelectorAll('.radio-station-card').forEach(c => c.classList.remove('active', 'playing'));
+function actualizarUIPlayer() {
+  const station = RADIO_STATIONS[currentRadioIdx];
+  const favs = getRadioFavorites();
 
-  if (currentRadioIdx !== -1) {
-    const activeCard = document.getElementById(`radio-card-${currentRadioIdx}`);
-    if (activeCard) {
-      activeCard.classList.add('active');
-      if (radioIsPlaying) activeCard.classList.add('playing');
+  document.querySelectorAll('.radio-station-card').forEach(card => {
+    const cardIdx = parseInt(card.id.split('-').pop());
+    card.classList.toggle('active', cardIdx === currentRadioIdx);
+    card.classList.toggle('playing', cardIdx === currentRadioIdx && radioIsPlaying);
 
-      const icon = activeCard.querySelector('.radio-play-overlay i');
-      icon.className = radioIsPlaying ? 'ri-pause-fill' : 'ri-play-fill';
+    const icon = card.querySelector('.radio-play-overlay i');
+    if (icon) {
+      icon.className = (cardIdx === currentRadioIdx && radioIsPlaying) ? 'ri-pause-fill' : 'ri-play-fill';
+    }
+  });
 
-      activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  if (currentRadioIdx !== -1 && station) {
+    const isFav = favs.includes(station.url);
+    const nameEl = document.getElementById('radio-current-name');
+    const logoEl = document.getElementById('radio-current-logo');
+    const playBtn = document.getElementById('radio-main-play-btn');
+    const favBtn = document.getElementById('btn-fav-radio');
+
+    if (nameEl) nameEl.innerText = station.name;
+    if (logoEl) logoEl.innerHTML = `<img src="${station.logo}" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">`;
+    if (playBtn) playBtn.innerHTML = `<i class="${radioIsPlaying ? 'ri-pause-fill' : 'ri-play-fill'}"></i>`;
+    if (favBtn) {
+      favBtn.innerHTML = `<i class="${isFav ? 'ri-star-fill' : 'ri-star-line'}"></i> ${isFav ? 'Favorito' : 'Añadir a favoritos'}`;
+      favBtn.style.color = isFav ? '#fbbf24' : 'inherit';
+    }
+
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: station.name,
+        artist: 'GranáGo Radio',
+        artwork: [{ src: station.logo, sizes: '512x512', type: 'image/png' }]
+      });
+      navigator.mediaSession.setActionHandler('play', () => toggleStation(currentRadioIdx));
+      navigator.mediaSession.setActionHandler('pause', () => toggleStation(currentRadioIdx));
     }
   }
 }
+
+function getRadioFavorites() {
+  return JSON.parse(localStorage.getItem("granaGo_radio_favs") || "[]");
+}
+
+window.toggleRadioFav = function () {
+  if (currentRadioIdx === -1) return;
+  const station = RADIO_STATIONS[currentRadioIdx];
+  let favs = getRadioFavorites();
+  const isFav = favs.includes(station.url);
+
+  if (isFav) {
+    favs = favs.filter(url => url !== station.url);
+    showNotification("Eliminado", "Quitado de favoritos", "info");
+  } else {
+    favs.push(station.url);
+    showNotification("Guardado", "Añadido a favoritos", "success");
+  }
+
+  localStorage.setItem("granaGo_radio_favs", JSON.stringify(favs));
+  actualizarUIPlayer();
+  renderRadioList();
+};
+
+window.toggleMainPlayer = function () {
+  if (currentRadioIdx === -1) {
+    toggleStation(0);
+  } else {
+    toggleStation(currentRadioIdx);
+  }
+};
+
+window.nextRadio = function () {
+  let next = (currentRadioIdx + 1) % RADIO_STATIONS.length;
+  toggleStation(next);
+};
+
+window.prevRadio = function () {
+  let prev = (currentRadioIdx - 1 + RADIO_STATIONS.length) % RADIO_STATIONS.length;
+  toggleStation(prev);
+};
