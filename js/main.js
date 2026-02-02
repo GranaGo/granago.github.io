@@ -24,6 +24,7 @@ let isManualUpdate = false;
 let weatherCache = {};
 let currentWeatherData = null;
 let weatherLocationActive = null;
+let tempHomeLayout = [];
 
 let mapInstance = null;
 let currentTileLayer = null;
@@ -5015,10 +5016,12 @@ const savedLayout = JSON.parse(localStorage.getItem('granaGo_home_layout'));
 if (savedLayout && Array.isArray(savedLayout)) {
   homeLayout = savedLayout.filter(item => ALL_WIDGETS[item.id]);
   DEFAULT_LAYOUT.forEach(def => {
-    if (!homeLayout.find(item => item.id === def.id)) homeLayout.push(def);
+    if (!homeLayout.find(item => item.id === def.id)) {
+      homeLayout.push({ ...def });
+    }
   });
 } else {
-  homeLayout = [...DEFAULT_LAYOUT];
+  homeLayout = DEFAULT_LAYOUT.map(item => ({ ...item }));
 }
 
 async function renderHomeDashboard() {
@@ -5059,6 +5062,7 @@ async function renderHomeDashboard() {
 }
 
 window.openHomeEditor = function () {
+  tempHomeLayout = JSON.parse(JSON.stringify(homeLayout));
   document.getElementById('home-editor-modal').classList.add('visible');
   renderEditorList();
 };
@@ -5068,7 +5072,7 @@ function renderEditorList() {
   if (!list) return;
   list.innerHTML = '';
 
-  homeLayout.forEach((item, index) => {
+  tempHomeLayout.forEach((item, index) => {
     const w = ALL_WIDGETS[item.id];
     if (!w) return;
 
@@ -5101,7 +5105,6 @@ function renderEditorList() {
     row.addEventListener('dragend', () => row.classList.remove('dragging'));
 
     const isActive = item.active;
-
     const switchBg = isActive ? 'var(--text-accent)' : '#cbd5e1';
     const handleTransform = isActive ? 'translateX(20px)' : 'translateX(0px)';
 
@@ -5111,10 +5114,9 @@ function renderEditorList() {
         <span style="font-weight:600;">${w.title}</span>
       </div>
       <div style="display:flex; gap:8px;">
-        <button onclick="moveWidget(${index}, -1)" aria-label="Subir" class="icon-btn-small"><i class="ri-arrow-up-s-line"></i></button>
-        <button onclick="moveWidget(${index}, 1)" aria-label="Bajar" class="icon-btn-small"><i class="ri-arrow-down-s-line"></i></button>
-        
-        <div role="switch" aria-checked="${isActive}" onclick="toggleWidget(${index}, this)" 
+        <button onclick="moveWidget(${index}, -1)" class="icon-btn-small"><i class="ri-arrow-up-s-line"></i></button>
+        <button onclick="moveWidget(${index}, 1)" class="icon-btn-small"><i class="ri-arrow-down-s-line"></i></button>
+        <div role="switch" onclick="toggleWidget(${index}, this)" 
              class="theme-switch ${isActive ? 'active' : ''}" 
              style="background: ${switchBg};">
           <div class="switch-handle" style="transform: ${handleTransform};"></div>
@@ -5126,22 +5128,22 @@ function renderEditorList() {
 }
 
 function swapWidgets(from, to) {
-  const item = homeLayout.splice(from, 1)[0];
-  homeLayout.splice(to, 0, item);
+  const item = tempHomeLayout.splice(from, 1)[0];
+  tempHomeLayout.splice(to, 0, item);
 }
 
 window.moveWidget = function (idx, dir) {
   const newIdx = idx + dir;
-  if (newIdx < 0 || newIdx >= homeLayout.length) return;
-  [homeLayout[idx], homeLayout[newIdx]] = [homeLayout[newIdx], homeLayout[idx]];
+  if (newIdx < 0 || newIdx >= tempHomeLayout.length) return;
+  [tempHomeLayout[idx], tempHomeLayout[newIdx]] = [tempHomeLayout[newIdx], tempHomeLayout[idx]];
   renderEditorList();
 };
 
 window.toggleWidget = function (idx, el) {
-  if (!homeLayout[idx]) return;
+  if (!tempHomeLayout[idx]) return;
 
-  homeLayout[idx].active = !homeLayout[idx].active;
-  const isActive = homeLayout[idx].active;
+  tempHomeLayout[idx].active = !tempHomeLayout[idx].active;
+  const isActive = tempHomeLayout[idx].active;
 
   el.classList.toggle('active', isActive);
   el.style.background = isActive ? 'var(--text-accent)' : '#cbd5e1';
@@ -5153,6 +5155,7 @@ window.toggleWidget = function (idx, el) {
 };
 
 window.saveHomeConfig = function () {
+  homeLayout = JSON.parse(JSON.stringify(tempHomeLayout));
   localStorage.setItem('granaGo_home_layout', JSON.stringify(homeLayout));
   closeHomeEditor();
   renderHomeDashboard();
