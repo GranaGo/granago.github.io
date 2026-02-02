@@ -5102,19 +5102,25 @@ function renderEditorList() {
 
     const isActive = item.active;
 
+    const switchBg = isActive ? 'var(--text-accent)' : '#cbd5e1';
+    const handleTransform = isActive ? 'translateX(20px)' : 'translateX(0px)';
+
     row.innerHTML = `
-  <div style="display:flex; align-items:center; gap:12px; pointer-events:none;">
-    <i class="ri-drag-move-2-fill" aria-hidden="true"></i>
-    <span style="font-weight:600;">${w.title}</span>
-  </div>
-  <div style="display:flex; gap:8px;">
-    <button onclick="moveWidget(${index}, -1)" aria-label="Subir ${w.title}" class="icon-btn-small"><i class="ri-arrow-up-s-line"></i></button>
-    <button onclick="moveWidget(${index}, 1)" aria-label="Bajar ${w.title}" class="icon-btn-small"><i class="ri-arrow-down-s-line"></i></button>
-    <div role="switch" aria-checked="${isActive}" onclick="toggleWidget(${index}, this)" class="theme-switch ${isActive ? 'active' : ''}">
-      <div class="switch-handle"></div>
-    </div>
-  </div>
-`;
+      <div style="display:flex; align-items:center; gap:12px; pointer-events:none;">
+        <i class="ri-drag-move-2-fill" aria-hidden="true"></i>
+        <span style="font-weight:600;">${w.title}</span>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button onclick="moveWidget(${index}, -1)" aria-label="Subir" class="icon-btn-small"><i class="ri-arrow-up-s-line"></i></button>
+        <button onclick="moveWidget(${index}, 1)" aria-label="Bajar" class="icon-btn-small"><i class="ri-arrow-down-s-line"></i></button>
+        
+        <div role="switch" aria-checked="${isActive}" onclick="toggleWidget(${index}, this)" 
+             class="theme-switch ${isActive ? 'active' : ''}" 
+             style="background: ${switchBg};">
+          <div class="switch-handle" style="transform: ${handleTransform};"></div>
+        </div>
+      </div>
+    `;
     list.appendChild(row);
   });
 }
