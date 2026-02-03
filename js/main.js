@@ -11907,3 +11907,9 @@ document.addEventListener("click", (e) => {
     }
   }
 });
+
+window.toggleHudLayout = function () {
+  const hud = document.getElementById('driving-hud');
+  hud.classList.toggle('hud-horizontal');
+  if (navigator.vibrate) navigator.vibrate(30);
+};

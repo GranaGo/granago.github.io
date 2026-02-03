@@ -2059,21 +2059,76 @@
           </button>
         </div>
 
-        <div id="driving-hud" style="
-          display: none;
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: #000000;
-          z-index: 999999;
-          flex-direction: column;
-          align-items: center;
-          justify-content: flex-start;
-          padding-top: 12vh;
-          color: white;
-        ">
+        <div id="driving-hud" class="gpu-accelerated" style="
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000000;
+    z-index: 999999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 12vh;
+    color: white;
+  ">
+
+          <style>
+            /* Transición suave para todos los elementos */
+            #driving-hud,
+            #hud-main-content,
+            #hud-actions,
+            #radio-list-horizontal {
+              transition: all 0.3s ease-in-out;
+            }
+
+            /* --- MODO HORIZONTAL (Se activa con la clase .hud-horizontal) --- */
+            #driving-hud.hud-horizontal {
+              padding-top: 0 !important;
+              justify-content: center !important;
+            }
+
+            #driving-hud.hud-horizontal #hud-main-content {
+              flex-direction: row !important;
+              width: 100% !important;
+              justify-content: space-evenly !important;
+              align-items: center !important;
+              padding: 0 120px 0 20px !important;
+              /* Espacio para botones a la derecha */
+            }
+
+            #driving-hud.hud-horizontal #hud-actions {
+              position: absolute !important;
+              right: 30px !important;
+              top: 50% !important;
+              bottom: auto !important;
+              left: auto !important;
+              transform: translateY(-50%) !important;
+              flex-direction: column !important;
+              width: auto !important;
+              gap: 20px !important;
+            }
+
+            #driving-hud.hud-horizontal #hud-radio-container {
+              width: 180px !important;
+              height: 70vh !important;
+              margin-top: 0 !important;
+            }
+
+            #driving-hud.hud-horizontal #radio-list-horizontal {
+              flex-direction: column !important;
+              overflow-y: auto !important;
+              overflow-x: hidden !important;
+              height: 100% !important;
+            }
+
+            #driving-hud.hud-horizontal #hud-speed {
+              font-size: 7rem !important;
+            }
+          </style>
+
           <div id="hud-status-bar"
             style="position: absolute; top: 20px; left: 0; width: 100%; display: flex; justify-content: space-between; padding: 0 30px; font-size: 1.2rem; font-weight: 700; opacity: 0.9; color: white; z-index: 10;">
             <div id="hud-clock">00:00</div>
@@ -2082,77 +2137,57 @@
               <span id="hud-battery-level">--%</span>
             </div>
           </div>
-          <div
-            style="text-align: center; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 15px;">
-            <div id="hud-speed-limit" style="
-                display: none;
-                z-index: 10;
-                margin-bottom: 20px;
-              "></div>
-            <div style="font-size: 4rem; font-weight: 800; line-height: 1" id="hud-speed">
-              0
-              <span style="font-size: 1.25rem; font-weight: 400; color: #aaa">km/h</span>
+
+          <div id="hud-main-content"
+            style="display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%;">
+
+            <div id="hud-speed-limit-container">
+              <div id="hud-speed-limit" style="display: none; z-index: 10;"></div>
+            </div>
+
+            <div id="hud-speed-display" style="text-align: center;">
+              <div style="font-size: 4rem; font-weight: 800; line-height: 1" id="hud-speed">
+                0 <span style="font-size: 1.25rem; font-weight: 400; color: #aaa">km/h</span>
+              </div>
+            </div>
+
+            <div id="hud-alert-container">
+              <div id="hud-alert" style="text-align: center; padding: 0 20px">
+                <i class="ri-road-map-line" style="font-size: 3rem; color: #10b981"></i>
+                <div style="font-size: 1.3rem; margin-top: 15px; font-weight: 600">Vía despejada</div>
+              </div>
+            </div>
+
+            <div id="hud-radio-container" style="width: 100%; margin-top: 20px; overflow: hidden;">
+              <div id="radio-list-horizontal"
+                style="display: flex; gap: 15px; overflow-x: auto; padding: 10px 20px; scrollbar-width: none; -ms-overflow-style: none;">
+              </div>
+              <div id="radio-status-info"
+                style="text-align: center; font-size: 0.75rem; color: #888; margin-top: 10px; text-transform: uppercase;">
+                Cargando emisoras...</div>
             </div>
           </div>
 
-          <div id="hud-alert" style="text-align: center; padding: 0 20px">
-            <i class="ri-road-map-line" style="font-size: 3rem; color: #10b981"></i>
-            <div style="font-size: 1.3rem; margin-top: 15px; font-weight: 600">
-              Vía despejada
-            </div>
-          </div>
+          <div id="hud-actions"
+            style="position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); display: flex; gap: 30px; align-items: center; width: 100%; justify-content: center;">
 
-          <div id="hud-radio-container" style="width: 100%; margin-top: 20px; overflow: hidden;">
-            <div id="radio-list-horizontal"
-              style="display: flex; gap: 15px; overflow-x: auto; padding: 10px 20px; scrollbar-width: none; -ms-overflow-style: none;">
-            </div>
-            <div id="radio-status-info"
-              style="text-align: center; font-size: 0.75rem; color: #888; margin-top: 10px; text-transform: uppercase;">
-              Cargando emisoras...
-            </div>
-            <audio id="hud-audio-element" preload="none"></audio>
-          </div>
-
-          <div style="
-                position: absolute;
-                bottom: 50px;
-                left: 50%;
-                transform: translateX(-50%);
-                display: flex;
-                gap: 40px;
-                align-items: center;
-                width: 100%;
-                justify-content: center;
-              ">
-            <button id="btn-mute-driving" onclick="toggleMute()" class="icon-btn" style="
-                  width: 90px;
-                  height: 90px;
-                  border-radius: 50%;
-                  background: #333;
-                  border: 1px solid #555;
-                  color: white;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                ">
-              <i class="ri-volume-up-fill" style="font-size: 2.5rem"></i>
+            <button id="btn-mute-driving" onclick="toggleMute()" class="icon-btn"
+              style="width: 80px; height: 80px; border-radius: 50%; background: #333; border: 1px solid #555; color: white; display: flex; align-items: center; justify-content: center;">
+              <i class="ri-volume-up-fill" style="font-size: 2.2rem"></i>
             </button>
 
-            <button onclick="toggleDrivingMode()" class="icon-btn" style="
-                  width: 100px;
-                  height: 100px;
-                  border-radius: 50%;
-                  background: #ef4444;
-                  border: 4px solid #7f1d1d;
-                  color: white;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  box-shadow: 0 0 25px rgba(239, 68, 68, 0.4);
-                ">
-              <i class="ri-close-line" style="font-size: 3.5rem"></i>
+            <button id="btn-layout-driving" onclick="toggleHudLayout()" class="icon-btn"
+              style="width: 80px; height: 80px; border-radius: 50%; background: #222; border: 1px solid #444; color: white; display: flex; align-items: center; justify-content: center;">
+              <i class="ri-layout-4-fill" style="font-size: 2.2rem"></i>
+            </button>
+
+            <button onclick="toggleDrivingMode()" class="icon-btn"
+              style="width: 90px; height: 90px; border-radius: 50%; background: #ef4444; border: 4px solid #7f1d1d; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(239, 68, 68, 0.4);">
+              <i class="ri-close-line" style="font-size: 3rem"></i>
             </button>
           </div>
+
+          <audio id="hud-audio-element" preload="none"></audio>
         </div>
         <div id="camaras-loader" class="map-loader visible">
           <div class="spinner"></div>
