@@ -8276,15 +8276,6 @@ async function toggleDrivingMode() {
       actualizarUIPlayer();
     }
 
-    if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().then(() => {
-        const prefHorizontal = localStorage.getItem('granaGo_hud_horizontal') === 'true';
-        if (prefHorizontal && screen.orientation && screen.orientation.lock) {
-          screen.orientation.lock('landscape').catch(e => console.log(e));
-        }
-      }).catch((e) => console.log(e));
-    }
-
     drivingModeActive = true;
 
     updateHudSystemInfo();
@@ -8293,6 +8284,17 @@ async function toggleDrivingMode() {
     document.body.classList.add("driving-mode-on");
 
     hud.style.display = "flex";
+
+    const isPrefHorizontal = localStorage.getItem('granaGo_hud_horizontal') === 'true';
+
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().then(() => {
+        if (isPrefHorizontal && screen.orientation && screen.orientation.lock) {
+          hud.classList.add('hud-horizontal');
+          screen.orientation.lock('landscape').catch(() => { });
+        }
+      });
+    }
 
     if (document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen().catch((e) => console.log(e));
@@ -8321,6 +8323,10 @@ async function toggleDrivingMode() {
     const msgs = getVoiceSettings().labels;
     speak(msgs.active);
   } else {
+    if (screen.orientation && screen.orientation.unlock) {
+      screen.orientation.unlock();
+    }
+
     drivingModeActive = false;
 
     if (radioStartedFromHUD && radioIsPlaying) {
@@ -11917,22 +11923,28 @@ document.addEventListener("click", (e) => {
   }
 });
 
-window.toggleHudLayout = function () {
+window.toggleHudLayout = async function () {
   const hud = document.getElementById('driving-hud');
-  const isHorizontal = hud.classList.toggle('hud-horizontal');
+  const isHorizontalNow = hud.classList.toggle('hud-horizontal');
 
-  if (isHorizontal) {
-    if (screen.orientation && screen.orientation.lock) {
-      screen.orientation.lock('landscape').catch(err => {
-        console.warn("No se pudo bloquear la orientación:", err);
-      });
+  try {
+    if (isHorizontalNow) {
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen();
+      }
+      if (screen.orientation && screen.orientation.lock) {
+        await screen.orientation.lock('landscape');
+      }
+    } else {
+      if (screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
+      }
     }
-  } else {
-    if (screen.orientation && screen.orientation.unlock) {
-      screen.orientation.unlock();
-    }
+  } catch (err) {
+    console.warn("La rotación automática no es compatible con este navegador/S.O.:", err);
+    showNotification("Aviso", "Gira el móvil manualmente si no ha rotado", "info");
   }
 
-  localStorage.setItem('granaGo_hud_horizontal', isHorizontal);
+  localStorage.setItem('granaGo_hud_horizontal', isHorizontalNow);
   if (navigator.vibrate) navigator.vibrate(30);
 };
