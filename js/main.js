@@ -751,22 +751,25 @@ function ensureMapContainerIsClean(elementId) {
 }
 
 window.navigateTo = async function (viewId, addToHistory = true) {
+  if (viewId !== 'radio') {
+    const radioInput = document.getElementById("radio-search-input");
+    if (radioInput && radioInput.value !== "") {
+      radioInput.value = "";
+      const clearBtn = document.getElementById("clear-radio-search-btn");
+      if (clearBtn) clearBtn.style.display = "none";
+
+      if (RADIO_STATIONS.length > 0) {
+        renderRadioList();
+      }
+    }
+  }
+
   if (typeof destroyUnusedMaps === "function") {
     destroyUnusedMaps();
   }
 
   if (addToHistory) {
     window.history.pushState({ view: viewId }, "", `#${viewId}`);
-  }
-
-  const radioInput = document.getElementById("radio-search-input");
-  if (radioInput && viewId !== "radio") {
-    radioInput.value = "";
-    const clearBtn = document.getElementById("clear-radio-search-btn");
-    if (clearBtn) clearBtn.style.display = "none";
-    if (RADIO_STATIONS && RADIO_STATIONS.length > 0) {
-      renderRadioList();
-    }
   }
 
   document
@@ -11577,7 +11580,7 @@ function renderRadioList() {
 
   if (hudContainer) {
     hudContainer.innerHTML = "";
-    const hudBatch = filteredIndices.slice(0, 20);
+    const hudBatch = filteredIndices;
     const hudFrag = document.createDocumentFragment();
     hudBatch.forEach(idx => hudFrag.appendChild(createRadioCard(idx)));
     hudContainer.appendChild(hudFrag);
