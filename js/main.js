@@ -25,6 +25,7 @@ let weatherCache = {};
 let currentWeatherData = null;
 let weatherLocationActive = null;
 let tempHomeLayout = [];
+let supportTimeout = null;
 
 let mapInstance = null;
 let currentTileLayer = null;
@@ -10248,18 +10249,23 @@ function updateSlotsUI() {
   updateGamesMenuBalance();
 }
 
+function scheduleSupportNotification(ms) {
+  if (supportTimeout) clearTimeout(supportTimeout);
+  supportTimeout = setTimeout(showSupportNotification, ms);
+}
+
 function initSupportTimers() {
-  setTimeout(
-    () => {
-      showSupportNotification();
-      setInterval(showSupportNotification, 20 * 60 * 1000);
-    },
-    2 * 60 * 1000,
-  );
+  scheduleSupportNotification(2 * 60 * 1000);
 }
 
 function showSupportNotification() {
   if (drivingModeActive) return;
+
+  if (document.querySelector(".support-toast")) {
+    scheduleSupportNotification(20 * 60 * 1000);
+    return;
+  }
+
   const container = document.getElementById("notification-container");
   if (!container) return;
 
@@ -10279,21 +10285,21 @@ function showSupportNotification() {
             </div>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-bottom: 10px;">
-            <button onclick="window.open('https://www.paypal.com/donate/?hosted_button_id=ELYXMJVZP5B8W', '_blank')" 
+            <button onclick="handleSupportClick('donate')" 
                     style="background: #004ad4; color: white; border: none; padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.8rem;">
                 <i class="ri-paypal-fill"></i> Donar
             </button>
-            <button onclick="shareAppDirectly()" 
+            <button onclick="handleSupportClick('share')" 
                     style="background: var(--text-accent); color: white; border: none; padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.8rem;">
                 <i class="ri-share-line"></i> Compartir
             </button>
         </div>
         <div style="display: flex; gap: 10px; width: 100%;">
-            <button onclick="this.parentElement.parentElement.remove(); openFeedbackModal();" 
+            <button onclick="handleSupportClick('feedback')" 
                     style="flex: 2; background: rgba(245, 158, 11, 0.1); color: var(--color-warning); border: 1px solid var(--color-warning); padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.8rem;">
                 <i class="ri-chat-smile-2-line"></i> Reportar / Sugerir
             </button>
-            <button onclick="this.parentElement.parentElement.remove()" 
+            <button onclick="handleSupportClick('close')" 
                     style="flex: 1; background: var(--bg-app); color: var(--text-secondary); border: 1px solid var(--border-subtle); padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 0.8rem;">
                 Cerrar
             </button>
@@ -10301,6 +10307,15 @@ function showSupportNotification() {
     `;
   container.appendChild(toast);
 }
+
+window.handleSupportClick = function (action) {
+  const toast = document.querySelector(".support-toast");
+  if (toast) toast.remove();
+  if (action === 'donate') window.open('https://www.paypal.com/donate/?hosted_button_id=ELYXMJVZP5B8W', '_blank');
+  if (action === 'share') shareAppDirectly();
+  if (action === 'feedback') openFeedbackModal();
+  scheduleSupportNotification(15 * 60 * 1000);
+};
 
 window.shareAppDirectly = function () {
   const text =
@@ -11373,22 +11388,32 @@ async function cargarRadiosDesdeAPI() {
     const base_url = `https://${servers[0].name}/json/stations/search?`;
     const [resEspana, resMundo] = await Promise.all([
       fetch(`${base_url}countrycode=ES&https=true&order=clickcount&reverse=true&limit=1000`),
-      fetch(`${base_url}tag=music&https=true&order=clickcount&reverse=true&limit=150`)
+      fetch(`${base_url}countrynotcode=ES&tag=music&https=true&order=clickcount&reverse=true&limit=250`)
     ]);
 
     const [dataEspana, dataMundo] = await Promise.all([resEspana.json(), resMundo.json()]);
-    const mapaRadios = new Map();
 
-    [...dataEspana, ...dataMundo].forEach(s => {
-      if (s.name && s.url_resolved && !mapaRadios.has(s.url_resolved)) {
-        mapaRadios.set(s.url_resolved, {
-          id: btoa(s.url_resolved).substring(0, 16),
-          name: s.name.trim(),
-          url: s.url_resolved,
-          logo: s.favicon || 'images/Logo.png'
-        });
-      }
-    });
+    const mapaRadios = new Map();
+    const nombresVistos = new Set();
+
+    const procesarLista = (lista) => {
+      lista.forEach(s => {
+        const nombreNorm = s.name.trim().toLowerCase();
+
+        if (s.name && s.url_resolved && !mapaRadios.has(s.url_resolved) && !nombresVistos.has(nombreNorm)) {
+          nombresVistos.add(nombreNorm);
+          mapaRadios.set(s.url_resolved, {
+            id: btoa(s.url_resolved).substring(0, 16),
+            name: s.name.trim(),
+            url: s.url_resolved,
+            logo: s.favicon || 'images/Logo.png'
+          });
+        }
+      });
+    };
+
+    procesarLista(dataEspana);
+    procesarLista(dataMundo);
 
     RADIO_STATIONS = Array.from(mapaRadios.values());
     localStorage.setItem("granaGo_radio_cache", JSON.stringify(RADIO_STATIONS));
@@ -11408,18 +11433,28 @@ async function cargarRadiosDesdeAPI() {
 function renderRadioList() {
   const hudContainer = document.getElementById('radio-list-horizontal');
   const viewContainer = document.getElementById('radio-view-list');
+  const searchInput = document.getElementById('radio-search-input');
   if (!hudContainer && !viewContainer) return;
 
   const favs = getRadioFavorites();
-  const sortedIndices = RADIO_STATIONS.map((_, i) => i).sort((a, b) => {
-    return favs.includes(RADIO_STATIONS[b].url) - favs.includes(RADIO_STATIONS[a].url);
-  });
+  const term = searchInput ? searchInput.value.toLowerCase().trim() : "";
 
-  const buildHTML = (container, isLarge = false) => {
+  const buildHTML = (container, isMainView = false) => {
     if (!container) return;
     const fragment = document.createDocumentFragment();
+    let indicesParaRenderizar = RADIO_STATIONS.map((_, i) => i);
+    
+    if (isMainView && term) {
+      indicesParaRenderizar = indicesParaRenderizar.filter(idx => 
+        RADIO_STATIONS[idx].name.toLowerCase().includes(term)
+      );
+    }
 
-    sortedIndices.forEach((idx) => {
+    indicesParaRenderizar.sort((a, b) => {
+      return favs.includes(RADIO_STATIONS[b].url) - favs.includes(RADIO_STATIONS[a].url);
+    });
+
+    indicesParaRenderizar.forEach((idx) => {
       const station = RADIO_STATIONS[idx];
       const isFav = favs.includes(station.url);
       const isCurrent = currentRadioIdx === idx;
@@ -11442,10 +11477,19 @@ function renderRadioList() {
     });
 
     container.innerHTML = "";
-    container.appendChild(fragment);
+    
+    if (isMainView && term && indicesParaRenderizar.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state" style="padding: 40px 20px; text-align: center; width: 100%; opacity: 0.6;">
+          <i class="ri-search-line" style="font-size: 2rem; display: block; margin-bottom: 10px;"></i>
+          <p>No se encontró ninguna emisora con ese nombre.</p>
+        </div>`;
+    } else {
+      container.appendChild(fragment);
+    }
   };
 
-  buildHTML(hudContainer);
+  buildHTML(hudContainer, false);
   buildHTML(viewContainer, true);
 }
 
@@ -11612,3 +11656,24 @@ function showOfflineNotice() {
     15000
   );
 }
+
+document.addEventListener("input", (e) => {
+  if (e.target.id === "radio-search-input") {
+    const term = e.target.value;
+    const clearBtn = document.getElementById("clear-radio-search-btn");
+    if (clearBtn) clearBtn.style.display = term ? "flex" : "none";
+
+    renderRadioList();
+  }
+});
+
+document.addEventListener("click", (e) => {
+  if (e.target.id === "clear-radio-search-btn" || e.target.closest("#clear-radio-search-btn")) {
+    const input = document.getElementById("radio-search-input");
+    if (input) {
+      input.value = "";
+      document.getElementById("clear-radio-search-btn").style.display = "none";
+      renderRadioList();
+    }
+  }
+});
