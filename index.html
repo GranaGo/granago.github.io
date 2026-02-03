@@ -2082,23 +2082,19 @@
               <span id="hud-battery-level">--%</span>
             </div>
           </div>
-          <div
-            style="text-align: center; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 15px;">
-            <div id="hud-speed-limit" style="
-                display: none;
-                z-index: 10;
-                margin-bottom: 20px;
-              "></div>
-            <div style="font-size: 4rem; font-weight: 800; line-height: 1" id="hud-speed">
-              0
-              <span style="font-size: 1.25rem; font-weight: 400; color: #aaa">km/h</span>
-            </div>
-          </div>
+          <div class="hud-main-content">
 
-          <div id="hud-alert" style="text-align: center; padding: 0 20px">
-            <i class="ri-road-map-line" style="font-size: 3rem; color: #10b981"></i>
-            <div style="font-size: 1.3rem; margin-top: 15px; font-weight: 600">
-              Vía despejada
+            <div class="hud-speed-wrapper"
+              style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+              <div id="hud-speed-limit" style="display: none; z-index: 10; margin-bottom: 20px;"></div>
+              <div style="font-size: 4rem; font-weight: 800; line-height: 1" id="hud-speed">
+                0 <span style="font-size: 1.25rem; font-weight: 400; color: #aaa">km/h</span>
+              </div>
+            </div>
+
+            <div id="hud-alert" style="text-align: center; padding: 0 20px">
+              <i class="ri-road-map-line" style="font-size: 3rem; color: #10b981"></i>
+              <div style="font-size: 1.3rem; margin-top: 15px; font-weight: 600">Vía despejada</div>
             </div>
           </div>
 

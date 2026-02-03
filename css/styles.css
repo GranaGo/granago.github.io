@@ -4888,13 +4888,27 @@ body.keyboard-open .glass-dock {
   flex-direction: row !important;
   flex-wrap: wrap;
   align-content: center;
-  justify-content: space-around;
+  justify-content: flex-start !important;
   padding-top: 5vh;
+}
+
+#driving-hud.hud-landscape .hud-main-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-evenly;
+  width: 100%;
+  flex: 1;
+  margin-top: 10px;
 }
 
 #driving-hud.hud-landscape #hud-status-bar {
   top: 10px;
   padding: 0 40px;
+}
+
+#driving-hud.hud-landscape #hud-speed {
+  font-size: 5.5rem !important;
 }
 
 #driving-hud.hud-landscape .hud-speed-wrapper,
@@ -4904,23 +4918,31 @@ body.keyboard-open .glass-dock {
 }
 
 #driving-hud.hud-landscape #hud-radio-container {
-  width: 100%;
-  margin-top: 10px;
-  order: 3;
+  margin-top: 0 !important;
+  margin-bottom: 110px !important;
+  transform: scale(0.9);
 }
 
 #driving-hud.hud-landscape .hud-controls {
-  bottom: 20px;
-  gap: 30px;
-  transform: translateX(-50%) scale(0.8);
+  bottom: 20px !important;
+  gap: 30px !important;
 }
 
-@media screen and (max-height: 400px) {
-  #driving-hud.hud-landscape #hud-status-bar {
-    display: none;
+#driving-hud.hud-landscape .hud-controls button {
+  width: 75px !important;
+  height: 75px !important;
+}
+
+#driving-hud.hud-landscape .hud-controls button i {
+  font-size: 2rem !important;
+}
+
+@media screen and (max-height: 380px) {
+  #driving-hud.hud-landscape #hud-radio-container {
+    display: none !important;
   }
 
-  #driving-hud.hud-landscape #hud-radio-container {
-    display: none;
+  #driving-hud.hud-landscape .hud-main-content {
+    margin-top: 20px;
   }
 }
