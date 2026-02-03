@@ -5077,7 +5077,7 @@ async function renderHomeDashboard() {
     });
   }
 
-  const priorityOrder = ['driving', 'bus', 'parking', 'fuel', 'radio', 'stops', 'eco', 'achievements', 'games', 'event'];
+  const priorityOrder = ['driving', 'bus', 'parking', 'fuel', 'stops', 'eco', 'achievements', 'games', 'radio', 'event'];
 
   priorityOrder.forEach((id, index) => {
     const w = ALL_WIDGETS[id];
