@@ -11926,23 +11926,46 @@ document.addEventListener("click", (e) => {
 window.toggleHudLayout = async function () {
   const hud = document.getElementById('driving-hud');
   const isHorizontalNow = hud.classList.toggle('hud-horizontal');
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
   try {
     if (isHorizontalNow) {
-      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-        await document.documentElement.requestFullscreen();
-      }
-      if (screen.orientation && screen.orientation.lock) {
-        await screen.orientation.lock('landscape');
+      if (isIOS) {
+        showNotification(
+          "Modo Horizontal",
+          "Por favor, gira tu iPhone físicamente y asegúrate de quitar el bloqueo de orientación en el centro de control.",
+          "info",
+          6000
+        );
+      } else {
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        }
+        if (screen.orientation && screen.orientation.lock) {
+          await screen.orientation.lock('landscape');
+        }
+
+        showNotification(
+          "Modo Horizontal",
+          "Modo horizontal aplicado correctamente.",
+          "success",
+          3000
+        );
       }
     } else {
-      if (screen.orientation && screen.orientation.unlock) {
+      if (!isIOS && screen.orientation && screen.orientation.unlock) {
         screen.orientation.unlock();
       }
+      showNotification(
+        "Modo Vertical",
+        "Volviendo al modo vertical.",
+        "success",
+        3000
+      );
     }
   } catch (err) {
     console.warn("La rotación automática no es compatible con este navegador/S.O.:", err);
-    showNotification("Aviso", "Gira el móvil manualmente si no ha rotado", "info");
+    showNotification("Aviso", "Gira el móvil manualmente si no ha rotado automáticamente", "info");
   }
 
   localStorage.setItem('granaGo_hud_horizontal', isHorizontalNow);
