@@ -759,6 +759,16 @@ window.navigateTo = async function (viewId, addToHistory = true) {
     window.history.pushState({ view: viewId }, "", `#${viewId}`);
   }
 
+  const radioInput = document.getElementById("radio-search-input");
+  if (radioInput && viewId !== "radio") {
+    radioInput.value = "";
+    const clearBtn = document.getElementById("clear-radio-search-btn");
+    if (clearBtn) clearBtn.style.display = "none";
+    if (RADIO_STATIONS && RADIO_STATIONS.length > 0) {
+      renderRadioList();
+    }
+  }
+
   document
     .querySelectorAll(".view-section")
     .forEach((el) => el.classList.remove("active"));
