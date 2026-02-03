@@ -11491,8 +11491,8 @@ async function cargarRadiosDesdeAPI() {
     const servers = await serversRes.json();
     const base_url = `https://${servers[0].name}/json/stations/search?`;
     const [resEspana, resMundo] = await Promise.all([
-      fetch(`${base_url}countrycode=ES&https=true&order=clickcount&reverse=true&limit=1000`),
-      fetch(`${base_url}countrynotcode=ES&tag=music&https=true&order=clickcount&reverse=true&limit=500`)
+      fetch(`${base_url}countrycode=ES&https=true&order=clickcount&reverse=true&limit=500`),
+      fetch(`${base_url}countrynotcode=ES&tag=music&https=true&order=clickcount&reverse=true&limit=250`)
     ]);
 
     const [dataEspana, dataMundo] = await Promise.all([resEspana.json(), resMundo.json()]);
@@ -11511,7 +11511,7 @@ async function cargarRadiosDesdeAPI() {
             id: btoa(s.url_resolved).substring(0, 16),
             name: s.name.trim(),
             url: s.url_resolved,
-            logo: s.favicon || 'images/Logo.png'
+            logo: s.favicon ? (s.favicon.startsWith('https') ? s.favicon : PROXY_URL + encodeURIComponent(s.favicon)) : 'images/Logo.png'
           });
         }
       });
