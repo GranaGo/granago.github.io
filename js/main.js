@@ -44,6 +44,11 @@ let radioIsPlaying = false;
 let RADIO_STATIONS = [];
 let currentRTController = null;
 let radioStartedFromHUD = false;
+let radioMainIndices = [];
+let radioItemsDisplayed = 0;
+const RADIO_PAGE_SIZE = 30;
+let radioScrollObserver = null;
+let radioImageObserver = null;
 
 let lineMapInstance = null;
 let currentLineTileLayer = null;
@@ -11491,8 +11496,8 @@ async function cargarRadiosDesdeAPI() {
     const servers = await serversRes.json();
     const base_url = `https://${servers[0].name}/json/stations/search?`;
     const [resEspana, resMundo] = await Promise.all([
-      fetch(`${base_url}countrycode=ES&https=true&order=clickcount&reverse=true&limit=500`),
-      fetch(`${base_url}countrynotcode=ES&tag=music&https=true&order=clickcount&reverse=true&limit=250`)
+      fetch(`${base_url}countrycode=ES&https=true&order=clickcount&reverse=true&limit=1000`),
+      fetch(`${base_url}countrynotcode=ES&tag=music&https=true&order=clickcount&reverse=true&limit=500`)
     ]);
 
     const [dataEspana, dataMundo] = await Promise.all([resEspana.json(), resMundo.json()]);
@@ -11503,6 +11508,12 @@ async function cargarRadiosDesdeAPI() {
     const procesarLista = (lista) => {
       lista.forEach(s => {
         const nombreNorm = s.name.trim().toLowerCase();
+        const rawFavicon = s.favicon ? s.favicon.trim() : "";
+
+        let finalLogo = 'images/Logo.png';
+        if (rawFavicon && rawFavicon !== "" && rawFavicon !== "null" && !rawFavicon.includes("fbcdn.net") && !rawFavicon.includes("facebook.com")) {
+          finalLogo = PROXY_URL + encodeURIComponent(rawFavicon);
+        }
 
         if (s.name && s.url_resolved && s.url_resolved.startsWith('https://') &&
           !mapaRadios.has(s.url_resolved) && !nombresVistos.has(nombreNorm)) {
@@ -11511,7 +11522,7 @@ async function cargarRadiosDesdeAPI() {
             id: btoa(s.url_resolved).substring(0, 16),
             name: s.name.trim(),
             url: s.url_resolved,
-            logo: s.favicon ? (s.favicon.startsWith('https') ? s.favicon : PROXY_URL + encodeURIComponent(s.favicon)) : 'images/Logo.png'
+            logo: finalLogo
           });
         }
       });
@@ -11544,58 +11555,134 @@ function renderRadioList() {
   const favs = getRadioFavorites();
   const term = searchInput ? searchInput.value.toLowerCase().trim() : "";
 
-  const buildHTML = (container, isMainView = false) => {
-    if (!container) return;
-    const fragment = document.createDocumentFragment();
-    let indicesParaRenderizar = RADIO_STATIONS.map((_, i) => i);
+  let filteredIndices = RADIO_STATIONS.map((_, i) => i);
+  if (term) {
+    filteredIndices = filteredIndices.filter(idx =>
+      RADIO_STATIONS[idx].name.toLowerCase().includes(term)
+    );
+  }
+  filteredIndices.sort((a, b) => {
+    return favs.includes(RADIO_STATIONS[b].url) - favs.includes(RADIO_STATIONS[a].url);
+  });
 
-    if (isMainView && term) {
-      indicesParaRenderizar = indicesParaRenderizar.filter(idx =>
-        RADIO_STATIONS[idx].name.toLowerCase().includes(term)
-      );
-    }
+  if (hudContainer) {
+    hudContainer.innerHTML = "";
+    const hudBatch = filteredIndices.slice(0, 20);
+    const hudFrag = document.createDocumentFragment();
+    hudBatch.forEach(idx => hudFrag.appendChild(createRadioCard(idx)));
+    hudContainer.appendChild(hudFrag);
+    setupImageLazyLoading(hudContainer);
+  }
 
-    indicesParaRenderizar.sort((a, b) => {
-      return favs.includes(RADIO_STATIONS[b].url) - favs.includes(RADIO_STATIONS[a].url);
-    });
+  if (viewContainer) {
+    viewContainer.innerHTML = "";
+    radioMainIndices = filteredIndices;
+    radioItemsDisplayed = 0;
 
-    indicesParaRenderizar.forEach((idx) => {
-      const station = RADIO_STATIONS[idx];
-      const isFav = favs.includes(station.url);
-      const isCurrent = currentRadioIdx === idx;
-
-      const card = document.createElement('div');
-      card.className = `radio-station-card ${isFav ? 'is-favorite' : ''} ${isCurrent ? 'active' : ''}`;
-      if (isCurrent && radioIsPlaying) card.classList.add('playing');
-
-      card.innerHTML = `
-        <div class="radio-logo-wrapper" style="position: relative;">
-          <img src="${station.logo}" loading="lazy" decoding="async" onerror="this.src='images/Logo.png'" alt="${station.name}">
-          ${isFav ? '<i class="ri-star-fill" style="position:absolute; top:5px; right:5px; color:#fbbf24; z-index:10; text-shadow: 0 0 4px rgba(0,0,0,0.8);"></i>' : ''}
-          <div class="radio-equalizer"><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div></div>
-          <div class="radio-play-overlay"><i class="${isCurrent && radioIsPlaying ? 'ri-pause-fill' : 'ri-play-fill'}"></i></div>
-        </div>
-        <span class="radio-card-name">${station.name}</span>
-      `;
-      card.onclick = () => toggleStation(idx);
-      fragment.appendChild(card);
-    });
-
-    container.innerHTML = "";
-
-    if (isMainView && term && indicesParaRenderizar.length === 0) {
-      container.innerHTML = `
-        <div class="empty-state" style="padding: 40px 20px; text-align: center; width: 100%; opacity: 0.6;">
-          <i class="ri-search-line" style="font-size: 2rem; display: block; margin-bottom: 10px;"></i>
-          <p>No se encontró ninguna emisora con ese nombre.</p>
-        </div>`;
+    if (filteredIndices.length === 0 && term) {
+      viewContainer.innerHTML = `
+                <div class="empty-state" style="padding: 40px 20px; text-align: center; width: 100%; opacity: 0.6;">
+                  <i class="ri-search-line" style="font-size: 2rem; display: block; margin-bottom: 10px;"></i>
+                  <p>No se encontró ninguna emisora con ese nombre.</p>
+                </div>`;
     } else {
-      container.appendChild(fragment);
+      renderNextRadioBatch();
     }
-  };
+  }
+}
 
-  buildHTML(hudContainer, false);
-  buildHTML(viewContainer, true);
+function createRadioCard(idx) {
+  const station = RADIO_STATIONS[idx];
+  const isFav = getRadioFavorites().includes(station.url);
+  const isCurrent = currentRadioIdx === idx;
+  const stationLogo = (station.logo && !station.logo.includes("url=null") && station.logo !== "undefined")
+    ? station.logo
+    : 'images/Logo.png';
+
+  const card = document.createElement('div');
+  card.className = `radio-station-card ${isFav ? 'is-favorite' : ''} ${isCurrent ? 'active' : ''}`;
+  if (isCurrent && radioIsPlaying) card.classList.add('playing');
+  card.id = `radio-card-${idx}`;
+
+  card.innerHTML = `
+      <div class="radio-logo-wrapper" style="position: relative; background: var(--bg-app); border-radius: 12px; overflow: hidden;">
+        <img src="images/Logo.png" 
+             data-src="${stationLogo}" 
+             loading="lazy" 
+             decoding="async" 
+             alt="" 
+             referrerpolicy="no-referrer"
+             style="object-fit: cover; width: 100%; height: 100%;"
+             onerror="this.onerror=null; this.src='images/Logo.png'; this.parentElement.style.background='transparent';">
+        ${isFav ? '<i class="ri-star-fill" style="position:absolute; top:5px; right:5px; color:#fbbf24; z-index:10; text-shadow: 0 0 4px rgba(0,0,0,0.8);"></i>' : ''}
+        <div class="radio-equalizer"><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div></div>
+        <div class="radio-play-overlay"><i class="${isCurrent && radioIsPlaying ? 'ri-pause-fill' : 'ri-play-fill'}"></i></div>
+      </div>
+      <span class="radio-card-name" style="display: block; margin-top: 5px; font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${station.name}</span>
+    `;
+  card.onclick = () => toggleStation(idx);
+  return card;
+}
+
+function renderNextRadioBatch() {
+  const viewContainer = document.getElementById('radio-view-list');
+  if (!viewContainer || radioItemsDisplayed >= radioMainIndices.length) return;
+
+  const nextBatch = radioMainIndices.slice(radioItemsDisplayed, radioItemsDisplayed + RADIO_PAGE_SIZE);
+  const fragment = document.createDocumentFragment();
+
+  let i = 0;
+  function processInFrames() {
+    const batchLimit = Math.min(i + 5, nextBatch.length);
+    for (; i < batchLimit; i++) {
+      fragment.appendChild(createRadioCard(nextBatch[i]));
+    }
+
+    if (i < nextBatch.length) {
+      requestAnimationFrame(processInFrames);
+    } else {
+      viewContainer.appendChild(fragment);
+      radioItemsDisplayed += nextBatch.length;
+      setupImageLazyLoading(viewContainer);
+      setupInfiniteScroll();
+    }
+  }
+  requestAnimationFrame(processInFrames);
+}
+
+function setupInfiniteScroll() {
+  const viewContainer = document.getElementById('radio-view-list');
+  if (radioScrollObserver) radioScrollObserver.disconnect();
+
+  radioScrollObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      radioScrollObserver.disconnect();
+      renderNextRadioBatch();
+    }
+  }, { rootMargin: '400px' });
+
+  if (viewContainer.lastElementChild) {
+    radioScrollObserver.observe(viewContainer.lastElementChild);
+  }
+}
+
+function setupImageLazyLoading(container) {
+  if (!radioImageObserver) {
+    radioImageObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          const realSrc = img.getAttribute('data-src');
+          if (realSrc && realSrc !== 'images/Logo.png' && realSrc !== 'undefined') {
+            img.src = realSrc;
+          }
+          img.removeAttribute('data-src');
+          radioImageObserver.unobserve(img);
+        }
+      });
+    }, { rootMargin: '150px' });
+  }
+  container.querySelectorAll('img[data-src]').forEach(img => radioImageObserver.observe(img));
 }
 
 window.toggleStation = async function (index) {
@@ -11674,7 +11761,10 @@ function actualizarUIPlayer() {
       if (activeVis && radioIsPlaying) {
         logoEl.innerHTML = `<img src="${activeVis}" style="width:100%; height:100%; object-fit:contain; border-radius:20px; background:#000;">`;
       } else {
-        logoEl.innerHTML = `<img src="${station.logo}" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">`;
+        logoEl.innerHTML = `<img src="${station.logo}" 
+                                 alt="${station.name}" 
+                                 style="width:100%; height:100%; object-fit:cover; border-radius:20px;" 
+                                 onerror="this.src='images/Logo.png'; this.onerror=null;">`;
       }
     }
     if (playBtn) playBtn.innerHTML = `<i class="${radioIsPlaying ? 'ri-pause-fill' : 'ri-play-fill'}"></i>`;
@@ -11685,7 +11775,11 @@ function actualizarUIPlayer() {
 
     if ('mediaSession' in navigator) {
       const activeVis = localStorage.getItem("granaGo_active_visualizer");
-      const imagenParaNotificacion = (activeVis && radioIsPlaying) ? activeVis : station.logo;
+      let imageToUse = (activeVis && radioIsPlaying) ? activeVis : station.logo;
+
+      if (!imageToUse || imageToUse === "undefined" || imageToUse.includes("url=null")) {
+        imageToUse = "https://granago.github.io/images/Logo.png";
+      }
 
       navigator.mediaSession.metadata = new MediaMetadata({
         title: station.name,
@@ -11693,9 +11787,9 @@ function actualizarUIPlayer() {
         album: "En directo",
         artwork: [
           {
-            src: imagenParaNotificacion,
+            src: imageToUse,
             sizes: '512x512',
-            type: imagenParaNotificacion.endsWith('.gif') ? 'image/gif' : 'image/png'
+            type: imageToUse.endsWith('.gif') ? 'image/gif' : 'image/png'
           }
         ]
       });
