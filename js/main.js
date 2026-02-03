@@ -216,6 +216,16 @@ function getShopItems() {
       { id: "geo-lince", name: "Geo-Lince", desc: "Marca la respuesta correcta", price: 750, icon: "ri-eye-fill", game: "geograna" },
       { id: "geo-5050", name: "Geo 50/50", desc: "Quita 2 respuestas falsas", price: 500, icon: "ri-scissors-2-fill", game: "geograna" },
     ],
+    visualizers: [
+      { id: 'vis-cat', name: 'Gato Vibes', price: 10000, file: 'images/cat.gif', icon: 'ri-music-fill' },
+      { id: 'vis-rat', name: 'Rata Bailando', price: 7500, file: 'images/rat.gif', icon: 'ri-disc-fill' },
+      { id: 'vis-seal', name: 'Foca con Saxofon', price: 5000, file: 'images/seal.gif', icon: 'ri-music-fill' },
+      { id: 'vis-pepo', name: 'Pepo DJ', price: 2500, file: 'images/pepo.gif', icon: 'ri-disc-fill' },
+      { id: 'vis-top', name: 'Indescriptible', price: 15000, file: 'images/top.gif', icon: 'ri-music-fill' },
+      { id: 'vis-homer', name: 'Homer Shakira', price: 12500, file: 'images/homer.gif', icon: 'ri-disc-fill' },
+      { id: 'vis-racoon', name: 'Mapache de Fiesta', price: 2500, file: 'images/racoon.gif', icon: 'ri-music-fill' },
+      { id: 'vis-dog', name: 'Perreo', price: 5000, file: 'images/dog.gif', icon: 'ri-disc-fill' }
+    ]
   };
   return shopItemsCache;
 }
@@ -9987,16 +9997,89 @@ window.renderShop = function () {
       })
       .join("");
   }
+
+  const visContainer = document.getElementById("shop-visualizers-container");
+  const ownedVisualizers = JSON.parse(localStorage.getItem("granaGo_owned_visualizers") || '[]');
+  const activeVisualizer = localStorage.getItem("granaGo_active_visualizer");
+
+  if (visContainer) {
+    visContainer.innerHTML = items.visualizers.map((v) => {
+      const isOwned = ownedVisualizers.includes(v.id);
+      const isActive = activeVisualizer === v.file;
+
+      return `
+    <div class="square-card" style="height: auto; min-height: 220px; padding: 18px 15px 15px 15px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; position: relative;">
+      
+      <span style="font-size: 0.6rem; font-weight: 800; text-transform: uppercase; color: var(--text-accent); background: var(--text-accent)1A; padding: 2px 8px; border-radius: 6px; margin-bottom: 8px;">
+        Radio Skin
+      </span>
+
+      <div class="square-icon" style="background: #000; width: 60px; height: 60px; overflow: hidden; border-radius: 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center;">
+        <img src="${v.file}" style="width: 100%; height: 100%; object-fit: contain;">
+      </div>
+
+      <div style="text-align:center; flex: 1; display:flex; flex-direction:column; justify-content:center; width: 100%; margin-bottom: 12px;">
+         <span style="font-size:0.85rem; font-weight:800; display:block; line-height:1.2; margin-bottom: 3px;">${v.name}</span>
+         <p style="font-size:0.65rem; opacity:0.6; margin:0; line-height: 1.3;">Visualizador animado para el reproductor de radio.</p>
+      </div>
+
+      ${isOwned
+          ? `<button class="cookie-btn ${isActive ? 'secondary' : 'primary'}" 
+                   style="width: 100%; height: 42px; font-size: 0.8rem;" 
+                   onclick="equiparVisualizador('${v.file}')" ${isActive ? 'disabled' : ''}>
+              ${isActive ? "Activo" : "Usar"}
+           </button>`
+          : `<button class="cookie-btn secondary" 
+                   style="width: 100%; height: 42px; font-size: 0.8rem;" 
+                   onclick="buyItem('${v.id}', 'visualizer')">
+              <span style="font-weight: 800;">${v.price} G$</span>
+           </button>`
+        }
+    </div>`;
+    }).join("");
+  }
 };
+
+function renderTiendaRadio() {
+  const tiendaContainer = document.getElementById('tienda-items-container');
+
+  RADIO_SKINS.forEach(skin => {
+    const isOwned = checkOwnership(skin.id);
+    const isActive = localStorage.getItem('granaGo_active_radio_skin') === skin.img;
+
+    tiendaContainer.innerHTML += `
+      <div class="shop-card">
+        <div class="preview-container" style="background: #1a1a1a; border-radius: 15px; padding: 10px;">
+          <img src="${skin.img}" alt="Preview" style="width: 80px; height: 80px; border-radius: 10px;">
+          <p style="font-size: 0.7rem; color: #888;">Preview en vivo</p>
+        </div>
+        <h4>${skin.name}</h4>
+        <p>${skin.price} 🪙</p>
+        <button onclick="${isOwned ? `equiparSkin('${skin.img}')` : `comprarSkin('${skin.id}')`}" 
+                class="btn-shop ${isActive ? 'active' : ''}">
+          ${isOwned ? (isActive ? 'Equipado' : 'Equipar') : 'Comprar'}
+        </button>
+      </div>
+    `;
+  });
+}
 
 window.buyItem = function (id, type) {
   const items = getShopItems();
-  const item = type === "color" ? items.colors.find(c => c.id === id) : items.powerups.find(p => p.id === id);
+
+  let item;
+  if (type === "color") {
+    item = items.colors.find(c => c.id === id);
+  } else if (type === "visualizer") {
+    item = items.visualizers.find(v => v.id === id);
+  } else {
+    item = items.powerups.find(p => p.id === id);
+  }
 
   const savedBalance = localStorage.getItem("granaGo_bj_balance");
   let balance = savedBalance === null ? 500 : parseInt(savedBalance);
 
-  if (balance < item.price) {
+  if (!item || balance < item.price) {
     showNotification(
       "Saldo insuficiente",
       "¡Sigue jugando para ganar más G$!",
@@ -10016,19 +10099,40 @@ window.buyItem = function (id, type) {
     localStorage.setItem("granaGo_owned_colors", JSON.stringify(owned));
     applyAccentColor(item.hex);
     updateAchievement('shopper', 1);
-  } else {
+  }
+  else if (type === "visualizer") {
+    let ownedVis = JSON.parse(
+      localStorage.getItem("granaGo_owned_visualizers") || "[]"
+    );
+    if (!ownedVis.includes(id)) ownedVis.push(id);
+    localStorage.setItem("granaGo_owned_visualizers", JSON.stringify(ownedVis));
+    localStorage.setItem("granaGo_active_visualizer", item.file);
+  }
+  else {
     let inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
     inv[id] = (inv[id] || 0) + 1;
     localStorage.setItem("granaGo_inventory", JSON.stringify(inv));
   }
 
   renderShop();
-  updateGamesMenuBalance();
+  if (window.updateGamesMenuBalance) updateGamesMenuBalance();
+
   showNotification(
     "¡Compra realizada!",
     `Has adquirido: ${item.name}`,
     "success",
   );
+};
+
+window.equiparVisualizador = function (file) {
+  const actual = localStorage.getItem("granaGo_active_visualizer");
+  if (actual === file) {
+    localStorage.removeItem("granaGo_active_visualizer");
+  } else {
+    localStorage.setItem("granaGo_active_visualizer", file);
+  }
+  renderShop();
+  if (typeof actualizarUIPlayer === 'function') actualizarUIPlayer();
 };
 
 window.checkDailyReward = function () {
@@ -11443,9 +11547,9 @@ function renderRadioList() {
     if (!container) return;
     const fragment = document.createDocumentFragment();
     let indicesParaRenderizar = RADIO_STATIONS.map((_, i) => i);
-    
+
     if (isMainView && term) {
-      indicesParaRenderizar = indicesParaRenderizar.filter(idx => 
+      indicesParaRenderizar = indicesParaRenderizar.filter(idx =>
         RADIO_STATIONS[idx].name.toLowerCase().includes(term)
       );
     }
@@ -11477,7 +11581,7 @@ function renderRadioList() {
     });
 
     container.innerHTML = "";
-    
+
     if (isMainView && term && indicesParaRenderizar.length === 0) {
       container.innerHTML = `
         <div class="empty-state" style="padding: 40px 20px; text-align: center; width: 100%; opacity: 0.6;">
@@ -11563,7 +11667,15 @@ function actualizarUIPlayer() {
     const favBtn = document.getElementById('btn-fav-radio');
 
     if (nameEl) nameEl.innerText = station.name;
-    if (logoEl) logoEl.innerHTML = `<img src="${station.logo}" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">`;
+    if (logoEl) {
+      const activeVis = localStorage.getItem("granaGo_active_visualizer");
+
+      if (activeVis && radioIsPlaying) {
+        logoEl.innerHTML = `<img src="${activeVis}" style="width:100%; height:100%; object-fit:contain; border-radius:20px; background:#000;">`;
+      } else {
+        logoEl.innerHTML = `<img src="${station.logo}" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">`;
+      }
+    }
     if (playBtn) playBtn.innerHTML = `<i class="${radioIsPlaying ? 'ri-pause-fill' : 'ri-play-fill'}"></i>`;
     if (favBtn) {
       favBtn.innerHTML = `<i class="${isFav ? 'ri-star-fill' : 'ri-star-line'}"></i> ${isFav ? 'Favorito' : 'Añadir a favoritos'}`;
@@ -11571,10 +11683,20 @@ function actualizarUIPlayer() {
     }
 
     if ('mediaSession' in navigator) {
+      const activeVis = localStorage.getItem("granaGo_active_visualizer");
+      const imagenParaNotificacion = (activeVis && radioIsPlaying) ? activeVis : station.logo;
+
       navigator.mediaSession.metadata = new MediaMetadata({
         title: station.name,
-        artist: 'GranáGo Radio',
-        artwork: [{ src: station.logo, sizes: '512x512', type: 'image/png' }]
+        artist: "Radio Graná",
+        album: "En directo",
+        artwork: [
+          {
+            src: imagenParaNotificacion,
+            sizes: '512x512',
+            type: imagenParaNotificacion.endsWith('.gif') ? 'image/gif' : 'image/png'
+          }
+        ]
       });
       navigator.mediaSession.setActionHandler('play', () => toggleStation(currentRadioIdx));
       navigator.mediaSession.setActionHandler('pause', () => toggleStation(currentRadioIdx));
