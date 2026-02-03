@@ -26,6 +26,7 @@ let currentWeatherData = null;
 let weatherLocationActive = null;
 let tempHomeLayout = [];
 let supportTimeout = null;
+let hudOrientation = 'portrait';
 
 let mapInstance = null;
 let currentTileLayer = null;
@@ -8359,6 +8360,10 @@ async function toggleDrivingMode() {
       }
     });
 
+    hudOrientation = 'portrait';
+    document.getElementById("driving-hud").classList.remove("hud-landscape");
+    if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+
     showNotification("Modo Conducción", "Finalizado", "info");
   }
 }
@@ -11907,3 +11912,25 @@ document.addEventListener("click", (e) => {
     }
   }
 });
+
+window.toggleHUDOrientation = async function () {
+  const hud = document.getElementById("driving-hud");
+  if (!hud) return;
+
+  if (hudOrientation === 'portrait') {
+    hudOrientation = 'landscape';
+    hud.classList.add("hud-landscape");
+    if (screen.orientation && screen.orientation.lock) {
+      try { await screen.orientation.lock('landscape'); } catch (e) { console.log("Rotación bloqueada por navegador"); }
+    }
+    showNotification("Modo Horizontal", "Interfaz adaptada", "info");
+  } else {
+    hudOrientation = 'portrait';
+    hud.classList.remove("hud-landscape");
+    if (screen.orientation && screen.orientation.unlock) {
+      screen.orientation.unlock();
+    }
+    showNotification("Modo Vertical", "Interfaz restaurada", "info");
+  }
+  if (navigator.vibrate) navigator.vibrate(50);
+};

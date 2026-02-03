@@ -4883,3 +4883,44 @@ body.keyboard-open .glass-dock {
   border-radius: 4px;
   padding: 1px;
 }
+
+#driving-hud.hud-landscape {
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: space-around;
+  padding-top: 5vh;
+}
+
+#driving-hud.hud-landscape #hud-status-bar {
+  top: 10px;
+  padding: 0 40px;
+}
+
+#driving-hud.hud-landscape .hud-speed-wrapper,
+#driving-hud.hud-landscape #hud-alert {
+  width: 45%;
+  margin-bottom: 0;
+}
+
+#driving-hud.hud-landscape #hud-radio-container {
+  width: 100%;
+  margin-top: 10px;
+  order: 3;
+}
+
+#driving-hud.hud-landscape .hud-controls {
+  bottom: 20px;
+  gap: 30px;
+  transform: translateX(-50%) scale(0.8);
+}
+
+@media screen and (max-height: 400px) {
+  #driving-hud.hud-landscape #hud-status-bar {
+    display: none;
+  }
+
+  #driving-hud.hud-landscape #hud-radio-container {
+    display: none;
+  }
+}
