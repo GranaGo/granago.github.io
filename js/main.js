@@ -11492,7 +11492,7 @@ async function cargarRadiosDesdeAPI() {
     const base_url = `https://${servers[0].name}/json/stations/search?`;
     const [resEspana, resMundo] = await Promise.all([
       fetch(`${base_url}countrycode=ES&https=true&order=clickcount&reverse=true&limit=1000`),
-      fetch(`${base_url}countrynotcode=ES&tag=music&https=true&order=clickcount&reverse=true&limit=250`)
+      fetch(`${base_url}countrynotcode=ES&tag=music&https=true&order=clickcount&reverse=true&limit=500`)
     ]);
 
     const [dataEspana, dataMundo] = await Promise.all([resEspana.json(), resMundo.json()]);
@@ -11504,7 +11504,8 @@ async function cargarRadiosDesdeAPI() {
       lista.forEach(s => {
         const nombreNorm = s.name.trim().toLowerCase();
 
-        if (s.name && s.url_resolved && !mapaRadios.has(s.url_resolved) && !nombresVistos.has(nombreNorm)) {
+        if (s.name && s.url_resolved && s.url_resolved.startsWith('https://') &&
+          !mapaRadios.has(s.url_resolved) && !nombresVistos.has(nombreNorm)) {
           nombresVistos.add(nombreNorm);
           mapaRadios.set(s.url_resolved, {
             id: btoa(s.url_resolved).substring(0, 16),
