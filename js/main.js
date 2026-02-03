@@ -8276,6 +8276,15 @@ async function toggleDrivingMode() {
       actualizarUIPlayer();
     }
 
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().then(() => {
+        const prefHorizontal = localStorage.getItem('granaGo_hud_horizontal') === 'true';
+        if (prefHorizontal && screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('landscape').catch(e => console.log(e));
+        }
+      }).catch((e) => console.log(e));
+    }
+
     drivingModeActive = true;
 
     updateHudSystemInfo();
@@ -11910,6 +11919,20 @@ document.addEventListener("click", (e) => {
 
 window.toggleHudLayout = function () {
   const hud = document.getElementById('driving-hud');
-  hud.classList.toggle('hud-horizontal');
+  const isHorizontal = hud.classList.toggle('hud-horizontal');
+
+  if (isHorizontal) {
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(err => {
+        console.warn("No se pudo bloquear la orientación:", err);
+      });
+    }
+  } else {
+    if (screen.orientation && screen.orientation.unlock) {
+      screen.orientation.unlock();
+    }
+  }
+
+  localStorage.setItem('granaGo_hud_horizontal', isHorizontal);
   if (navigator.vibrate) navigator.vibrate(30);
 };
