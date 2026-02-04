@@ -5076,7 +5076,7 @@ async function renderHomeDashboard() {
     });
   }
 
-  const priorityOrder = ['driving', 'bus', 'parking', 'fuel', 'stops', 'eco', 'achievements', 'games', 'radio', 'event'];
+  const priorityOrder = ['driving', 'radio', 'parking', 'fuel', 'stops', 'eco', 'achievements', 'games', 'bus', 'event'];
 
   priorityOrder.forEach((id, index) => {
     const w = ALL_WIDGETS[id];
@@ -11489,7 +11489,6 @@ async function cargarRadiosDesdeAPI() {
   if (cached) {
     RADIO_STATIONS = JSON.parse(cached);
     renderRadioList();
-    if (document.getElementById("home-view").classList.contains("active")) updateHomeRadioWidget();
   }
 
   try {
@@ -11537,7 +11536,6 @@ async function cargarRadiosDesdeAPI() {
 
     requestIdleCallback(() => {
       renderRadioList();
-      if (document.getElementById("home-view").classList.contains("active")) updateHomeRadioWidget();
       updateStatusText(`${RADIO_STATIONS.length} EMISORAS SINTONIZADAS`);
     });
 
@@ -11722,14 +11720,6 @@ window.toggleStation = async function (index) {
   } catch (err) {
     statusInfo.innerText = "ERROR DE CONEXIÓN";
     actualizarUIPlayer();
-  }
-
-  if (station) {
-    trackRecentItem("granaGo_recent_radios", station, 4);
-
-    if (document.getElementById("home-view").classList.contains("active")) {
-      updateHomeRadioWidget();
-    }
   }
 };
 
