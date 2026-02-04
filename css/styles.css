@@ -4850,36 +4850,3 @@ body.keyboard-open .glass-dock {
   color: #fbbf24;
   font-weight: 800;
 }
-
-.radio-mini-logo {
-  position: relative;
-  width: 45px;
-  height: 45px;
-  min-width: 45px;
-  border-radius: 12px;
-  background: var(--bg-app);
-  border: 2px solid var(--border-subtle);
-  overflow: hidden;
-  box-shadow: var(--shadow-soft);
-}
-
-.radio-mini-logo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.radio-mini-logo.is-fav {
-  border-color: #fbbf24;
-}
-
-.mini-star {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  font-size: 10px;
-  color: #fbbf24;
-  background: rgba(0, 0, 0, 0.6);
-  border-radius: 4px;
-  padding: 1px;
-}
