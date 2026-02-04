@@ -5208,7 +5208,7 @@ async function initHomeDashboard() {
     updateHomeEventsWidget();
     updateHomeParking();
     updateHomeFuel();
-  }, 800);
+  }, 1500);
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
@@ -5822,7 +5822,7 @@ async function updateHomeBusWidget() {
   let detectedZones = [];
 
   try {
-    const rssRes = await fetch(URLS.rss);
+    const rssRes = await fetch(URLS.rss, { priority: 'low' });
     const rssText = await rssRes.text();
     const parser = new DOMParser();
     const items = parser.parseFromString(rssText, "text/xml").querySelectorAll("item");
