@@ -5076,13 +5076,21 @@ async function renderHomeDashboard() {
     });
   }
 
-  const priorityOrder = ['driving', 'radio', 'parking', 'fuel', 'stops', 'eco', 'achievements', 'games', 'bus', 'event'];
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const widgetId = entry.target.dataset.widgetId;
+        const widget = ALL_WIDGETS[widgetId];
+        if (widget && widget.render) {
+          widget.render();
+          observer.unobserve(entry.target);
+        }
+      }
+    });
+  }, { rootMargin: '50px' });
 
-  priorityOrder.forEach((id, index) => {
-    const w = ALL_WIDGETS[id];
-    if (w && w.render && document.getElementById(`home-${id}-content`)) {
-      setTimeout(() => w.render(), index * 100);
-    }
+  document.querySelectorAll('.summary-card').forEach(card => {
+    observer.observe(card);
   });
 }
 
@@ -5596,16 +5604,18 @@ async function updateHomeRecentWidgets() {
     if (recentStops.length === 0) {
       stopsContainer.innerHTML = `<div class="summary-sub">No has consultado paradas todavía.</div>`;
     } else {
-      if (!window.appColors || !window.appColors.urbano || !window.appColors.metro || !window.appColors.interurbano) {
+      if (!window.appColors || !window.appColors.urbano) {
         try {
-          const [uCol, mCol, iCol] = await Promise.all([
-            fetch("data/urbano/colores.json").then(r => r.json()),
-            fetch("data/metro/colores.json").then(r => r.json()),
-            fetch("data/interurbano/colores.json").then(r => r.json())
-          ]);
-          window.appColors = { ...window.appColors, urbano: uCol, metro: mCol, interurbano: iCol };
+          const uCol = await fetch("data/urbano/colores.json").then(r => r.json());
+
+          window.appColors = {
+            ...window.appColors,
+            urbano: uCol,
+            metro: {},
+            interurbano: {}
+          };
         } catch (e) {
-          console.warn("Error cargando colores");
+          console.warn("Error cargando colores urbanos");
         }
       }
 
@@ -5631,7 +5641,9 @@ async function updateHomeRecentWidgets() {
           const linesArr = s.lines.split(",").map(l => l.trim());
           linesHtml = `<div style="display:flex; gap:3px; margin-top:4px; flex-wrap:wrap;">`;
           linesArr.slice(0, 5).forEach(l => {
-            const color = (window.appColors && window.appColors[s.type]) ? window.appColors[s.type][l] || "#64748b" : "#64748b";
+            const color = (s.type === "urbano")
+              ? (window.appColors.urbano[l] || "#64748b")
+              : (s.type === "metro" ? "#009a44" : "#2757f5");
             linesHtml += `<span style="background:${color}; color:white; font-size:9px; padding:1px 4px; border-radius:3px; font-weight:800;">${l}</span>`;
           });
           if (linesArr.length > 5) linesHtml += `<span style="font-size:9px; opacity:0.6;">+${linesArr.length - 5}</span>`;
