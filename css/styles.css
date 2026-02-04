@@ -62,6 +62,7 @@
 
 :root {
   --font-main: system-ui, -apple-system, sans-serif;
+  font-display: swap;
   --bg-app: #f0f2f5;
   --bg-surface: rgba(255, 255, 255, 0.85);
   --bg-card: #ffffff;
@@ -283,6 +284,7 @@ textarea {
 .icon {
   font-family: "remixicon";
   font-style: normal;
+  font-display: swap;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: 24px;

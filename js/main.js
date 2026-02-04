@@ -222,14 +222,14 @@ function getShopItems() {
       { id: "geo-5050", name: "Geo 50/50", desc: "Quita 2 respuestas falsas", price: 500, icon: "ri-scissors-2-fill", game: "geograna" },
     ],
     visualizers: [
-      { id: 'vis-cat', name: 'Gato Vibes', price: 10000, file: 'images/cat.gif', icon: 'ri-music-fill' },
-      { id: 'vis-rat', name: 'Rata Bailando', price: 7500, file: 'images/rat.gif', icon: 'ri-disc-fill' },
-      { id: 'vis-seal', name: 'Foca con Saxofon', price: 5000, file: 'images/seal.gif', icon: 'ri-music-fill' },
-      { id: 'vis-pepo', name: 'Pepo DJ', price: 2500, file: 'images/pepo.gif', icon: 'ri-disc-fill' },
-      { id: 'vis-top', name: 'Indescriptible', price: 15000, file: 'images/top.gif', icon: 'ri-music-fill' },
-      { id: 'vis-homer', name: 'Homer Shakira', price: 12500, file: 'images/homer.gif', icon: 'ri-disc-fill' },
-      { id: 'vis-racoon', name: 'Mapache de Fiesta', price: 2500, file: 'images/racoon.gif', icon: 'ri-music-fill' },
-      { id: 'vis-dog', name: 'Perreo', price: 5000, file: 'images/dog.gif', icon: 'ri-disc-fill' }
+      { id: 'vis-cat', name: 'Gato Vibes', price: 10000, file: 'data/gifs/cat.gif', icon: 'ri-music-fill' },
+      { id: 'vis-rat', name: 'Rata Bailando', price: 7500, file: 'data/gifs/rat.gif', icon: 'ri-disc-fill' },
+      { id: 'vis-seal', name: 'Foca con Saxofon', price: 5000, file: 'data/gifs/seal.gif', icon: 'ri-music-fill' },
+      { id: 'vis-pepo', name: 'Pepo DJ', price: 2500, file: 'data/gifs/pepo.gif', icon: 'ri-disc-fill' },
+      { id: 'vis-top', name: 'Indescriptible', price: 15000, file: 'data/gifs/top.gif', icon: 'ri-music-fill' },
+      { id: 'vis-homer', name: 'Homer Shakira', price: 12500, file: 'data/gifs/homer.gif', icon: 'ri-disc-fill' },
+      { id: 'vis-racoon', name: 'Mapache de Fiesta', price: 2500, file: 'data/gifs/racoon.gif', icon: 'ri-music-fill' },
+      { id: 'vis-dog', name: 'Perreo', price: 5000, file: 'data/gifs/dog.gif', icon: 'ri-disc-fill' }
     ]
   };
   return shopItemsCache;

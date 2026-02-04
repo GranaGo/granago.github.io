@@ -14,14 +14,6 @@ const ASSETS_TO_CACHE = [
   "./images/Logo.png",
   "./images/Logo192x192.png",
   "./images/Logo512x512.png",
-  "./images/cat.gif",
-  "./images/dog.gif",
-  "./images/homer.gif",
-  "./images/pepo.gif",
-  "./images/racoon.gif",
-  "./images/rat.gif",
-  "./images/seal.gif",
-  "./images/top.gif",
   "./fonts/remixicon.woff2"
 ];
 
