@@ -713,7 +713,6 @@ function loadScript(src) {
 document.addEventListener("DOMContentLoaded", () => {
   window.history.replaceState({ view: "home" }, "", "#home");
   initTheme();
-  initWeather();
   initHomeDashboard();
   initCookieConsent();
   initSupportTimers();
@@ -5212,10 +5211,10 @@ async function initHomeDashboard() {
 
   updateHomeRadioWidget();
   updateHomeDrivingWidget();
-  initWeather();
 
   if ('requestIdleCallback' in window) {
     requestIdleCallback(() => {
+      initWeather();
       updateHomeBusWidget();
       updateHomeEventsWidget();
       updateHomeParking();
@@ -5223,6 +5222,7 @@ async function initHomeDashboard() {
     });
   } else {
     setTimeout(() => {
+      initWeather();
       updateHomeBusWidget();
       updateHomeEventsWidget();
       updateHomeParking();
