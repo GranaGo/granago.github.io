@@ -1037,6 +1037,10 @@ function initTheme() {
       checkMapThemePlaces();
       checkMapThemeCortes();
       checkMapThemeRepostar();
+
+      if (document.getElementById("home-metro-content")) {
+        updateMetroXWidget();
+      }
     });
   }
 }
@@ -5012,7 +5016,8 @@ const ALL_WIDGETS = {
   event: { id: 'event', title: 'Eventos Hoy', icon: 'ri-calendar-event-fill', class: 'widget-event', action: "navigateTo('cortes')", render: updateHomeEventsWidget },
   eco: { id: 'eco', title: 'Impacto Ecológico', icon: 'ri-leaf-fill', class: 'widget-eco', action: "openEcoCalculator()", render: updateHomeEcoWidget },
   parking: { id: 'parking', title: 'Parkings', icon: 'ri-parking-box-fill', class: 'widget-parking', action: "navigateTo('parkings')", render: updateHomeParking },
-  bus: { id: 'bus', title: 'Desvíos Bus', icon: 'ri-bus-fill', class: 'widget-bus', action: "navigateTo('paradas')", render: updateHomeBusWidget },
+  bus: { id: 'bus', title: 'Estado del Bus Urbano', icon: 'ri-bus-fill', class: 'widget-bus', action: "navigateTo('paradas')", render: updateHomeBusWidget },
+  metro: { id: 'metro', title: 'Estado del Metro', icon: 'ri-train-fill', class: 'widget-metro', render: updateMetroXWidget },
   fuel: { id: 'fuel', title: 'Combustible', icon: 'ri-gas-station-fill', class: 'widget-fuel', action: "navigateTo('repostar')", render: updateHomeFuel },
   achievements: { id: 'achievements', title: 'Próximos Logros', icon: 'ri-medal-line', class: 'widget-achievements', render: updateHomeAchievementsWidget },
   stops: { id: 'stops', title: 'Paradas Recientes', icon: 'ri-history-line', class: 'widget-recent-stops', action: "navigateTo('paradas')", render: updateHomeRecentWidgets },
@@ -5028,6 +5033,7 @@ const DEFAULT_LAYOUT = [
   { id: 'eco', active: true },
   { id: 'parking', active: true },
   { id: 'bus', active: true },
+  { id: 'metro', active: true },
   { id: 'fuel', active: true },
   { id: 'achievements', active: true },
   { id: 'stops', active: true },
@@ -11943,3 +11949,95 @@ window.toggleHudLayout = async function () {
   localStorage.setItem('granaGo_hud_horizontal', isHorizontalNow);
   if (navigator.vibrate) navigator.vibrate(30);
 };
+
+async function updateMetroXWidget() {
+  const container = document.getElementById("home-metro-content");
+  if (!container) return;
+
+  const CACHE_KEY = "granaGo_metro_cache";
+  const cachedHTML = localStorage.getItem(CACHE_KEY);
+
+  if (cachedHTML) {
+    container.innerHTML = cachedHTML;
+  } else {
+    container.innerHTML = '<div class="spinner" style="margin: 10px auto; width:20px; height:20px;"></div>';
+  }
+
+  const instances = [
+    "nitter.cz",
+    "nitter.it",
+    "nitter.privacydev.net",
+    "nitter.poast.org",
+    "nitter.net"
+  ];
+
+  let success = false;
+
+  for (const instance of instances) {
+    if (success) break;
+
+    const url = `https://${instance}/MetroGranada`;
+    const finalUrl = PROXY_URL + encodeURIComponent(url);
+
+    try {
+      const res = await fetch(finalUrl, { priority: 'low' });
+      if (!res.ok) throw new Error("Fallo de instancia");
+
+      const html = await res.text();
+      const doc = new DOMParser().parseFromString(html, "text/html");
+
+      const allTweets = Array.from(doc.querySelectorAll(".timeline-item:not(.pinned)"));
+
+      const filteredTweets = allTweets.filter(tweet => {
+        const content = tweet.querySelector(".tweet-content")?.innerText.trim() || "";
+        return content.startsWith("🔴");
+      });
+
+      let newContentHTML = "";
+
+      if (filteredTweets.length > 0) {
+        let tweetsHTML = "";
+        const count = Math.min(filteredTweets.length, 2);
+
+        for (let i = 0; i < count; i++) {
+          const tweet = filteredTweets[i];
+          const text = tweet.querySelector(".tweet-content")?.innerText.trim() || "Sin contenido";
+          const date = tweet.querySelector(".tweet-date a")?.title || "Reciente";
+
+          tweetsHTML += `
+            <div style="margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle);">
+              <p style="font-size: 0.82rem; line-height: 1.4; color: var(--text-primary); margin: 0 0 4px 0;">${text}</p>
+              <span style="font-size: 0.65rem; color: var(--text-secondary); opacity: 0.7;">${date}</span>
+            </div>
+          `;
+        }
+
+        newContentHTML = tweetsHTML + `
+          <div style="font-size: 0.65rem; opacity: 0.5; margin-top: 5px; display: flex; align-items: center; gap: 4px;">
+            <i class="ri-twitter-x-fill"></i> Estado del Servicio
+          </div>
+        `;
+      } else if (allTweets.length > 0) {
+        newContentHTML = `
+          <div style="text-align: center; padding: 10px 0;">
+            <i class="ri-checkbox-circle-fill" style="color: #10b981; font-size: 1.5rem;"></i>
+            <p style="font-size: 0.85rem; margin-top: 5px; color: var(--text-primary);">Servicio sin incidencias</p>
+          </div>`;
+      }
+
+      if (newContentHTML && newContentHTML !== cachedHTML) {
+        container.innerHTML = newContentHTML;
+        localStorage.setItem(CACHE_KEY, newContentHTML);
+        console.log("Caché de Metro actualizado con nuevos tweets.");
+      }
+
+      success = true;
+    } catch (e) {
+      console.warn(`La instancia ${instance} no responde...`);
+    }
+  }
+
+  if (!success && !cachedHTML) {
+    container.innerHTML = `<div class="summary-sub">Novedades no disponibles. Toca para abrir X.</div>`;
+  }
+}
