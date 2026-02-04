@@ -14,7 +14,15 @@ const ASSETS_TO_CACHE = [
   "./images/Logo.png",
   "./images/Logo192x192.png",
   "./images/Logo512x512.png",
-  "./fonts/remixicon.woff2"
+  "./fonts/remixicon.woff2",
+  "./images/gifs/cat.gif",
+  "./images/gifs/rat.gif",
+  "./images/gifs/seal.gif",
+  "./images/gifs/pepo.gif",
+  "./images/gifs/top.gif",
+  "./images/gifs/homer.gif",
+  "./images/gifs/racoon.gif",
+  "./images/gifs/dog.gif"
 ];
 
 self.addEventListener("install", (event) => {
