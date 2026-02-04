@@ -174,7 +174,12 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 2_177,CMTBC,"M-053","Cádiz-Jerez De La Frontera (Por Hospital De Jerez)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=177,ff0000,FFFFFF
 2_219,CMTBC,"M-966","Chipiona-Costa Ballena-Rota",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=219,FF0000,FFFFFF
 2_220,CMTBC,"M-035","Cádiz-Escuela De Ingeniería",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=220,FF0000,FFFFFF
+2_221,CMTBC,"M-231","Chiclana De La Frontera-Campus Universitario De Puerto Real",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=221,FF00FF,FFFFFF
+2_222,CMTBC,"M-330","Puerto Real-Escuela De Ingeniería",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=222,0000FF,FFFFFF
+2_223,CMTBC,"M-351","Jerez De La Frontera-Campus Universitario De Puerto Real  (Por Cuatro Caminos)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=223,CC6666,FFFFFF
+2_224,CMTBC,"M-352","Jerez De La Frontera-Campus Universitario De Puerto Real (Por El Puerto De Santa María)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=224,00FF00,FFFFFF
 2_225,CMTBC,"M-967","Chipiona-Sanlúcar De Barrameda-Cádiz  (Por Campus De Puerto Real)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=225,FF0000,FFFFFF
+2_226,CMTBC,"M-340","El Puerto De Santa María-Campus Universitario De Puerto Real",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=226,0000FF,FFFFFF
 2_230,CMTBC,"M-965","Chipiona-Sanlúcar De Barrameda (Sevilla/Utrera)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=230,0000FF,FFFFFF
 2_231,CMTBC,"M-974","Costa Ballena-Chipiona-Sanlúcar De Barrameda (Sevilla)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=231,FF00FF,FFFFFF
 2_234,CMTBC,"M-911","Cádiz-Conil-Barbate (Por La Barca/Por Los Caños)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=234,FF0000,FFFFFF
