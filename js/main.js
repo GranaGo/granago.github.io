@@ -5571,42 +5571,9 @@ function updateHomeRadioWidget() {
   const container = document.getElementById("home-radio-content");
   if (!container) return;
 
-  if (RADIO_STATIONS.length === 0) {
-    container.innerHTML = `<div class="skeleton-text" style="width:90%; height:44px; border-radius:12px;"></div>`;
-    cargarRadiosDesdeAPI();
-    return;
-  }
-
-  const favUrls = getRadioFavorites();
-  const recentStations = JSON.parse(localStorage.getItem("granaGo_recent_radios") || "[]");
-
-  const favorites = RADIO_STATIONS.filter(s => favUrls.includes(s.url)).slice(0, 2);
-
-  const filteredRecents = recentStations
-    .filter(rs => !favUrls.includes(rs.url))
-    .slice(0, 2);
-
-  const totalToShow = [...favorites, ...filteredRecents];
-
-  if (totalToShow.length === 0) {
-    container.innerHTML = `<div class="summary-sub">Tus emisoras favoritas y recientes aparecerán aquí.</div>`;
-    return;
-  }
-
   container.innerHTML = `
-    <div style="display: flex; gap: 10px; margin-top: 5px; overflow-x: auto; padding: 5px 2px;">
-      ${totalToShow.map(s => {
-    const isFav = favUrls.includes(s.url);
-    const originalIdx = RADIO_STATIONS.findIndex(rs => rs.url === s.url);
-    return `
-          <div class="radio-mini-logo ${isFav ? 'is-fav' : ''}" 
-               onclick="event.stopPropagation(); navigateTo('radio'); setTimeout(() => toggleStation(${originalIdx}), 300);"
-               style="cursor:pointer; position:relative;">
-            <img src="${s.logo}" onerror="this.src='images/Logo.png'" alt="${s.name}">
-            ${isFav ? '<i class="ri-star-fill mini-star"></i>' : ''}
-          </div>
-        `;
-  }).join('')}
+    <div class="summary-sub" style="font-size: 0.85rem; line-height: 1.4; opacity: 0.9;">
+      Escucha tus radios favoritas, todas las radios españolas y las mas escuchadas del resto del mundo.
     </div>
   `;
 }
