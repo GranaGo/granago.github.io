@@ -852,7 +852,6 @@ window.navigateTo = async function (viewId, addToHistory = true) {
     updateHomeRecentWidgets();
     updateHomeEcoWidget();
     updateHomeAchievementsWidget();
-    updateHomeRadioWidget();
   } else if (viewId === "weather") {
     if (!weatherLocationActive) {
       const favs = getWeatherFavorites();
@@ -5203,6 +5202,13 @@ async function initHomeDashboard() {
 
   await renderHomeDashboard();
   initWeather();
+
+  setTimeout(() => {
+    updateHomeBusWidget();
+    updateHomeEventsWidget();
+    updateHomeParking();
+    updateHomeFuel();
+  }, 800);
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
