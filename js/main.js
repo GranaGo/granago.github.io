@@ -5059,8 +5059,11 @@ async function renderHomeDashboard() {
     homeLayout.forEach(config => {
       if (!config.active) return;
       const w = ALL_WIDGETS[config.id];
+      if (!w) return;
+
       const card = document.createElement('div');
       card.className = `summary-card ${w.class}`;
+      card.dataset.widgetId = config.id;
       card.onclick = () => eval(w.action);
       card.innerHTML = `
         <div class="summary-header">
@@ -5073,6 +5076,11 @@ async function renderHomeDashboard() {
       `;
       container.appendChild(card);
     });
+  } else {
+    document.querySelectorAll('.summary-card').forEach(card => {
+      const widgetKey = Object.keys(ALL_WIDGETS).find(key => card.classList.contains(ALL_WIDGETS[key].class));
+      if (widgetKey) card.dataset.widgetId = widgetKey;
+    });
   }
 
   const observer = new IntersectionObserver((entries) => {
@@ -5081,6 +5089,7 @@ async function renderHomeDashboard() {
         const widgetId = entry.target.dataset.widgetId;
         const widget = ALL_WIDGETS[widgetId];
         if (widget && widget.render) {
+          console.log(`Cargando widget: ${widgetId}`);
           widget.render();
           observer.unobserve(entry.target);
         }
@@ -5208,27 +5217,7 @@ async function initHomeDashboard() {
   }
 
   await renderHomeDashboard();
-
-  updateHomeRadioWidget();
-  updateHomeDrivingWidget();
-
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(() => {
-      initWeather();
-      updateHomeBusWidget();
-      updateHomeEventsWidget();
-      updateHomeParking();
-      updateHomeFuel();
-    });
-  } else {
-    setTimeout(() => {
-      initWeather();
-      updateHomeBusWidget();
-      updateHomeEventsWidget();
-      updateHomeParking();
-      updateHomeFuel();
-    }, 1000);
-  }
+  initWeather();
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
@@ -5243,7 +5232,11 @@ async function initHomeDashboard() {
         getGPSLocationName(lat, lng).then(name => {
           localStorage.setItem("granaGo_gps_name", name);
           initWeather();
-          updateHomeFuel();
+
+          const fuelContent = document.getElementById("home-fuel-content");
+          if (fuelContent && !fuelContent.querySelector(".skeleton-text")) {
+            updateHomeFuel();
+          }
         });
       },
       null,

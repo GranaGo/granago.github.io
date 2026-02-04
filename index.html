@@ -64,7 +64,7 @@
       </div>
 
       <div id="home-dashboard-grid" class="home-dashboard-grid fade-in-up">
-        <div class="summary-card widget-driving" onclick="toggleDrivingMode()">
+        <div class="summary-card widget-driving" data-widget-id="driving" onclick="toggleDrivingMode()">
           <div class="summary-header">
             <div class="summary-icon"><i class="ri-steering-2-fill"></i></div>
             <span class="summary-title" id="driving-widget-title">Modo Conducción</span>
@@ -74,7 +74,7 @@
           </div>
         </div>
 
-        <div class="summary-card widget-radio" onclick="navigateTo('radio')">
+        <div class="summary-card widget-radio" data-widget-id="radio" onclick="navigateTo('radio')">
           <div class="summary-header">
             <div class="summary-icon"><i class="ri-radio-2-fill"></i></div>
             <span class="summary-title" id="radio-widget-title">Radio Graná</span>
@@ -84,7 +84,7 @@
           </div>
         </div>
 
-        <div class="summary-card widget-event" onclick="navigateTo('cortes')">
+        <div class="summary-card widget-event" data-widget-id="event" onclick="navigateTo('cortes')">
           <div class="summary-header">
             <div class="summary-icon"><i class="ri-calendar-event-fill"></i></div>
             <span class="summary-title" id="event-widget-title">Eventos Hoy</span>
@@ -94,7 +94,7 @@
           </div>
         </div>
 
-        <div class="summary-card widget-parking" onclick="navigateTo('parkings')">
+        <div class="summary-card widget-parking" data-widget-id="parking" onclick="navigateTo('parkings')">
           <div class="summary-header">
             <div class="summary-icon"><i class="ri-parking-box-fill"></i></div>
             <span class="summary-title" id="parking-widget-title">Parkings</span>
@@ -104,7 +104,7 @@
           </div>
         </div>
 
-        <div class="summary-card widget-bus" onclick="navigateTo('paradas')">
+        <div class="summary-card widget-bus" data-widget-id="bus" onclick="navigateTo('paradas')">
           <div class="summary-header">
             <div class="summary-icon"><i class="ri-bus-fill"></i></div>
             <span class="summary-title" id="bus-widget-title">Desvíos Bus</span>
@@ -114,7 +114,7 @@
           </div>
         </div>
 
-        <div class="summary-card widget-fuel" onclick="navigateTo('repostar')">
+        <div class="summary-card widget-fuel" data-widget-id="fuel" onclick="navigateTo('repostar')">
           <div class="summary-header">
             <div class="summary-icon"><i class="ri-gas-station-fill"></i></div>
             <span class="summary-title" id="fuel-widget-title">Combustible</span>
@@ -124,7 +124,7 @@
           </div>
         </div>
 
-        <div class="summary-card widget-recent-stops" onclick="navigateTo('paradas')">
+        <div class="summary-card widget-recent-stops" data-widget-id="stops" onclick="navigateTo('paradas')">
           <div class="summary-header">
             <div class="summary-icon"><i class="ri-history-line"></i></div>
             <span class="summary-title" id="stops-widget-title">Paradas Recientes</span>
@@ -134,7 +134,7 @@
           </div>
         </div>
 
-        <div class="summary-card widget-recent-games" onclick="navigateTo('juegos')">
+        <div class="summary-card widget-recent-games" data-widget-id="games" onclick="navigateTo('juegos')">
           <div class="summary-header">
             <div class="summary-icon"><i class="ri-play-list-add-line"></i></div>
             <span class="summary-title" id="games-widget-title">Últimos Juegos</span>
@@ -144,7 +144,7 @@
           </div>
         </div>
 
-        <div class="summary-card widget-eco" onclick="openEcoCalculator()">
+        <div class="summary-card widget-eco" data-widget-id="eco" onclick="openEcoCalculator()">
           <div class="summary-header">
             <div class="summary-icon"><i class="ri-leaf-fill"></i></div>
             <span class="summary-title">Impacto Eco</span>
@@ -154,7 +154,7 @@
           </div>
         </div>
 
-        <div class="summary-card widget-achievements">
+        <div class="summary-card widget-achievements" data-widget-id="achievements">
           <div class="summary-header">
             <div class="summary-icon"><i class="ri-medal-line"></i></div>
             <span class="summary-title">Próximos Logros</span>
