@@ -5209,21 +5209,32 @@ async function initHomeDashboard() {
   }
 
   await renderHomeDashboard();
+
+  updateHomeRadioWidget();
+  updateHomeDrivingWidget();
   initWeather();
 
-  setTimeout(() => {
-    updateHomeBusWidget();
-    updateHomeEventsWidget();
-    updateHomeParking();
-    updateHomeFuel();
-  }, 1500);
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => {
+      updateHomeBusWidget();
+      updateHomeEventsWidget();
+      updateHomeParking();
+      updateHomeFuel();
+    });
+  } else {
+    setTimeout(() => {
+      updateHomeBusWidget();
+      updateHomeEventsWidget();
+      updateHomeParking();
+      updateHomeFuel();
+    }, 1000);
+  }
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
-
         window.currentLat = lat;
         window.currentLng = lng;
         localStorage.setItem("granaGo_last_lat", lat);
@@ -5245,13 +5256,7 @@ const PROXY_URL = "https://proxy.contacto-granago.workers.dev/?url=";
 const URLS = {
   rss:
     PROXY_URL +
-    encodeURIComponent("http://www.movilidadgranada.com/app/noticias/rss.php"),
-  centro:
-    PROXY_URL +
-    encodeURIComponent("http://www.movilidadgranada.com/bus_cortecentro.php"),
-  novedades:
-    PROXY_URL +
-    encodeURIComponent("http://www.movilidadgranada.com/bus_novedades.php"),
+    encodeURIComponent("http://www.movilidadgranada.com/app/noticias/rss.php")
 };
 
 const VALID_LINES = new Set([
@@ -5584,7 +5589,6 @@ function updateHomeDrivingWidget() {
 function updateHomeRadioWidget() {
   const container = document.getElementById("home-radio-content");
   if (!container) return;
-
   container.innerHTML = `
     <div class="summary-sub" style="font-size: 0.85rem; line-height: 1.4; opacity: 0.9;">
       Escucha tus radios favoritas, todas las radios españolas y las mas escuchadas del resto del mundo.
