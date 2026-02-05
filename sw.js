@@ -12,6 +12,7 @@ const ASSETS_TO_CACHE = [
   "./js/leaflet.markercluster.js",
   "./js/leaflet-omnivore.min.js",
   "./images/logo.png",
+  "./images/logo512.png",
   "./images/logo192.png",
   "./fonts/remixicon.woff2",
   "./images/gifs/cat.gif",
