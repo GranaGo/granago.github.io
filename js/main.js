@@ -9575,8 +9575,8 @@ function updateBJUI() {
       .map((c, i) => {
         const src =
           hideFirst && i === 0 && !bjState.gameOver
-            ? `images/CartasSVG/traseraCartas.svg`
-            : `images/CartasSVG/${c.value}_of_${c.suit}.svg`;
+            ? `images/cartas/traseraCartas.svg`
+            : `images/cartas/${c.value}_of_${c.suit}.svg`;
         return `<img src="${src}" loading="lazy" class="fade-in-up" style="height:100%; border-radius:8px; box-shadow: var(--shadow-soft);">`;
       })
       .join("");
