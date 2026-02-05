@@ -50,7 +50,6 @@
   height: 30px;
   margin-left: 5px;
   margin-top: 5px;
-
   text-align: center;
   border-radius: 15px;
   font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
@@ -1344,13 +1343,15 @@ body.dark-mode .map-loader {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
   color: white;
   border: 2px solid white;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
   transition: transform 0.2s ease;
+  overflow: hidden;
 }
 
 .transport-marker-container:hover {
@@ -1360,9 +1361,10 @@ body.dark-mode .map-loader {
 
 .transport-marker-container .icon {
   font-size: 18px;
-  margin: 0;
-  padding: 0;
-  vertical-align: middle;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  display: block !important;
 }
 
 .leaflet-popup-content-wrapper {

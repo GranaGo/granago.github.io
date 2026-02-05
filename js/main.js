@@ -361,9 +361,9 @@ const FARE_DATA = {
     {
       title: "Bus Búho (Nocturno)",
       price: "1,70€",
-      desc: "Tarifa para líneas 111 y 121. Pago directo al conductor.",
+      desc: "Tarifa para líneas 111 y 121. Pago directo al conductor o con tarjeta urbana.",
       badge: "Nocturno",
-      color: "#1e293b",
+      color: "#7c7c7c",
     },
     {
       title: "Credibús 5€",
@@ -2179,17 +2179,12 @@ window.openLineDetail = function (lineId, type, color, lineName) {
 };
 
 window.switchLineTab = function (tabName) {
-  document
-    .querySelectorAll(".detail-tab")
-    .forEach((b) => b.classList.remove("active"));
-  document
-    .querySelectorAll(".tab-content")
-    .forEach((c) => c.classList.remove("active"));
+  document.querySelectorAll(".detail-tab").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
 
-  const tabs = document.querySelectorAll(".detail-tab");
-  if (tabName === "map" && tabs[0]) tabs[0].classList.add("active");
-  if (tabName === "list" && tabs[1]) tabs[1].classList.add("active");
-  if (tabName === "schedule" && tabs[2]) tabs[2].classList.add("active");
+  const targetBtn = Array.from(document.querySelectorAll(".detail-tab"))
+    .find(btn => btn.getAttribute('onclick').includes(`'${tabName}'`));
+  if (targetBtn) targetBtn.classList.add("active");
 
   const content = document.getElementById(`tab-content-${tabName}`);
   if (content) content.classList.add("active");
