@@ -5053,11 +5053,13 @@ async function renderHomeDashboard() {
   const container = document.getElementById('home-dashboard-grid');
   if (!container) return;
 
-  const customConfig = localStorage.getItem('granaGo_home_layout');
+  const savedLayoutStr = localStorage.getItem('granaGo_home_layout');
 
-  if (customConfig) {
+  if (savedLayoutStr) {
+    const savedLayout = JSON.parse(savedLayoutStr);
+
     container.innerHTML = '';
-    homeLayout.forEach(config => {
+    savedLayout.forEach(config => {
       if (!config.active) return;
       const w = ALL_WIDGETS[config.id];
       if (!w) return;
@@ -5089,8 +5091,9 @@ async function renderHomeDashboard() {
       if (entry.isIntersecting) {
         const widgetId = entry.target.dataset.widgetId;
         const widget = ALL_WIDGETS[widgetId];
+        entry.target.classList.add('fade-in-up');
+
         if (widget && widget.render) {
-          console.log(`Cargando widget: ${widgetId}`);
           widget.render();
           observer.unobserve(entry.target);
         }
