@@ -19,6 +19,7 @@ const API_BASE = "https://movgr.apis.mianfg.me";
 const UNAVAILABLE_MESSAGE = "Sin llegadas próximas...";
 
 let newWorker;
+let pendingImportData = null;
 let deferredPrompt;
 let isManualUpdate = false;
 let weatherCache = {};
@@ -124,6 +125,20 @@ let parkingBiciLayer = null;
 let sostenibleDataLoaded = false;
 let sostenibleUserMarker = null;
 let dragStartIndex = null;
+let runState = {
+  active: false,
+  paused: false,
+  mode: 'walk',
+  startTime: null,
+  endTime: null,
+  totalSeconds: 0,
+  distance: 0,
+  path: [],
+  lastCoord: null,
+  watchId: null,
+  timerInterval: null
+};
+let summaryMap = null;
 
 let wordleSetupHTML = "";
 let isMuted = false;
@@ -192,7 +207,8 @@ const ACHIEVEMENTS_DATA = {
   'ambassador': { title: 'Embajador', desc: 'Comparte la app con amigos', goal: 5, reward: 200, icon: 'ri-share-forward-fill', type: 'soc' },
   'night_owl': { title: 'Búho Nocturno', desc: 'Usa la app después de medianoche', goal: 5, reward: 100, icon: 'ri-moon-clear-fill', type: 'app' },
   'driver_mode': { title: 'Al volante', desc: 'Activa el Modo Conducción', goal: 10, reward: 100, icon: 'ri-steering-2-fill', type: 'app' },
-  'loyal': { title: 'Vecino Fiel', desc: 'Abre la app 5 días distintos', goal: 5, reward: 500, icon: 'ri-calendar-check-fill', type: 'app' }
+  'loyal': { title: 'Vecino Fiel', desc: 'Abre la app 5 días distintos', goal: 5, reward: 500, icon: 'ri-calendar-check-fill', type: 'app' },
+  'sport_master': { title: 'Km a Km', desc: 'Acumula 10km corriendo o andando', goal: 10, reward: 300, icon: 'ri-run-line', type: 'sport' }
 };
 
 function getShopItems() {
@@ -1482,6 +1498,17 @@ function destroyUnusedMaps() {
   if (cGeo) {
     cGeo._leaflet_id = null;
     cGeo.innerHTML = "";
+  }
+
+  if (summaryMap) {
+    summaryMap.off();
+    summaryMap.remove();
+    summaryMap = null;
+  }
+  const cSummary = document.getElementById("summary-map");
+  if (cSummary) {
+    cSummary._leaflet_id = null;
+    cSummary.innerHTML = "";
   }
 }
 
@@ -5018,6 +5045,7 @@ const ALL_WIDGETS = {
   stops: { id: 'stops', title: 'Paradas Recientes', icon: 'ri-history-line', class: 'widget-recent-stops', action: "navigateTo('paradas')", render: updateHomeRecentWidgets },
   games: { id: 'games', title: 'Últimos Juegos', icon: 'ri-play-list-add-line', class: 'widget-recent-games', action: "navigateTo('juegos')", render: updateHomeRecentWidgets },
   driving: { id: 'driving', title: 'Modo Conducción', icon: 'ri-steering-2-fill', class: 'widget-driving', action: "toggleDrivingMode()", render: updateHomeDrivingWidget },
+  running: { id: 'running', title: 'Modo Actividad', icon: 'ri-run-fill', class: 'widget-running', action: "openRunningSetup()", render: updateHomeRunning },
   radio: { id: 'radio', title: 'Radio Graná', icon: 'ri-radio-2-fill', class: 'widget-radio', action: "navigateTo('radio')", render: updateHomeRadioWidget }
 };
 
@@ -5032,6 +5060,7 @@ const DEFAULT_LAYOUT = [
   { id: 'fuel', active: true },
   { id: 'achievements', active: true },
   { id: 'stops', active: true },
+  { id: 'running', active: true },
   { id: 'games', active: true }
 ];
 
@@ -5572,6 +5601,17 @@ function extractLinesToSet(text, setObj) {
       }
     });
   }
+}
+
+async function updateHomeRunning() {
+  const container = document.getElementById("home-running-content");
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="summary-sub">
+      Registra tus rutas a pie o corriendo y gana GranáSaldo por tu esfuerzo.
+    </div>
+  `;
 }
 
 async function updateHomeRecentWidgets() {
@@ -8230,6 +8270,15 @@ async function toggleDrivingMode() {
   const hud = document.getElementById("driving-hud");
 
   if (!drivingModeActive) {
+    const badgeSet = localStorage.getItem("granaGo_vehicle_badge");
+    const residentSet = localStorage.getItem("granaGo_is_resident");
+
+    if (badgeSet === null || residentSet === null) {
+      showNotification("Configuración", "Define tu vehículo para recibir avisos precisos de la ZBE.", "info");
+      openVehicleConfig();
+      window._startDrivingAfterConfig = true;
+      return;
+    }
     if (!document.getElementById('camaras-view').classList.contains('active')) {
       await navigateTo('camaras');
     }
@@ -11258,6 +11307,12 @@ window.openVehicleConfig = function () {
 
 window.closeVehicleConfig = function () {
   document.getElementById('vehicle-config-modal').classList.remove('visible');
+
+  if (window._startDrivingAfterConfig) {
+    window._startDrivingAfterConfig = false;
+
+    toggleDrivingMode();
+  }
 };
 
 window.toggleResidentStatus = function () {
@@ -12039,3 +12094,356 @@ async function updateMetroXWidget() {
     container.innerHTML = `<div class="summary-sub">Novedades no disponibles. Toca para abrir X.</div>`;
   }
 }
+
+window.openRunningSetup = function () {
+  document.getElementById('run-setup-modal').classList.add('visible');
+};
+
+window.closeRunSetup = function () {
+  document.getElementById('run-setup-modal').classList.remove('visible');
+};
+
+window.startTracking = async function (mode) {
+  closeRunSetup();
+  navigateTo('running');
+
+  runState = {
+    active: false,
+    paused: false,
+    mode: mode,
+    startTime: null,
+    endTime: null,
+    totalSeconds: 0,
+    distance: 0,
+    path: [],
+    lastCoord: null,
+    watchId: null,
+    timerInterval: null
+  };
+
+  document.getElementById('run-display-mode').innerText = mode === 'run' ? 'Modo Carrera' : 'Modo Caminata';
+  document.getElementById('run-start-time-label').innerText = "Listo para empezar";
+  document.getElementById('run-timer').innerText = "00:00:00";
+  document.getElementById('run-dist').innerHTML = `0.00 <small>km</small>`;
+  document.getElementById('run-speed').innerHTML = `0.0 <small>km/h</small>`;
+  document.getElementById('btn-run-start').style.display = "block";
+  document.getElementById('btn-run-pause').style.display = "none";
+  document.getElementById('btn-run-stop').style.display = "none";
+};
+
+window.beginActivity = function () {
+  runState.active = true;
+  runState.startTime = new Date();
+
+  document.getElementById('run-start-time-label').innerText = `Iniciado a las ${runState.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+  document.getElementById('btn-run-start').style.display = "none";
+  document.getElementById('btn-run-pause').style.display = "flex";
+  document.getElementById('btn-run-stop').style.display = "flex";
+
+  requestWakeLock();
+  startRunTimer();
+
+  const gpsOptions = {
+    enableHighAccuracy: true,
+    maximumAge: runState.mode === 'run' ? 1000 : 3000,
+    timeout: 10000
+  };
+
+  runState.watchId = navigator.geolocation.watchPosition(processRunPosition, null, gpsOptions);
+  showNotification("Ruta Iniciada", "¡Vamos! GranáGo está grabando.", "success");
+};
+
+function processRunPosition(pos) {
+  if (!runState.active || runState.paused) return;
+
+  const lat = pos.coords.latitude;
+  const lng = pos.coords.longitude;
+  const speed = pos.coords.speed ? (pos.coords.speed * 3.6) : 0;
+
+  document.getElementById('run-speed').innerHTML = `${speed.toFixed(1)} <small>km/h</small>`;
+
+  if (runState.lastCoord) {
+    const dist = getDistanceFromLatLonInKm(runState.lastCoord.lat, runState.lastCoord.lng, lat, lng);
+    if (dist > 0.005) {
+      runState.distance += dist;
+      runState.path.push([lat, lng]);
+      runState.lastCoord = { lat, lng };
+      document.getElementById('run-dist').innerHTML = `${runState.distance.toFixed(2)} <small>km</small>`;
+    }
+  } else {
+    runState.lastCoord = { lat, lng };
+    runState.path.push([lat, lng]);
+  }
+}
+
+function startRunTimer() {
+  runState.timerInterval = setInterval(() => {
+    if (!runState.paused) {
+      runState.totalSeconds++;
+      const hrs = Math.floor(runState.totalSeconds / 3600).toString().padStart(2, '0');
+      const mins = Math.floor((runState.totalSeconds % 3600) / 60).toString().padStart(2, '0');
+      const secs = (runState.totalSeconds % 60).toString().padStart(2, '0');
+      document.getElementById('run-timer').innerText = `${hrs}:${mins}:${secs}`;
+    }
+  }, 1000);
+}
+
+window.toggleRunPause = function () {
+  runState.paused = !runState.paused;
+  const btn = document.getElementById('btn-run-pause');
+  btn.innerHTML = runState.paused ? '<i class="ri-play-fill"></i> REANUDAR' : '<i class="ri-pause-fill"></i> PAUSAR';
+  btn.classList.toggle('primary', runState.paused);
+};
+
+window.finishRun = function () {
+  runState.endTime = new Date();
+  runState.active = false;
+  clearInterval(runState.timerInterval);
+  if (runState.watchId) navigator.geolocation.clearWatch(runState.watchId);
+  if (wakeLock) wakeLock.release();
+
+  const timeStr = document.getElementById('run-timer').innerText;
+  const avgSpeed = runState.totalSeconds > 0 ? (runState.distance / (runState.totalSeconds / 3600)).toFixed(1) : "0";
+  const history = JSON.parse(localStorage.getItem('granaGo_run_history') || "[]");
+  history.push({
+    date: new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
+    mode: runState.mode,
+    distance: runState.distance.toFixed(2),
+    time: timeStr,
+    avgSpeed: avgSpeed
+  });
+  localStorage.setItem('granaGo_run_history', JSON.stringify(history));
+
+  let totalEcoKm = parseFloat(localStorage.getItem("granaGo_eco_km") || "0");
+  totalEcoKm += runState.distance;
+  localStorage.setItem("granaGo_eco_km", totalEcoKm);
+  updateAchievement('sport_master', runState.distance);
+
+  showRunSummary();
+};
+
+window.deleteRunFromHistory = function (index) {
+  if (confirm("¿Eliminar esta ruta del historial?")) {
+    const history = JSON.parse(localStorage.getItem('granaGo_run_history') || "[]");
+    history.splice(index, 1);
+    localStorage.setItem('granaGo_run_history', JSON.stringify(history));
+    renderRunHistory();
+  }
+};
+
+function showRunSummary() {
+  document.getElementById('run-summary-modal').classList.add('visible');
+
+  const avgSpeed = runState.totalSeconds > 0 ? (runState.distance / (runState.totalSeconds / 3600)) : 0;
+  const timeStr = document.getElementById('run-timer').innerText;
+
+  const statsGrid = document.getElementById('summary-stats-grid');
+  statsGrid.innerHTML = `
+        <div class="fuel-price-item"><span class="fuel-type-label">Inicio</span><span class="fuel-price-val">${runState.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
+        <div class="fuel-price-item"><span class="fuel-type-label">Distancia</span><span class="fuel-price-val">${runState.distance.toFixed(2)} km</span></div>
+        <div class="fuel-price-item"><span class="fuel-type-label">Tiempo</span><span class="fuel-price-val">${timeStr}</span></div>
+        <div class="fuel-price-item"><span class="fuel-type-label">Velocidad Media</span><span class="fuel-price-val">${avgSpeed.toFixed(1)} km/h</span></div>
+    `;
+
+  setTimeout(() => {
+    if (summaryMap) summaryMap.remove();
+    summaryMap = L.map('summary-map', { zoomControl: false, attributionControl: false });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(summaryMap);
+
+    if (runState.path.length > 1) {
+      const polyline = L.polyline(runState.path, { color: '#ec4899', weight: 4 }).addTo(summaryMap);
+      summaryMap.fitBounds(polyline.getBounds(), { padding: [10, 10] });
+    }
+  }, 300);
+
+  const reward = Math.floor(runState.distance * 100);
+  if (reward > 0) addGranaSaldo(reward, "actividad deportiva");
+}
+
+window.shareRunSummary = function () {
+  const avgSpeed = (runState.distance / (runState.totalSeconds / 3600)).toFixed(1);
+  const text = `🏃‍♂️ ¡He completado mi ruta con GranáGo!\n📍 Distancia: ${runState.distance.toFixed(2)} km\n⏱️ Tiempo: ${document.getElementById('run-timer').innerText}\n⚡ Vel. Media: ${avgSpeed} km/h\n#GranáGo`;
+
+  if (navigator.share) {
+    navigator.share({ title: 'Mi ruta en GranáGo', text: text, url: 'https://granago.github.io' });
+  } else {
+    copyToClipboard(text);
+  }
+};
+
+window.closeRunSummary = function () {
+  document.getElementById('run-summary-modal').classList.remove('visible');
+  navigateTo('home');
+};
+
+window.stopRunningProcess = function () {
+  document.getElementById('run-cancel-modal').classList.add('visible');
+};
+
+window.closeRunCancelModal = function () {
+  document.getElementById('run-cancel-modal').classList.remove('visible');
+};
+
+window.confirmStopRunning = function () {
+  runState.active = false;
+  clearInterval(runState.timerInterval);
+
+  if (runState.watchId) {
+    navigator.geolocation.clearWatch(runState.watchId);
+  }
+
+  if (wakeLock) {
+    wakeLock.release();
+  }
+
+  closeRunCancelModal();
+  navigateTo('home');
+
+  showNotification("Seguimiento Cancelado", "No se han guardado registros.", "info");
+};
+
+window.openRunHistory = function () {
+  closeRunSetup();
+  document.getElementById('run-history-modal').classList.add('visible');
+  renderRunHistory();
+};
+
+window.closeRunHistory = function () {
+  document.getElementById('run-history-modal').classList.remove('visible');
+};
+
+function renderRunHistory() {
+  const container = document.getElementById('run-history-list');
+  const history = JSON.parse(localStorage.getItem('granaGo_run_history') || "[]");
+
+  if (history.length === 0) {
+    container.innerHTML = '<div class="empty-state">No tienes rutas guardadas todavía.</div>';
+    return;
+  }
+
+  container.innerHTML = history.reverse().map((run, index) => `
+        <div class="info-card" style="margin-bottom: 12px; padding: 12px; border-left: 4px solid var(--text-accent);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                <div>
+                    <span style="font-weight:800; font-size:0.9rem;">${run.date}</span>
+                    <p style="margin:0; font-size:0.75rem; color:var(--text-secondary);">${run.mode === 'run' ? '🏃 Carrera' : '🚶 Caminata'}</p>
+                </div>
+                <button onclick="deleteRunFromHistory(${history.length - 1 - index})" class="icon-btn-small" style="color:var(--color-error);">
+                    <i class="ri-delete-bin-line"></i>
+                </button>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; text-align:center;">
+                <div><small style="display:block; opacity:0.6; font-size:0.6rem;">DISTANCIA</small><strong>${run.distance} km</strong></div>
+                <div><small style="display:block; opacity:0.6; font-size:0.6rem;">TIEMPO</small><strong>${run.time}</strong></div>
+                <div><small style="display:block; opacity:0.6; font-size:0.6rem;">VEL. MEDIA</small><strong>${run.avgSpeed} km/h</strong></div>
+            </div>
+        </div>
+    `).join('');
+}
+
+window.exportUserData = function () {
+  const dataToExport = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith('granaGo_') || key === 'theme' || key === 'last_visit_achievement') {
+      dataToExport[key] = localStorage.getItem(key);
+    }
+  }
+
+  const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+
+  const date = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = `GranaGo_Backup_${date}.json`;
+  document.body.appendChild(a);
+  a.click();
+
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showNotification("Copia creada", "Archivo de seguridad descargado", "success");
+};
+
+window.triggerImport = function () {
+  document.getElementById('import-file-input').click();
+};
+
+window.importUserData = function (event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      pendingImportData = JSON.parse(e.target.result);
+      document.getElementById('import-confirm-modal').classList.add('visible');
+    } catch (err) {
+      console.error("Error al importar:", err);
+      showNotification("Error", "El archivo no es una copia válida de GranáGo", "error");
+    }
+  };
+  reader.readAsText(file);
+
+  event.target.value = '';
+};
+
+window.executeImport = function () {
+  if (!pendingImportData) return;
+  Object.keys(pendingImportData).forEach(key => {
+    localStorage.setItem(key, pendingImportData[key]);
+  });
+
+  closeImportConfirm();
+  showNotification("Éxito", "Datos restaurados correctamente. Reiniciando...", "success");
+
+  setTimeout(() => {
+    window.location.reload();
+  }, 1500);
+};
+
+window.closeImportConfirm = function () {
+  document.getElementById('import-confirm-modal').classList.remove('visible');
+  pendingImportData = null;
+};
+
+document.addEventListener("click", (e) => {
+  const runSetupModal = document.getElementById("run-setup-modal");
+  if (runSetupModal && e.target === runSetupModal) closeRunSetup();
+
+  const runHistoryModal = document.getElementById("run-history-modal");
+  if (runHistoryModal && e.target === runHistoryModal) closeRunHistory();
+
+  const importModal = document.getElementById("import-confirm-modal");
+  if (importModal && e.target === importModal) closeImportConfirm();
+
+  const cancelRunModal = document.getElementById("run-cancel-modal");
+  if (cancelRunModal && e.target === cancelRunModal) closeRunCancelModal();
+
+  const summaryModal = document.getElementById("run-summary-modal");
+  if (summaryModal && e.target === summaryModal) closeRunSummary();
+});
+
+window.shareBackupData = async function () {
+  const dataToExport = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith('granaGo_') || key === 'theme') dataToExport[key] = localStorage.getItem(key);
+  }
+
+  const fileName = `GranaGo_Backup_${new Date().toISOString().split('T')[0]}.json`;
+  const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'text/plain' });
+  const file = new File([blob], fileName, { type: 'text/plain' });
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: 'Copia GranáGo', text: 'Mi progreso en la App.' });
+    } catch (err) {
+      if (err.name !== 'AbortError') showNotification("Error", "No se pudo compartir el archivo", "error");
+    }
+  } else {
+    showNotification("No disponible", "Usa 'Guardar Archivo' en su lugar.", "info");
+  }
+};

@@ -3264,6 +3264,11 @@ font:hover {
   font-size: 1rem;
   cursor: pointer;
   transition: transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
 }
 
 .cookie-btn:active {
