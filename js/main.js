@@ -12426,24 +12426,3 @@ document.addEventListener("click", (e) => {
   if (summaryModal && e.target === summaryModal) closeRunSummary();
 });
 
-window.shareBackupData = async function () {
-  const dataToExport = {};
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key.startsWith('granaGo_') || key === 'theme') dataToExport[key] = localStorage.getItem(key);
-  }
-
-  const fileName = `GranaGo_Backup_${new Date().toISOString().split('T')[0]}.json`;
-  const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'text/plain' });
-  const file = new File([blob], fileName, { type: 'text/plain' });
-
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], title: 'Copia GranáGo', text: 'Mi progreso en la App.' });
-    } catch (err) {
-      if (err.name !== 'AbortError') showNotification("Error", "No se pudo compartir el archivo", "error");
-    }
-  } else {
-    showNotification("No disponible", "Usa 'Guardar Archivo' en su lugar.", "info");
-  }
-};
