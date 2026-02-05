@@ -5017,8 +5017,8 @@ const ALL_WIDGETS = {
   achievements: { id: 'achievements', title: 'Próximos Logros', icon: 'ri-medal-line', class: 'widget-achievements', render: updateHomeAchievementsWidget },
   stops: { id: 'stops', title: 'Paradas Recientes', icon: 'ri-history-line', class: 'widget-recent-stops', action: "navigateTo('paradas')", render: updateHomeRecentWidgets },
   games: { id: 'games', title: 'Últimos Juegos', icon: 'ri-play-list-add-line', class: 'widget-recent-games', action: "navigateTo('juegos')", render: updateHomeRecentWidgets },
-  driving: { id: 'driving', title: 'Modo Conducción', icon: 'ri-steering-2-fill', class: 'widget-driving', action: "toggleDrivingMode()", render: updateHomeDrivingWidget },
-  radio: { id: 'radio', title: 'Radio Graná', icon: 'ri-radio-2-fill', class: 'widget-radio', action: "navigateTo('radio')", render: updateHomeRadioWidget }
+  driving: { id: 'driving', title: 'Modo Conducción', icon: 'ri-steering-2-fill', class: 'widget-driving', action: "toggleDrivingMode()" },
+  radio: { id: 'radio', title: 'Radio Graná', icon: 'ri-radio-2-fill', class: 'widget-radio', action: "navigateTo('radio')" }
 };
 
 const DEFAULT_LAYOUT = [
@@ -5569,25 +5569,6 @@ function extractLinesToSet(text, setObj) {
       }
     });
   }
-}
-
-function updateHomeDrivingWidget() {
-  const container = document.getElementById("home-driving-content");
-  if (!container) return;
-  container.innerHTML = `
-    <div class="summary-value" style="color:var(--text-accent); font-size:1.1rem;">Asistente Activo</div>
-    <div class="summary-sub">Toca para abrir el modo HUD, radares y velocidad.</div>
-  `;
-}
-
-function updateHomeRadioWidget() {
-  const container = document.getElementById("home-radio-content");
-  if (!container) return;
-  container.innerHTML = `
-    <div class="summary-sub" style="font-size: 0.85rem; line-height: 1.4; opacity: 0.9;">
-      Escucha tus radios favoritas, todas las radios españolas y las mas escuchadas del resto del mundo.
-    </div>
-  `;
 }
 
 async function updateHomeRecentWidgets() {
