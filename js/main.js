@@ -9409,6 +9409,17 @@ function initBlackjackRound() {
   bjState.playerHand = [];
   bjState.dealerHand = [];
   bjState.gameOver = false;
+  bjState.hasInsurance = false;
+
+  const playerCards = document.getElementById("player-cards");
+  const dealerCards = document.getElementById("dealer-cards");
+  if (playerCards) playerCards.innerHTML = "";
+  if (dealerCards) dealerCards.innerHTML = "";
+
+  const pScore = document.getElementById("player-score");
+  const dScore = document.getElementById("dealer-score");
+  if (pScore) pScore.innerText = "0";
+  if (dScore) dScore.innerText = "?";
 
   document.getElementById("blackjack-controls").style.display = "block";
   document.getElementById("blackjack-result").style.display = "none";
@@ -9417,6 +9428,7 @@ function initBlackjackRound() {
 
   const btnPwr = document.getElementById("btn-pwr-blackjack");
   if (btnPwr) btnPwr.style.display = "none";
+
   updateBJUI();
 }
 
@@ -10235,22 +10247,38 @@ window.openSlotsMenu = function () {
   document.getElementById("games-menu").style.display = "none";
   document.getElementById("slots-game-container").style.display = "block";
 
+  slotBet = 10;
+  const betDisplay = document.getElementById("current-slot-bet");
+  if (betDisplay) betDisplay.innerText = slotBet;
+
+  const initialIcons = [
+    "ri-bus-fill", "ri-train-fill", "ri-taxi-fill",
+    "ri-parking-box-fill", "ri-gas-station-fill", "ri-camera-lens-fill",
+    "ri-bus-fill", "ri-train-fill", "ri-taxi-fill"
+  ];
+
+  initialIcons.forEach((icon, i) => {
+    const cell = document.getElementById(`s-${i}`);
+    if (cell) {
+      cell.classList.remove("win-pulse");
+      const wrapper = cell.querySelector(".slot-icon-wrapper");
+      if (wrapper) {
+        wrapper.classList.remove("reel-spinning", "reel-stopping");
+        wrapper.innerHTML = `<i class="${icon}"></i>`;
+      }
+    }
+  });
+
   let balance = parseInt(localStorage.getItem("granaGo_bj_balance") || 500);
 
   if (balance <= 0) {
-    let courtesyCount = parseInt(
-      localStorage.getItem("granaGo_slots_courtesy_count") || "0",
-    );
+    let courtesyCount = parseInt(localStorage.getItem("granaGo_slots_courtesy_count") || "0");
     if (courtesyCount < 5) {
       balance = 50;
       courtesyCount++;
       localStorage.setItem("granaGo_bj_balance", 50);
       localStorage.setItem("granaGo_slots_courtesy_count", courtesyCount);
-      showNotification(
-        "Regalo de cortesía",
-        `50 G$ para probar suerte (${courtesyCount}/5)`,
-        "success",
-      );
+      showNotification("Regalo de cortesía", `50 G$ para probar suerte (${courtesyCount}/5)`, "success");
     }
   }
 
