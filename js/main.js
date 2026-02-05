@@ -747,6 +747,27 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   const homeBtn = document.querySelector(".dock-item-home");
   if (homeBtn) homeBtn.classList.add("active");
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const sharedRoute = urlParams.get('route');
+  if (sharedRoute) {
+    try {
+      const points = JSON.parse(atob(sharedRoute));
+      setTimeout(() => {
+        navigateTo('running');
+        document.getElementById('run-display-mode').innerText = "Ruta Compartida";
+        document.getElementById('run-start-time-label').innerText = "Visualizando trayecto de un amigo";
+
+        runState.path = points;
+        runState.distance = 0;
+
+        showRunSummary();
+        document.getElementById('running-action-container').style.display = 'none';
+      }, 500);
+    } catch (e) {
+      console.error("Error al cargar ruta compartida", e);
+    }
+  }
 });
 
 window.addEventListener("popstate", (event) => {
@@ -12289,14 +12310,45 @@ function showRunSummary() {
   if (reward > 0) addGranaSaldo(reward, "actividad deportiva");
 }
 
-window.shareRunSummary = function () {
+window.shareRunSummary = async function () {
   const avgSpeed = (runState.distance / (runState.totalSeconds / 3600)).toFixed(1);
-  const text = `🏃‍♂️ ¡He completado mi ruta con GranáGo!\n📍 Distancia: ${runState.distance.toFixed(2)} km\n⏱️ Tiempo: ${document.getElementById('run-timer').innerText}\n⚡ Vel. Media: ${avgSpeed} km/h\n#GranáGo`;
+  const timeStr = document.getElementById('run-timer').innerText;
+  const pathData = runState.path.filter((_, i) => i % 5 === 0);
+  const encodedPath = btoa(JSON.stringify(pathData));
+  const staticUrl = `${window.location.origin}${window.location.pathname}?route=${encodedPath}`;
 
-  if (navigator.share) {
-    navigator.share({ title: 'Mi ruta en GranáGo', text: text, url: 'https://granago.github.io' });
-  } else {
-    copyToClipboard(text);
+  const shareText = `🏃‍♂️ ¡He completado mi ruta con GranáGo!\n📍 Distancia: ${runState.distance.toFixed(2)} km\n⏱️ Tiempo: ${timeStr}\n⚡ Vel. Media: ${avgSpeed} km/h\n🗺️ Ver mapa: ${staticUrl}\n#GranáGo`;
+
+  try {
+    showNotification("Preparando...", "Generando imagen de la ruta", "info");
+    await loadScript("js/html2canvas.min.js");
+
+    const mapElement = document.getElementById('summary-map');
+    const canvas = await html2canvas(mapElement, {
+      useCORS: true,
+      logging: false,
+      backgroundColor: null
+    });
+
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    const file = new File([blob], 'mi_ruta_granago.png', { type: 'image/png' });
+
+    if (navigator.share && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        title: 'Mi ruta en GranáGo',
+        text: shareText,
+        files: [file]
+      });
+    } else {
+      throw new Error("No compatible con archivos");
+    }
+  } catch (err) {
+    console.error("Error al compartir:", err);
+    if (navigator.share) {
+      navigator.share({ title: 'Mi ruta en GranáGo', text: shareText });
+    } else {
+      copyToClipboard(shareText);
+    }
   }
 };
 

@@ -11,6 +11,7 @@ const ASSETS_TO_CACHE = [
   "./js/leaflet.js",
   "./js/leaflet.markercluster.js",
   "./js/leaflet-omnivore.min.js",
+  "./js/html2canvas.min.js",
   "./images/logo.png",
   "./images/logo512.png",
   "./images/logo192.png",
