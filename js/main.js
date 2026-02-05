@@ -14,7 +14,7 @@
  * junto con este programa. Si no es así, consulte <https://www.gnu.org/licenses/>.
  */
 
-const GRANADA_COORDS = { lat: 37.1760, lon: -3.5994 };
+const GRANADA_COORDS = { lat: 37.173485, lon: -3.599678 };
 const API_BASE = "https://movgr.apis.mianfg.me";
 const UNAVAILABLE_MESSAGE = "Sin llegadas próximas...";
 
