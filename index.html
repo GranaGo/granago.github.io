@@ -482,6 +482,28 @@
       </div>
     </div>
 
+    <div id="shared-route-modal" class="modal-overlay">
+      <div class="modal-card gpu-accelerated" style="max-width: 450px;">
+        <div class="modal-header">
+          <h3 id="shared-route-title">Ruta recibida</h3>
+          <button onclick="closeSharedRoute()" class="icon-btn close-modal-btn">
+            <i class="ri-close-line"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="shared-route-map"
+            style="height: 250px; width:100%; border-radius:15px; margin-bottom:15px; border:1px solid var(--border-subtle);">
+          </div>
+
+          <div id="shared-stats-grid" class="fuel-price-grid" style="margin-bottom:20px;"></div>
+
+          <button class="cookie-btn primary" style="width:100%;" onclick="closeSharedRoute(); navigateTo('home');">
+            Abrir GranáGo
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div id="run-history-modal" class="modal-overlay">
       <div class="modal-card" style="max-height: 85vh;">
         <div class="modal-header">

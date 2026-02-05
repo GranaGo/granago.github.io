@@ -751,22 +751,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const urlParams = new URLSearchParams(window.location.search);
   const sharedRoute = urlParams.get('route');
   if (sharedRoute) {
-    try {
-      const points = JSON.parse(atob(sharedRoute));
-      setTimeout(() => {
-        navigateTo('running');
-        document.getElementById('run-display-mode').innerText = "Ruta Compartida";
-        document.getElementById('run-start-time-label').innerText = "Visualizando trayecto de un amigo";
-
-        runState.path = points;
-        runState.distance = 0;
-
-        showRunSummary();
-        document.getElementById('running-action-container').style.display = 'none';
-      }, 500);
-    } catch (e) {
-      console.error("Error al cargar ruta compartida", e);
-    }
+    setTimeout(() => initSharedRoute(sharedRoute), 800);
   }
 });
 
@@ -1530,6 +1515,17 @@ function destroyUnusedMaps() {
   if (cSummary) {
     cSummary._leaflet_id = null;
     cSummary.innerHTML = "";
+  }
+
+  if (window.sharedRouteMapInstance) {
+    window.sharedRouteMapInstance.off();
+    window.sharedRouteMapInstance.remove();
+    window.sharedRouteMapInstance = null;
+  }
+  const cShared = document.getElementById("shared-route-map");
+  if (cShared) {
+    cShared._leaflet_id = null;
+    cShared.innerHTML = "";
   }
 }
 
@@ -12195,7 +12191,7 @@ window.beginActivity = function () {
 
   const gpsOptions = {
     enableHighAccuracy: true,
-    maximumAge: runState.mode === 'run' ? 1000 : 3000,
+    maximumAge: runState.mode === 'run' ? 2000 : 5000,
     timeout: 10000
   };
 
@@ -12255,13 +12251,16 @@ window.finishRun = function () {
   const timeStr = document.getElementById('run-timer').innerText;
   const avgSpeed = runState.totalSeconds > 0 ? (runState.distance / (runState.totalSeconds / 3600)).toFixed(1) : "0";
   const history = JSON.parse(localStorage.getItem('granaGo_run_history') || "[]");
+
   history.push({
     date: new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
     mode: runState.mode,
     distance: runState.distance.toFixed(2),
     time: timeStr,
-    avgSpeed: avgSpeed
+    avgSpeed: avgSpeed,
+    path: runState.path
   });
+
   localStorage.setItem('granaGo_run_history', JSON.stringify(history));
 
   let totalEcoKm = parseFloat(localStorage.getItem("granaGo_eco_km") || "0");
@@ -12314,21 +12313,29 @@ window.shareRunSummary = async function () {
   const avgSpeed = (runState.distance / (runState.totalSeconds / 3600)).toFixed(1);
   const timeStr = document.getElementById('run-timer').innerText;
   const pathData = runState.path.filter((_, i) => i % 5 === 0);
-  const encodedPath = btoa(JSON.stringify(pathData));
-  const staticUrl = `${window.location.origin}${window.location.pathname}?route=${encodedPath}`;
+  const payload = {
+    p: pathData,
+    t: timeStr,
+    d: runState.distance.toFixed(2),
+    s: avgSpeed
+  };
+  const encodedData = btoa(JSON.stringify(payload));
+  const staticUrl = `${window.location.origin}${window.location.pathname}?route=${encodedData}`;
 
-  const shareText = `🏃‍♂️ ¡He completado mi ruta con GranáGo!\n📍 Distancia: ${runState.distance.toFixed(2)} km\n⏱️ Tiempo: ${timeStr}\n⚡ Vel. Media: ${avgSpeed} km/h\n🗺️ Ver mapa: ${staticUrl}\n#GranáGo`;
+  const shareText = `🏃‍♂️ ¡He completado mi ruta con GranáGo!\n📍 Distancia: ${payload.d} km\n⏱️ Tiempo: ${payload.t}\n⚡ Vel. Media: ${payload.s} km/h\n🗺️ Ver mapa: ${staticUrl}\n#GranáGo`;
 
   try {
-    showNotification("Preparando...", "Generando imagen de la ruta", "info");
+    showNotification("Preparando...", "Generando imagen con marca de agua", "info");
     await loadScript("js/html2canvas.min.js");
 
     const mapElement = document.getElementById('summary-map');
-    const canvas = await html2canvas(mapElement, {
-      useCORS: true,
-      logging: false,
-      backgroundColor: null
-    });
+    const watermark = document.createElement('div');
+    watermark.style.cssText = "position:absolute; bottom:10px; right:10px; z-index:9999; pointer-events:none; filter:drop-shadow(0 0 4px rgba(0,0,0,0.6));";
+    watermark.innerHTML = `<img src="images/logo.png" style="height:40px;">`; // Usa tu logo
+    mapElement.appendChild(watermark);
+
+    const canvas = await html2canvas(mapElement, { useCORS: true, logging: false });
+    mapElement.removeChild(watermark);
 
     const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
     const file = new File([blob], 'mi_ruta_granago.png', { type: 'image/png' });
@@ -12340,16 +12347,46 @@ window.shareRunSummary = async function () {
         files: [file]
       });
     } else {
-      throw new Error("No compatible con archivos");
+      if (navigator.share) await navigator.share({ title: 'Mi ruta en GranáGo', text: shareText });
+      else copyToClipboard(shareText);
     }
   } catch (err) {
-    console.error("Error al compartir:", err);
-    if (navigator.share) {
-      navigator.share({ title: 'Mi ruta en GranáGo', text: shareText });
-    } else {
-      copyToClipboard(shareText);
-    }
+    console.error("Error sharing:", err);
+    if (navigator.share) navigator.share({ title: 'Mi ruta en GranáGo', text: shareText });
   }
+};
+
+window.initSharedRoute = async function (encodedData) {
+  try {
+    const data = JSON.parse(atob(encodedData));
+    const modal = document.getElementById('shared-route-modal');
+    modal.classList.add('visible');
+    const statsGrid = document.getElementById('shared-stats-grid');
+    statsGrid.innerHTML = `
+            <div class="fuel-price-item"><span class="fuel-type-label">Distancia</span><span class="fuel-price-val">${data.d} km</span></div>
+            <div class="fuel-price-item"><span class="fuel-type-label">Tiempo</span><span class="fuel-price-val">${data.t}</span></div>
+            <div class="fuel-price-item"><span class="fuel-type-label">Vel. Media</span><span class="fuel-price-val">${data.s} km/h</span></div>
+        `;
+
+    await loadScript("js/leaflet.js");
+    setTimeout(() => {
+      window.sharedRouteMapInstance = L.map('shared-route-map', { zoomControl: false, attributionControl: false });
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(window.sharedRouteMapInstance);
+
+      if (data.p && data.p.length > 1) {
+        const polyline = L.polyline(data.p, { color: '#ec4899', weight: 4 }).addTo(window.sharedRouteMapInstance);
+        window.sharedRouteMapInstance.fitBounds(polyline.getBounds(), { padding: [15, 15] });
+      }
+    }, 400);
+  } catch (e) {
+    console.error("Ruta compartida corrupta", e);
+    showNotification("Error", "El enlace de la ruta no es válido.", "error");
+  }
+};
+
+window.closeSharedRoute = function () {
+  document.getElementById('shared-route-modal').classList.remove('visible');
+  window.history.replaceState({}, document.title, window.location.pathname);
 };
 
 window.closeRunSummary = function () {
@@ -12402,16 +12439,31 @@ function renderRunHistory() {
     return;
   }
 
-  container.innerHTML = history.reverse().map((run, index) => `
+  container.innerHTML = history.slice().reverse().map((run, index) => {
+    const originalIndex = history.length - 1 - index;
+    const runData = {
+      p: run.path,
+      d: run.distance,
+      t: run.time,
+      s: run.avgSpeed
+    };
+    const encodedData = btoa(JSON.stringify(runData));
+
+    return `
         <div class="info-card" style="margin-bottom: 12px; padding: 12px; border-left: 4px solid var(--text-accent);">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
                 <div>
                     <span style="font-weight:800; font-size:0.9rem;">${run.date}</span>
                     <p style="margin:0; font-size:0.75rem; color:var(--text-secondary);">${run.mode === 'run' ? '🏃 Carrera' : '🚶 Caminata'}</p>
                 </div>
-                <button onclick="deleteRunFromHistory(${history.length - 1 - index})" class="icon-btn-small" style="color:var(--color-error);">
-                    <i class="ri-delete-bin-line"></i>
-                </button>
+                <div style="display:flex; gap:5px;">
+                    <button onclick="initSharedRoute('${encodedData}')" class="icon-btn-small" style="color:var(--text-accent);">
+                        <i class="ri-map-2-line"></i>
+                    </button>
+                    <button onclick="deleteRunFromHistory(${originalIndex})" class="icon-btn-small" style="color:var(--color-error);">
+                        <i class="ri-delete-bin-line"></i>
+                    </button>
+                </div>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; text-align:center;">
                 <div><small style="display:block; opacity:0.6; font-size:0.6rem;">DISTANCIA</small><strong>${run.distance} km</strong></div>
@@ -12419,7 +12471,8 @@ function renderRunHistory() {
                 <div><small style="display:block; opacity:0.6; font-size:0.6rem;">VEL. MEDIA</small><strong>${run.avgSpeed} km/h</strong></div>
             </div>
         </div>
-    `).join('');
+    `;
+  }).join('');
 }
 
 window.exportUserData = function () {
