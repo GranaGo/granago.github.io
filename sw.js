@@ -1,4 +1,4 @@
-const CACHE_NAME = 'granago-v1770302606';
+const CACHE_NAME = 'granago-v1770302236';
 
 const ASSETS_TO_CACHE = [
   "./",
@@ -72,19 +72,17 @@ self.addEventListener("fetch", (event) => {
   }
 
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        if (response && response.status === 200) {
-          const responseToCache = response.clone();
+    caches.match(event.request).then((cachedResponse) => {
+      const fetchPromise = fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
+            cache.put(event.request, networkResponse.clone());
           });
         }
-        return response;
-      })
-      .catch(() => {
-        return caches.match(event.request);
-      })
+        return networkResponse;
+      });
+      return cachedResponse || fetchPromise;
+    })
   );
 });
 
