@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/Logo.png" alt="GranáGo Logo" width="128">
+  <img src="images/logo.png" alt="GranáGo Logo" width="128">
 </p>
 
 # GranáGo
