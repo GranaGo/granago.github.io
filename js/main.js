@@ -11525,7 +11525,7 @@ async function cargarRadiosDesdeAPI() {
         const nombreNorm = s.name.trim().toLowerCase();
         const rawFavicon = s.favicon ? s.favicon.trim() : "";
 
-        let finalLogo = 'images/Logo.png';
+        let finalLogo = 'images/logo.png';
         if (rawFavicon && rawFavicon !== "" && rawFavicon !== "null" && !rawFavicon.includes("fbcdn.net") && !rawFavicon.includes("facebook.com")) {
           finalLogo = PROXY_URL + encodeURIComponent(rawFavicon);
         }
@@ -11611,7 +11611,7 @@ function createRadioCard(idx) {
   const isCurrent = currentRadioIdx === idx;
   const stationLogo = (station.logo && !station.logo.includes("url=null") && station.logo !== "undefined")
     ? station.logo
-    : 'images/Logo.png';
+    : 'images/logo.png';
 
   const card = document.createElement('div');
   card.className = `radio-station-card ${isFav ? 'is-favorite' : ''} ${isCurrent ? 'active' : ''}`;
@@ -11620,14 +11620,14 @@ function createRadioCard(idx) {
 
   card.innerHTML = `
       <div class="radio-logo-wrapper" style="position: relative; background: var(--bg-app); border-radius: 12px; overflow: hidden;">
-        <img src="images/Logo.png" 
+        <img src="images/logo.png" 
              data-src="${stationLogo}" 
              loading="lazy" 
              decoding="async" 
              alt="" 
              referrerpolicy="no-referrer"
              style="object-fit: cover; width: 100%; height: 100%;"
-             onerror="this.onerror=null; this.src='images/Logo.png'; this.parentElement.style.background='transparent';">
+             onerror="this.onerror=null; this.src='images/logo.png'; this.parentElement.style.background='transparent';">
         ${isFav ? '<i class="ri-star-fill" style="position:absolute; top:5px; right:5px; color:#fbbf24; z-index:10; text-shadow: 0 0 4px rgba(0,0,0,0.8);"></i>' : ''}
         <div class="radio-equalizer"><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div></div>
         <div class="radio-play-overlay"><i class="${isCurrent && radioIsPlaying ? 'ri-pause-fill' : 'ri-play-fill'}"></i></div>
@@ -11687,7 +11687,7 @@ function setupImageLazyLoading(container) {
         if (entry.isIntersecting) {
           const img = entry.target;
           const realSrc = img.getAttribute('data-src');
-          if (realSrc && realSrc !== 'images/Logo.png' && realSrc !== 'undefined') {
+          if (realSrc && realSrc !== 'images/logo.png' && realSrc !== 'undefined') {
             img.src = realSrc;
           }
           img.removeAttribute('data-src');
@@ -11770,7 +11770,7 @@ function actualizarUIPlayer() {
         logoEl.innerHTML = `<img src="${station.logo}" 
                                  alt="${station.name}" 
                                  style="width:100%; height:100%; object-fit:cover; border-radius:20px;" 
-                                 onerror="this.src='images/Logo.png'; this.onerror=null;">`;
+                                 onerror="this.src='images/logo.png'; this.onerror=null;">`;
       }
     }
     if (playBtn) playBtn.innerHTML = `<i class="${radioIsPlaying ? 'ri-pause-fill' : 'ri-play-fill'}"></i>`;
@@ -11784,7 +11784,7 @@ function actualizarUIPlayer() {
       let imageToUse = (activeVis && radioIsPlaying) ? activeVis : station.logo;
 
       if (!imageToUse || imageToUse === "undefined" || imageToUse.includes("url=null")) {
-        imageToUse = "https://granago.github.io/images/Logo.png";
+        imageToUse = "https://granago.github.io/images/logo.png";
       }
 
       navigator.mediaSession.metadata = new MediaMetadata({
