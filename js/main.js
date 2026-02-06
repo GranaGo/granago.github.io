@@ -753,6 +753,38 @@ document.addEventListener("DOMContentLoaded", () => {
   if (sharedRoute) {
     setTimeout(() => initSharedRoute(sharedRoute), 800);
   }
+
+  if (!localStorage.getItem('granaGo_optimized_v2')) {
+    const oldFavs = JSON.parse(localStorage.getItem('granaGo_favs') || '[]');
+    if (oldFavs.length > 0 && oldFavs[0].id) {
+      const newFavs = oldFavs.map(f => ({ i: f.id, t: f.type[0], n: f.name, l: f.lines }));
+      localStorage.setItem('granaGo_favs', JSON.stringify(newFavs));
+    }
+
+    const oldAch = JSON.parse(localStorage.getItem('granaGo_achievements') || '{}');
+    Object.keys(oldAch).forEach(k => {
+      if (oldAch[k].progress !== undefined) {
+        oldAch[k] = { p: oldAch[k].progress, c: oldAch[k].completed ? 1 : 0 };
+      }
+    });
+    localStorage.setItem('granaGo_achievements', JSON.stringify(oldAch));
+
+    const oldHistory = JSON.parse(localStorage.getItem('granaGo_run_history') || '[]');
+    if (oldHistory.length > 0 && oldHistory[0].distance) {
+      const newHistory = oldHistory.map(r => ({
+        ts: r.ts || Date.now(),
+        m: r.m || (r.mode ? r.mode[0] : 'w'),
+        d: r.d || r.distance,
+        t: r.t || r.time,
+        s: r.s || r.avgSpeed,
+        p: r.p || r.path
+      }));
+      localStorage.setItem('granaGo_run_history', JSON.stringify(newHistory));
+    }
+
+    localStorage.setItem('granaGo_optimized_v2', 'true');
+    console.log("LocalStorage optimizado al nuevo estándar v2");
+  }
 });
 
 window.addEventListener("popstate", (event) => {
@@ -1611,7 +1643,7 @@ async function initMapParadas() {
         if (btn) {
           const id = btn.getAttribute("data-id");
           const favs = getFavorites();
-          const isFav = favs.some((f) => f.id == id);
+          const isFav = favs.some((f) => f.i == id);
           if (isFav) {
             btn.classList.add("active");
             btn.innerHTML = '<i class="icon ri-star-fill"></i>';
@@ -1866,7 +1898,7 @@ function processStops(
           .join(", ")
           .replace(/'/g, "\\'");
         const favs = getFavorites();
-        const isFav = favs.some((f) => f.id == apiId);
+        const isFav = favs.some((f) => f.i == apiId);
         const starClass = isFav ? "active" : "";
         const starIcon = isFav ? "ri-star-fill" : "ri-star-line";
 
@@ -2791,7 +2823,7 @@ function getFavoriteLines() {
 
 window.toggleFavorite = function (id, type, name, linesStr, btnElement) {
   let favs = getFavorites();
-  const index = favs.findIndex((f) => f.id == id);
+  const index = favs.findIndex((f) => f.i == id);
   const isFav = index !== -1;
 
   if (isFav) {
@@ -2802,7 +2834,7 @@ window.toggleFavorite = function (id, type, name, linesStr, btnElement) {
       btnElement.innerHTML = '<i class="icon ri-star-line"></i>';
     }
   } else {
-    favs.push({ id, type, name, lines: linesStr });
+    favs.push({ i: id, t: type[0], n: name, l: linesStr });
     showNotification("Guardado", "Parada añadida a favoritos", "success");
     if (btnElement) {
       btnElement.classList.add("active");
@@ -2810,27 +2842,18 @@ window.toggleFavorite = function (id, type, name, linesStr, btnElement) {
     }
   }
   localStorage.setItem("granaGo_favs", JSON.stringify(favs));
-  if (document.getElementById("favoritos-view").classList.contains("active")) {
-    renderFavoritesList();
-  }
+  if (document.getElementById("favoritos-view").classList.contains("active")) renderFavoritesList();
 };
 
 window.toggleCurrentLineFav = function () {
   let favs = getFavoriteLines();
-  const index = favs.findIndex(
-    (f) => f.id === currentLineId && f.type === currentTransportType,
-  );
+  const index = favs.findIndex((f) => f.i === currentLineId && f.t === currentTransportType[0]);
 
   if (index !== -1) {
     favs.splice(index, 1);
     showNotification("Eliminada", "Línea quitada de favoritos", "info");
   } else {
-    favs.push({
-      id: currentLineId,
-      type: currentTransportType,
-      color: currentLineColor,
-      name: currentLineName,
-    });
+    favs.push({ i: currentLineId, t: currentTransportType[0], c: currentLineColor, n: currentLineName });
     showNotification("Guardada", "Línea añadida a favoritos", "success");
   }
   localStorage.setItem("granaGo_fav_lines", JSON.stringify(favs));
@@ -2839,7 +2862,7 @@ window.toggleCurrentLineFav = function () {
 
 window.deleteFavLine = function (id, type) {
   let favs = getFavoriteLines();
-  const index = favs.findIndex((f) => f.id === id && f.type === type);
+  const index = favs.findIndex((f) => f.i === id && f.t === type[0]);
   if (index !== -1) {
     favs.splice(index, 1);
     localStorage.setItem("granaGo_fav_lines", JSON.stringify(favs));
@@ -2852,14 +2875,8 @@ function updateLineFavIcon() {
   const btn = document.getElementById("btn-fav-line");
   if (!btn) return;
   const favs = getFavoriteLines();
-  const isFav = favs.some(
-    (f) => f.id === currentLineId && f.type === currentTransportType,
-  );
-  if (isFav) {
-    btn.innerHTML = '<i class="icon ri-star-fill" style="color:#fbbf24"></i>';
-  } else {
-    btn.innerHTML = '<i class="icon ri-star-line"></i>';
-  }
+  const isFav = favs.some((f) => f.i === currentLineId && f.t === currentTransportType[0]);
+  btn.innerHTML = isFav ? '<i class="icon ri-star-fill" style="color:#fbbf24"></i>' : '<i class="icon ri-star-line"></i>';
 }
 
 function renderFavoritesList() {
@@ -2869,49 +2886,29 @@ function renderFavoritesList() {
   container.innerHTML = "";
 
   if (favLines.length === 0 && favStops.length === 0) {
-    container.innerHTML = `
-            <div class="empty-state">
-                <i class="icon ri-heart-add-line" style="font-size: 3rem; opacity:0.3; margin-bottom:10px;"></i>
-                <p>No tienes favoritos guardados.</p>
-                <div style="font-size:0.85rem; margin-top:5px; opacity:0.7;">Guarda paradas desde el mapa o líneas desde su ficha.</div>
-            </div>`;
+    container.innerHTML = `<div class="empty-state"><i class="icon ri-heart-add-line" style="font-size: 3rem; opacity:0.3; margin-bottom:10px;"></i><p>No tienes favoritos guardados.</p></div>`;
     return;
   }
 
   const fragment = document.createDocumentFragment();
-
   if (favLines.length > 0) {
     const header = document.createElement("h3");
     header.innerText = "Líneas Guardadas";
-    header.style.margin = "10px 0 10px 5px";
-    header.style.fontSize = "0.95rem";
-    header.style.opacity = "0.7";
+    header.style.cssText = "margin: 10px 0 10px 5px; font-size: 0.95rem; opacity: 0.7;";
     fragment.appendChild(header);
 
     favLines.forEach((l) => {
+      const typeLabel = l.t === 'm' ? 'metro' : 'urbano';
       const card = document.createElement("div");
       card.className = "fav-card";
       card.innerHTML = `
-                <div class="fav-info" onclick="openLineDetail('${l.id}', '${l.type
-        }', '${l.color}', '${l.name}')" style="cursor:pointer; flex:1;">
-                    <div class="fav-icon-box" style="background-color:${l.color
-        }; color:white; width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.1rem;">
-                        ${l.type === "metro"
-          ? '<i class="ri-train-fill"></i>'
-          : l.id
-        }
-                    </div>
-                    <div class="fav-text">
-                        <h4>Línea ${l.id}</h4>
-                        <p>${l.name}</p>
-                    </div>
-                </div>
-                <div class="fav-actions">
-                    <button class="icon-btn-small" onclick="deleteFavLine('${l.id
-        }', '${l.type}')">
-                         <i class="icon ri-delete-bin-line" style="color:#ef4444; font-size:1.2rem;"></i>
-                    </button>
-                </div>`;
+        <div class="fav-info" onclick="openLineDetail('${l.i}', '${typeLabel}', '${l.c}', '${l.n}')" style="cursor:pointer; flex:1;">
+          <div class="fav-icon-box" style="background-color:${l.c}; color:white; width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:800;">
+            ${l.t === "m" ? '<i class="ri-train-fill"></i>' : l.i}
+          </div>
+          <div class="fav-text"><h4>Línea ${l.i}</h4><p>${l.n}</p></div>
+        </div>
+        <div class="fav-actions"><button class="icon-btn-small" onclick="deleteFavLine('${l.i}', '${typeLabel}')"><i class="ri-delete-bin-line" style="color:#ef4444; font-size:1.2rem;"></i></button></div>`;
       fragment.appendChild(card);
     });
   }
@@ -2919,53 +2916,29 @@ function renderFavoritesList() {
   if (favStops.length > 0) {
     const header = document.createElement("h3");
     header.innerText = "Paradas Guardadas";
-    header.style.margin = "20px 0 10px 5px";
-    header.style.fontSize = "0.95rem";
-    header.style.opacity = "0.7";
+    header.style.cssText = "margin: 20px 0 10px 5px; font-size: 0.95rem; opacity: 0.7;";
     fragment.appendChild(header);
 
     favStops.forEach((f) => {
-      let iconClass = f.type === "metro" ? "ri-train-fill" : "ri-bus-fill";
-      let bgStyle = f.type === "metro"
-        ? "background: rgba(0, 154, 68, 0.1); color:#009a44;"
-        : "background: rgba(217, 40, 28, 0.1); color:#D9281C;";
-
-      if (f.type === "interurbano") {
-        iconClass = "ri-bus-2-fill";
-        bgStyle = "background: rgba(39, 87, 245, 0.1); color:#2757f5;";
-      }
-      const safeName = f.name.replace(/'/g, "\\'");
+      const typeLabel = f.t === 'm' ? 'metro' : (f.t === 'i' ? 'interurbano' : 'urbano');
+      const iconClass = f.t === "m" ? "ri-train-fill" : (f.t === "i" ? "ri-bus-2-fill" : "ri-bus-fill");
+      const color = f.t === "m" ? "#009a44" : (f.t === "i" ? "#2757f5" : "#D9281C");
+      const safeName = f.n.replace(/'/g, "\\'");
 
       const card = document.createElement("div");
       card.className = "fav-card";
       card.innerHTML = `
-                <div class="fav-info" onclick="openRealTimeModal('${f.id}', '${f.type
-        }', '${safeName}')" style="cursor:pointer; flex:1;">
-                    <div class="fav-icon-box" style="${bgStyle}">
-                        <i class="icon ${iconClass}"></i>
-                    </div>
-                    <div class="fav-text">
-                        <h4>${f.name}</h4>
-                        <p>${f.type === "metro"
-          ? "Metro de Granada"
-          : "Líneas: " + f.lines
-        }</p>
-                    </div>
-                </div>
-                <div class="fav-actions">
-                    <button class="icon-btn-small" onclick="openRealTimeModal('${f.id
-        }', '${f.type}', '${safeName}')">
-                         <i class="icon ri-time-line" style="color:var(--text-accent); font-size:1.2rem;"></i>
-                    </button>
-                    <button class="icon-btn-small" onclick="toggleFavorite('${f.id
-        }', '${f.type}', '${safeName}', '', null)">
-                         <i class="icon ri-delete-bin-line" style="color:#ef4444; font-size:1.2rem;"></i>
-                    </button>
-                </div>`;
+        <div class="fav-info" onclick="openRealTimeModal('${f.i}', '${typeLabel}', '${safeName}')" style="cursor:pointer; flex:1;">
+          <div class="fav-icon-box" style="background: ${color}1A; color:${color};"><i class="icon ${iconClass}"></i></div>
+          <div class="fav-text"><h4>${f.n}</h4><p>${f.t === "m" ? "Metro de Granada" : "Líneas: " + f.l}</p></div>
+        </div>
+        <div class="fav-actions">
+          <button class="icon-btn-small" onclick="openRealTimeModal('${f.i}', '${typeLabel}', '${safeName}')"><i class="icon ri-time-line" style="color:var(--text-accent); font-size:1.2rem;"></i></button>
+          <button class="icon-btn-small" onclick="toggleFavorite('${f.i}', '${typeLabel}', '${safeName}', '', null)"><i class="ri-delete-bin-line" style="color:#ef4444; font-size:1.2rem;"></i></button>
+        </div>`;
       fragment.appendChild(card);
     });
   }
-
   container.appendChild(fragment);
 }
 
@@ -6563,7 +6536,7 @@ function createNearbyItemHTML(stop) {
   const safeLines = (stop.lines || "").replace(/'/g, "\\'");
 
   const favs = getFavorites();
-  const isFav = favs.some((f) => f.id == stop.id);
+  const isFav = favs.some((f) => f.i == stop.id);
   const starIcon = isFav ? "ri-star-fill" : "ri-star-line";
   const starClass = isFav ? "active" : "";
 
@@ -11018,11 +10991,11 @@ async function updateHomeAchievementsWidget() {
 
   let pending = Object.keys(ACHIEVEMENTS_DATA)
     .map(id => {
-      const current = stats[id] ? stats[id].progress : 0;
+      const current = stats[id] ? (stats[id].p || 0) : 0;
       const goal = ACHIEVEMENTS_DATA[id].goal;
       return { id, percent: (current / goal) * 100, ...ACHIEVEMENTS_DATA[id], current };
     })
-    .filter(a => !stats[a.id]?.completed)
+    .filter(a => !stats[a.id]?.c)
     .sort((a, b) => b.percent - a.percent)
     .slice(0, 2);
 
@@ -11033,7 +11006,6 @@ async function updateHomeAchievementsWidget() {
 
   container.innerHTML = pending.map(a => {
     const currentDisplay = Number(parseFloat(a.current).toFixed(1));
-
     return `
     <div style="margin-bottom: 8px;">
       <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:4px;">
@@ -11042,8 +11014,7 @@ async function updateHomeAchievementsWidget() {
       <div style="height:6px; background:var(--bg-app); border-radius:3px; overflow:hidden;">
         <div style="width:${a.percent}%; height:100%; background:var(--text-accent); transition:width 0.5s;"></div>
       </div>
-    </div>
-  `;
+    </div>`;
   }).join('');
 }
 
@@ -11052,26 +11023,22 @@ window.updateAchievement = function (id, amount, isAbsolute = false) {
   const meta = ACHIEVEMENTS_DATA[id];
   if (!meta) return;
 
-  if (!stats[id]) stats[id] = { progress: 0, completed: false };
-  if (stats[id].completed) return;
+  if (!stats[id]) stats[id] = { p: 0, c: 0 };
+  if (stats[id].c) return;
 
-  if (isAbsolute) stats[id].progress = amount;
-  else stats[id].progress += amount;
+  if (isAbsolute) stats[id].p = amount;
+  else stats[id].p += amount;
 
-  if (stats[id].progress >= meta.goal) {
-    stats[id].progress = meta.goal;
-    stats[id].completed = true;
-
+  if (stats[id].p >= meta.goal) {
+    stats[id].p = meta.goal;
+    stats[id].c = 1;
     addGranaSaldo(meta.reward, `logro: ${meta.title}`);
     showNotification("¡Logro Desbloqueado!", meta.title, "success");
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
   }
 
   localStorage.setItem('granaGo_achievements', JSON.stringify(stats));
-
-  if (document.getElementById("home-view").classList.contains("active")) {
-    updateHomeAchievementsWidget();
-  }
+  if (document.getElementById("home-view").classList.contains("active")) updateHomeAchievementsWidget();
 };
 
 const FEEDBACK_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-9HhWj41654zlzt77s9c2qSxAWJIpAttia0jRagHB5ALBhd8yitBDr8lvCiYpaEYS9NHMUDe6cfU-/pub?gid=1560052631&single=true&output=csv";
@@ -12282,12 +12249,12 @@ window.finishRun = function () {
   const isTraceValid = runState.distance > 0.1 && runState.totalSeconds >= 10;
 
   history.push({
-    date: new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
-    mode: runState.mode,
-    distance: runState.distance.toFixed(2),
-    time: timeStr,
-    avgSpeed: avgSpeed,
-    path: isTraceValid ? compressPath(runState.path) : []
+    ts: Date.now(),
+    m: runState.mode[0],
+    d: runState.distance.toFixed(2),
+    t: timeStr,
+    s: avgSpeed,
+    p: isTraceValid ? compressPath(runState.path) : []
   });
 
   localStorage.setItem('granaGo_run_history', JSON.stringify(history));
@@ -12502,50 +12469,38 @@ function renderRunHistory() {
 
   container.innerHTML = history.slice().reverse().map((run, index) => {
     const originalIndex = history.length - 1 - index;
-
-    const hasPath = run.path && run.path.length > 1;
-
-    const runData = {
-      p: run.path,
-      d: run.distance,
-      t: run.time,
-      s: run.avgSpeed
-    };
+    const hasPath = run.p && run.p.length > 1;
+    const dateStr = new Date(run.ts).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    const runData = { p: run.p, d: run.d, t: run.t, s: run.s };
     const encodedData = btoa(JSON.stringify(runData));
 
     return `
         <div class="info-card" style="margin-bottom: 12px; padding: 12px; border-left: 4px solid var(--text-accent);">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
                 <div>
-                    <span style="font-weight:800; font-size:0.9rem;">${run.date}</span>
-                    <p style="margin:0; font-size:0.75rem; color:var(--text-secondary);">${run.mode === 'run' ? '🏃 Carrera' : '🚶 Caminata'}</p>
+                    <span style="font-weight:800; font-size:0.9rem;">${dateStr}</span>
+                    <p style="margin:0; font-size:0.75rem; color:var(--text-secondary);">${run.m === 'r' ? '🏃 Carrera' : '🚶 Caminata'}</p>
                 </div>
                 <div style="display:flex; gap:5px;">
-                    ${hasPath ? `
-                    <button onclick="initSharedRoute('${encodedData}')" class="icon-btn-small" style="color:var(--text-accent);">
-                        <i class="ri-map-2-line"></i>
-                    </button>` : ''}
-                    <button onclick="deleteRunFromHistory(${originalIndex})" class="icon-btn-small" style="color:var(--color-error);">
-                        <i class="ri-delete-bin-line"></i>
-                    </button>
+                    ${hasPath ? `<button onclick="initSharedRoute('${encodedData}')" class="icon-btn-small" style="color:var(--text-accent);"><i class="ri-map-2-line"></i></button>` : ''}
+                    <button onclick="deleteRunFromHistory(${originalIndex})" class="icon-btn-small" style="color:var(--color-error);"><i class="ri-delete-bin-line"></i></button>
                 </div>
             </div>
             <div class="summary-stats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 5px;">
                 <div class="fuel-price-item" style="padding: 5px; text-align: center;">
                     <span class="fuel-type-label" style="font-size: 0.6rem; display: block;">Km</span>
-                    <span class="fuel-price-val" style="font-size: 0.8rem; font-weight: 700;">${run.distance}</span>
+                    <span class="fuel-price-val" style="font-size: 0.8rem; font-weight: 700;">${run.d}</span>
                 </div>
                 <div class="fuel-price-item" style="padding: 5px; text-align: center;">
                     <span class="fuel-type-label" style="font-size: 0.6rem; display: block;">Tiempo</span>
-                    <span class="fuel-price-val" style="font-size: 0.8rem; font-weight: 700;">${run.time}</span>
+                    <span class="fuel-price-val" style="font-size: 0.8rem; font-weight: 700;">${run.t}</span>
                 </div>
                 <div class="fuel-price-item" style="padding: 5px; text-align: center;">
                     <span class="fuel-type-label" style="font-size: 0.6rem; display: block;">Media</span>
-                    <span class="fuel-price-val" style="font-size: 0.8rem; font-weight: 700;">${run.avgSpeed} <small style="font-size: 0.5rem;">km/h</small></span>
+                    <span class="fuel-price-val" style="font-size: 0.8rem; font-weight: 700;">${run.s} <small style="font-size: 0.5rem;">km/h</small></span>
                 </div>
             </div>
-        </div>
-    `;
+        </div>`;
   }).join('');
 }
 
