@@ -12530,7 +12530,20 @@ function renderRunHistory() {
                     </button>
                 </div>
             </div>
-            ...
+            <div class="summary-stats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 5px;">
+                <div class="fuel-price-item" style="padding: 5px; text-align: center;">
+                    <span class="fuel-type-label" style="font-size: 0.6rem; display: block;">Km</span>
+                    <span class="fuel-price-val" style="font-size: 0.8rem; font-weight: 700;">${run.distance}</span>
+                </div>
+                <div class="fuel-price-item" style="padding: 5px; text-align: center;">
+                    <span class="fuel-type-label" style="font-size: 0.6rem; display: block;">Tiempo</span>
+                    <span class="fuel-price-val" style="font-size: 0.8rem; font-weight: 700;">${run.time}</span>
+                </div>
+                <div class="fuel-price-item" style="padding: 5px; text-align: center;">
+                    <span class="fuel-type-label" style="font-size: 0.6rem; display: block;">Media</span>
+                    <span class="fuel-price-val" style="font-size: 0.8rem; font-weight: 700;">${run.avgSpeed} <small style="font-size: 0.5rem;">km/h</small></span>
+                </div>
+            </div>
         </div>
     `;
   }).join('');
