@@ -12251,6 +12251,7 @@ window.finishRun = function () {
   const timeStr = document.getElementById('run-timer').innerText;
   const avgSpeed = runState.totalSeconds > 0 ? (runState.distance / (runState.totalSeconds / 3600)).toFixed(1) : "0";
   const history = JSON.parse(localStorage.getItem('granaGo_run_history') || "[]");
+  const isTraceValid = runState.distance > 0.1 && runState.totalSeconds >= 10;
 
   history.push({
     date: new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
@@ -12258,7 +12259,7 @@ window.finishRun = function () {
     distance: runState.distance.toFixed(2),
     time: timeStr,
     avgSpeed: avgSpeed,
-    path: runState.path
+    path: isTraceValid ? runState.path : []
   });
 
   localStorage.setItem('granaGo_run_history', JSON.stringify(history));
@@ -12294,65 +12295,87 @@ function showRunSummary() {
         <div class="fuel-price-item"><span class="fuel-type-label">Velocidad Media</span><span class="fuel-price-val">${avgSpeed.toFixed(1)} km/h</span></div>
     `;
 
-  setTimeout(() => {
-    if (summaryMap) summaryMap.remove();
-    summaryMap = L.map('summary-map', { zoomControl: false, attributionControl: false });
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(summaryMap);
+  const mapContainer = document.getElementById('summary-map');
+  const isTraceValid = runState.distance > 0.1 && runState.totalSeconds >= 10;
 
-    if (runState.path.length > 1) {
-      const polyline = L.polyline(runState.path, { color: '#ec4899', weight: 4 }).addTo(summaryMap);
-      summaryMap.fitBounds(polyline.getBounds(), { padding: [10, 10] });
-    }
-  }, 300);
+  if (isTraceValid) {
+    mapContainer.style.display = "block";
+    setTimeout(() => {
+      if (summaryMap) summaryMap.remove();
+      summaryMap = L.map('summary-map', { zoomControl: false, attributionControl: false });
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(summaryMap);
+
+      if (runState.path.length > 1) {
+        const polyline = L.polyline(runState.path, { color: '#ec4899', weight: 4 }).addTo(summaryMap);
+        summaryMap.fitBounds(polyline.getBounds(), { padding: [10, 10] });
+      }
+    }, 300);
+  } else {
+    mapContainer.style.display = "none";
+    showNotification("Trayecto omitido", "No se ha generado mapa por distancia o tiempo insuficiente.", "info");
+  }
 
   const reward = Math.floor(runState.distance * 100);
   if (reward > 0) addGranaSaldo(reward, "actividad deportiva");
 }
 
 window.shareRunSummary = async function () {
+  const isTraceValid = runState.distance > 0.1 && runState.totalSeconds >= 10;
+
   const avgSpeed = (runState.distance / (runState.totalSeconds / 3600)).toFixed(1);
   const timeStr = document.getElementById('run-timer').innerText;
-  const pathData = runState.path.filter((_, i) => i % 5 === 0);
-  const payload = {
-    p: pathData,
-    t: timeStr,
-    d: runState.distance.toFixed(2),
-    s: avgSpeed
-  };
-  const encodedData = btoa(JSON.stringify(payload));
-  const staticUrl = `${window.location.origin}${window.location.pathname}?route=${encodedData}`;
 
-  const shareText = `🏃‍♂️ ¡He completado mi ruta con GranáGo!\n📍 Distancia: ${payload.d} km\n⏱️ Tiempo: ${payload.t}\n⚡ Vel. Media: ${payload.s} km/h\n🗺️ Ver mapa: ${staticUrl}\n#GranáGo`;
+  let shareText = `🏃‍♂️ ¡He completado mi actividad con GranáGo!\n📍 Distancia: ${runState.distance.toFixed(2)} km\n⏱️ Tiempo: ${timeStr}\n⚡ Vel. Media: ${avgSpeed} km/h\n#GranáGo`;
 
-  try {
-    showNotification("Preparando...", "Generando imagen con marca de agua", "info");
-    await loadScript("js/html2canvas.min.js");
+  if (isTraceValid) {
+    const pathData = runState.path.filter((_, i) => i % 5 === 0);
+    const payload = {
+      p: pathData,
+      t: timeStr,
+      d: runState.distance.toFixed(2),
+      s: avgSpeed
+    };
+    const encodedData = btoa(JSON.stringify(payload));
+    const staticUrl = `${window.location.origin}${window.location.pathname}?route=${encodedData}`;
 
-    const mapElement = document.getElementById('summary-map');
-    const watermark = document.createElement('div');
-    watermark.style.cssText = "position:absolute; bottom:10px; right:10px; z-index:9999; pointer-events:none; filter:drop-shadow(0 0 4px rgba(0,0,0,0.6));";
-    watermark.innerHTML = `<img src="images/logo.png" style="height:40px;">`; // Usa tu logo
-    mapElement.appendChild(watermark);
+    shareText += `\n🗺️ Ver mapa: ${staticUrl}`;
 
-    const canvas = await html2canvas(mapElement, { useCORS: true, logging: false });
-    mapElement.removeChild(watermark);
+    try {
+      showNotification("Preparando...", "Generando imagen con marca de agua", "info");
+      await loadScript("js/html2canvas.min.js");
 
-    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-    const file = new File([blob], 'mi_ruta_granago.png', { type: 'image/png' });
+      const mapElement = document.getElementById('summary-map');
+      const watermark = document.createElement('div');
+      watermark.style.cssText = "position:absolute; bottom:10px; right:10px; z-index:9999; pointer-events:none; filter:drop-shadow(0 0 4px rgba(0,0,0,0.6));";
+      watermark.innerHTML = `<img src="images/logo.png" style="height:40px;">`;
+      mapElement.appendChild(watermark);
 
-    if (navigator.share && navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        title: 'Mi ruta en GranáGo',
-        text: shareText,
-        files: [file]
-      });
-    } else {
-      if (navigator.share) await navigator.share({ title: 'Mi ruta en GranáGo', text: shareText });
-      else copyToClipboard(shareText);
+      const canvas = await html2canvas(mapElement, { useCORS: true, logging: false });
+      mapElement.removeChild(watermark);
+
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+      const file = new File([blob], 'mi_ruta_granago.png', { type: 'image/png' });
+
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: 'Mi ruta en GranáGo',
+          text: shareText,
+          files: [file]
+        });
+      } else {
+        if (navigator.share) await navigator.share({ title: 'Mi ruta en GranáGo', text: shareText });
+        else copyToClipboard(shareText);
+      }
+    } catch (err) {
+      console.error("Error sharing:", err);
+      if (navigator.share) navigator.share({ title: 'Mi ruta en GranáGo', text: shareText });
     }
-  } catch (err) {
-    console.error("Error sharing:", err);
-    if (navigator.share) navigator.share({ title: 'Mi ruta en GranáGo', text: shareText });
+  } else {
+    if (navigator.share) {
+      await navigator.share({ title: 'Mi actividad en GranáGo', text: shareText });
+    } else {
+      copyToClipboard(shareText);
+    }
   }
 };
 
@@ -12361,6 +12384,7 @@ window.initSharedRoute = async function (encodedData) {
     const data = JSON.parse(atob(encodedData));
     const modal = document.getElementById('shared-route-modal');
     modal.classList.add('visible');
+
     const statsGrid = document.getElementById('shared-stats-grid');
     statsGrid.innerHTML = `
             <div class="fuel-price-item"><span class="fuel-type-label">Distancia</span><span class="fuel-price-val">${data.d} km</span></div>
@@ -12368,16 +12392,24 @@ window.initSharedRoute = async function (encodedData) {
             <div class="fuel-price-item"><span class="fuel-type-label">Vel. Media</span><span class="fuel-price-val">${data.s} km/h</span></div>
         `;
 
-    await loadScript("js/leaflet.js");
-    setTimeout(() => {
-      window.sharedRouteMapInstance = L.map('shared-route-map', { zoomControl: false, attributionControl: false });
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(window.sharedRouteMapInstance);
+    const mapContainer = document.getElementById('shared-route-map');
+    const isTraceValid = parseFloat(data.d) > 0.1 && data.p && data.p.length > 1;
 
-      if (data.p && data.p.length > 1) {
+    if (isTraceValid) {
+      mapContainer.style.display = "block";
+      await loadScript("js/leaflet.js");
+      setTimeout(() => {
+        if (window.sharedRouteMapInstance) window.sharedRouteMapInstance.remove();
+        window.sharedRouteMapInstance = L.map('shared-route-map', { zoomControl: false, attributionControl: false });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(window.sharedRouteMapInstance);
+
         const polyline = L.polyline(data.p, { color: '#ec4899', weight: 4 }).addTo(window.sharedRouteMapInstance);
         window.sharedRouteMapInstance.fitBounds(polyline.getBounds(), { padding: [15, 15] });
-      }
-    }, 400);
+      }, 400);
+    } else {
+      mapContainer.style.display = "none";
+      console.log("Ruta compartida sin trazo suficiente para generar mapa.");
+    }
   } catch (e) {
     console.error("Ruta compartida corrupta", e);
     showNotification("Error", "El enlace de la ruta no es válido.", "error");
@@ -12441,6 +12473,9 @@ function renderRunHistory() {
 
   container.innerHTML = history.slice().reverse().map((run, index) => {
     const originalIndex = history.length - 1 - index;
+
+    const hasPath = run.path && run.path.length > 1;
+
     const runData = {
       p: run.path,
       d: run.distance,
@@ -12457,19 +12492,16 @@ function renderRunHistory() {
                     <p style="margin:0; font-size:0.75rem; color:var(--text-secondary);">${run.mode === 'run' ? '🏃 Carrera' : '🚶 Caminata'}</p>
                 </div>
                 <div style="display:flex; gap:5px;">
+                    ${hasPath ? `
                     <button onclick="initSharedRoute('${encodedData}')" class="icon-btn-small" style="color:var(--text-accent);">
                         <i class="ri-map-2-line"></i>
-                    </button>
+                    </button>` : ''}
                     <button onclick="deleteRunFromHistory(${originalIndex})" class="icon-btn-small" style="color:var(--color-error);">
                         <i class="ri-delete-bin-line"></i>
                     </button>
                 </div>
             </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; text-align:center;">
-                <div><small style="display:block; opacity:0.6; font-size:0.6rem;">DISTANCIA</small><strong>${run.distance} km</strong></div>
-                <div><small style="display:block; opacity:0.6; font-size:0.6rem;">TIEMPO</small><strong>${run.time}</strong></div>
-                <div><small style="display:block; opacity:0.6; font-size:0.6rem;">VEL. MEDIA</small><strong>${run.avgSpeed} km/h</strong></div>
-            </div>
+            ...
         </div>
     `;
   }).join('');
