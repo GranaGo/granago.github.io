@@ -5082,14 +5082,20 @@ const DEFAULT_LAYOUT = [
 ];
 
 let homeLayout = [];
-const savedLayout = JSON.parse(localStorage.getItem('granaGo_home_layout'));
+const savedLayoutRaw = localStorage.getItem('granaGo_home_layout');
 
-if (savedLayout && Array.isArray(savedLayout)) {
-  homeLayout = savedLayout.filter(item => ALL_WIDGETS[item.id]);
+if (savedLayoutRaw) {
+  if (savedLayoutRaw.startsWith('[')) {
+    try { homeLayout = JSON.parse(savedLayoutRaw); } catch (e) { homeLayout = DEFAULT_LAYOUT.map(item => ({ ...item })); }
+  } else {
+    homeLayout = savedLayoutRaw.split(',').map(str => {
+      const active = !str.startsWith('!');
+      const id = active ? str : str.substring(1);
+      return { id, active };
+    }).filter(item => ALL_WIDGETS[item.id]);
+  }
   DEFAULT_LAYOUT.forEach(def => {
-    if (!homeLayout.find(item => item.id === def.id)) {
-      homeLayout.push({ ...def });
-    }
+    if (!homeLayout.find(item => item.id === def.id)) homeLayout.push({ ...def });
   });
 } else {
   homeLayout = DEFAULT_LAYOUT.map(item => ({ ...item }));
@@ -5099,44 +5105,39 @@ async function renderHomeDashboard() {
   const container = document.getElementById('home-dashboard-grid');
   if (!container) return;
 
-  const savedLayoutStr = localStorage.getItem('granaGo_home_layout');
+  container.innerHTML = '';
 
-  if (savedLayoutStr) {
-    const savedLayout = JSON.parse(savedLayoutStr);
+  homeLayout.forEach(config => {
+    if (!config.active) return;
 
-    container.innerHTML = '';
-    savedLayout.forEach(config => {
-      if (!config.active) return;
-      const w = ALL_WIDGETS[config.id];
-      if (!w) return;
+    const w = ALL_WIDGETS[config.id];
+    if (!w) return;
 
-      const card = document.createElement('div');
-      card.className = `summary-card ${w.class}`;
-      card.dataset.widgetId = config.id;
-      card.onclick = () => eval(w.action);
-      card.innerHTML = `
-        <div class="summary-header">
-          <div class="summary-icon"><i class="${w.icon}"></i></div>
-          <span class="summary-title" id="${w.id}-widget-title">${w.title}</span>
-        </div>
-        <div id="home-${w.id}-content" class="mini-list-container">
-          <div class="skeleton-text"></div>
-        </div>
-      `;
-      container.appendChild(card);
-    });
-  } else {
-    document.querySelectorAll('.summary-card').forEach(card => {
-      const widgetKey = Object.keys(ALL_WIDGETS).find(key => card.classList.contains(ALL_WIDGETS[key].class));
-      if (widgetKey) card.dataset.widgetId = widgetKey;
-    });
-  }
+    const card = document.createElement('div');
+    card.className = `summary-card ${w.class}`;
+    card.dataset.widgetId = config.id;
+    card.onclick = () => {
+      if (w.action) eval(w.action);
+    };
+
+    card.innerHTML = `
+      <div class="summary-header">
+        <div class="summary-icon"><i class="${w.icon}"></i></div>
+        <span class="summary-title" id="${w.id}-widget-title">${w.title}</span>
+      </div>
+      <div id="home-${w.id}-content" class="mini-list-container">
+        <div class="skeleton-text"></div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const widgetId = entry.target.dataset.widgetId;
         const widget = ALL_WIDGETS[widgetId];
+
         entry.target.classList.add('fade-in-up');
 
         if (widget && widget.render) {
@@ -5247,7 +5248,8 @@ window.toggleWidget = function (idx, el) {
 
 window.saveHomeConfig = function () {
   homeLayout = JSON.parse(JSON.stringify(tempHomeLayout));
-  localStorage.setItem('granaGo_home_layout', JSON.stringify(homeLayout));
+  const layoutStr = homeLayout.map(item => (item.active ? '' : '!') + item.id).join(',');
+  localStorage.setItem('granaGo_home_layout', layoutStr);
   closeHomeEditor();
   renderHomeDashboard();
   showNotification("Éxito", "Diseño de inicio actualizado", "success");
@@ -5758,6 +5760,26 @@ async function updateHomeRecentWidgets() {
   }
 }
 
+function renderEventsUI(events) {
+  const eventsList = document.getElementById("home-event-content");
+  if (!eventsList) return;
+
+  if (events.length === 0) {
+    eventsList.innerHTML = `<div class="summary-sub">Sin eventos activos en este momento.</div>`;
+    return;
+  }
+
+  const html = events.slice(0, 4).map(evt => `
+    <div class="mini-event-title">
+      ${evt.isEndingToday
+      ? `${evt.title} <span style="color: var(--color-error); font-weight: 700; font-size: 0.8em;">(FIN HOY)</span>`
+      : evt.title}
+    </div>
+  `).join('');
+
+  eventsList.innerHTML = html;
+}
+
 async function updateHomeEventsWidget() {
   const eventsList = document.getElementById("home-event-content");
   if (!eventsList) return;
@@ -5767,8 +5789,10 @@ async function updateHomeEventsWidget() {
   const now = Date.now();
 
   if (cachedData && cacheTime && (now - cacheTime < 600000)) {
-    eventsList.innerHTML = cachedData;
-    return;
+    try {
+      renderEventsUI(JSON.parse(cachedData));
+      return;
+    } catch (e) { localStorage.removeItem("granaGo_events_cache"); }
   }
 
   try {
@@ -5786,50 +5810,21 @@ async function updateHomeEventsWidget() {
       if (processedTitles.has(title)) continue;
 
       const descriptionHTML = item.querySelector("description").textContent;
-      const cleanDesc = descriptionHTML.replace(/<[^>]*>?/gm, " ").trim();
-      const fullSearchText = title + " " + cleanDesc;
+      const fullSearchText = (title + " " + descriptionHTML.replace(/<[^>]*>?/gm, " ")).trim();
 
-      let matchType = null;
       let isEndingToday = false;
       const finPubMatch = descriptionHTML.match(/Fin de la publicación:\s*(\d{4}-\d{2}-\d{2})/i);
+      if (finPubMatch && finPubMatch[1] === todayStr) isEndingToday = true;
 
-      if (finPubMatch && finPubMatch[1] === todayStr) {
-        matchType = "fin_hoy";
-        isEndingToday = true;
-      } else if (isDateActive(fullSearchText) && isDayTimeActive(fullSearchText)) {
-        matchType = "activo";
-      }
-
-      if (matchType) {
+      if (isEndingToday || (isDateActive(fullSearchText) && isDayTimeActive(fullSearchText))) {
         processedTitles.add(title);
-        eventsFound.push({ title, priority: isEndingToday ? 1 : 2, isEndingToday });
+        eventsFound.push({ title, isEndingToday });
       }
-
-      if (eventsFound.length >= 8) break;
+      if (eventsFound.length >= 4) break;
     }
 
-    eventsFound.sort((a, b) => a.priority - b.priority);
-
-    const fragment = document.createDocumentFragment();
-    if (eventsFound.length === 0) {
-      const div = document.createElement("div");
-      div.className = "summary-sub";
-      div.textContent = "Sin eventos activos en este momento.";
-      fragment.appendChild(div);
-    } else {
-      eventsFound.slice(0, 4).forEach((evt) => {
-        const div = document.createElement("div");
-        div.className = "mini-event-title";
-        div.innerHTML = evt.isEndingToday
-          ? `${evt.title} <span style="color: var(--color-error); font-weight: 700; font-size: 0.8em;">(FIN HOY)</span>`
-          : evt.title;
-        fragment.appendChild(div);
-      });
-    }
-
-    eventsList.innerHTML = "";
-    eventsList.appendChild(fragment);
-    localStorage.setItem("granaGo_events_cache", eventsList.innerHTML);
+    renderEventsUI(eventsFound);
+    localStorage.setItem("granaGo_events_cache", JSON.stringify(eventsFound));
     localStorage.setItem("granaGo_events_cache_time", now);
 
   } catch (e) {
@@ -6833,15 +6828,21 @@ async function startWordleGame(retryCount = 0) {
 
       document.getElementById("wordle-setup").style.display = "none";
       renderWordleBoard();
-
       const tiles = document.querySelectorAll(".wordle-cell");
-      if (savedState.board) {
-        savedState.board.forEach((data, i) => {
-          if (tiles[i]) {
-            tiles[i].innerText = data.text;
-            data.classes.forEach((cls) => tiles[i].classList.add(cls));
+
+      if (savedState.g) {
+        savedState.g.forEach((guess, r) => {
+          const colors = getWordleColors(guess, wordleConfig.target, wordleConfig.len);
+          for (let i = 0; i < wordleConfig.len; i++) {
+            const tile = tiles[r * wordleConfig.len + i];
+            if (tile) {
+              tile.innerText = guess[i];
+              tile.classList.add(colors[i]);
+            }
           }
         });
+        wordleConfig.currentAttempt = savedState.g.length;
+      } else if (savedState.board) {
       }
 
       let filasUsadas = 0;
@@ -6906,6 +6907,21 @@ async function startWordleGame(retryCount = 0) {
     showNotification("Error", "Error al iniciar el juego local.", "error");
     setupContainer.innerHTML = wordleSetupHTML;
   }
+}
+
+function getWordleColors(guess, target, len) {
+  const colors = new Array(len).fill(null);
+  const letterCounts = {};
+  for (const char of target) letterCounts[char] = (letterCounts[char] || 0) + 1;
+  for (let i = 0; i < len; i++) {
+    if (guess[i] === target[i]) { colors[i] = "correct"; letterCounts[guess[i]]--; }
+  }
+  for (let i = 0; i < len; i++) {
+    if (colors[i]) continue;
+    if (letterCounts[guess[i]] > 0) { colors[i] = "present"; letterCounts[guess[i]]--; }
+    else { colors[i] = "absent"; }
+  }
+  return colors;
 }
 
 window.focusGameInput = function () {
@@ -7181,21 +7197,25 @@ function showWordleResult(win) {
 
 function saveWordleState() {
   if (wordleConfig.mode !== "daily") return;
+
+  const guesses = [];
+  for (let r = 0; r < wordleConfig.currentAttempt; r++) {
+    let word = "";
+    for (let c = 0; c < wordleConfig.len; c++) {
+      word += document.getElementById(`tile-${r * wordleConfig.len + c}`).innerText;
+    }
+    guesses.push(word);
+  }
+
   const state = {
-    target: wordleConfig.target,
-    originalTarget: wordleConfig.originalTarget,
-    currentAttempt: wordleConfig.currentAttempt,
-    gameOver: wordleConfig.gameOver,
-    date: new Date().toDateString(),
-    board: Array.from(document.querySelectorAll(".wordle-cell")).map((c) => ({
-      text: c.innerText,
-      classes: Array.from(c.classList),
-    })),
+    t: wordleConfig.target,
+    ot: wordleConfig.originalTarget,
+    ca: wordleConfig.currentAttempt,
+    go: wordleConfig.gameOver,
+    d: new Date().toDateString(),
+    g: guesses
   };
-  localStorage.setItem(
-    `wordle_session_daily_${wordleConfig.len}`,
-    JSON.stringify(state),
-  );
+  localStorage.setItem(`wordle_session_daily_${wordleConfig.len}`, JSON.stringify(state));
 }
 
 function loadWordleState() {
@@ -7454,11 +7474,19 @@ function initSudokuState(board, solution) {
 }
 
 function loadSudokuState(session) {
-  sudokuConfig.board = session.board;
-  sudokuConfig.fixed = session.fixed;
-  sudokuConfig.solution = session.solution;
-  sudokuConfig.mistakes = session.mistakes;
-  sudokuConfig.timer = session.timer;
+  if (session.b) {
+    sudokuConfig.board = session.b.split('').map(Number);
+    sudokuConfig.fixed = session.f.split('').map(v => v === '1');
+    sudokuConfig.solution = session.s.split('').map(Number);
+    sudokuConfig.mistakes = session.m;
+    sudokuConfig.timer = session.t;
+  } else {
+    sudokuConfig.board = session.board;
+    sudokuConfig.fixed = session.fixed;
+    sudokuConfig.solution = session.solution;
+    sudokuConfig.mistakes = session.mistakes;
+    sudokuConfig.timer = session.timer;
+  }
   sudokuConfig.gameOver = false;
   updateSudokuStats();
 }
@@ -7638,12 +7666,12 @@ function saveSudokuProgress() {
   if (sudokuConfig.mode !== "daily" || sudokuConfig.gameOver) return;
 
   const state = {
-    date: new Date().toDateString(),
-    board: sudokuConfig.board,
-    fixed: sudokuConfig.fixed,
-    solution: sudokuConfig.solution,
-    mistakes: sudokuConfig.mistakes,
-    timer: sudokuConfig.timer,
+    d: new Date().toDateString(),
+    b: sudokuConfig.board.join(''),
+    s: sudokuConfig.solution.join(''),
+    f: sudokuConfig.fixed.map(v => v ? 1 : 0).join(''),
+    m: sudokuConfig.mistakes,
+    t: sudokuConfig.timer
   };
   localStorage.setItem("sudoku_daily_session", JSON.stringify(state));
 }
@@ -11601,7 +11629,12 @@ async function cargarRadiosDesdeAPI() {
   const cached = localStorage.getItem("granaGo_radio_cache");
   if (cached) {
     RADIO_STATIONS = JSON.parse(cached);
-    renderRadioList();
+    if (RADIO_STATIONS.length > 0 && !RADIO_STATIONS[0].u) {
+      localStorage.removeItem("granaGo_radio_cache");
+      RADIO_STATIONS = [];
+    } else {
+      renderRadioList();
+    }
   }
 
   try {
@@ -11609,8 +11642,8 @@ async function cargarRadiosDesdeAPI() {
     const servers = await serversRes.json();
     const base_url = `https://${servers[0].name}/json/stations/search?`;
     const [resEspana, resMundo] = await Promise.all([
-      fetch(`${base_url}countrycode=ES&https=true&order=clickcount&reverse=true&limit=1000`),
-      fetch(`${base_url}countrynotcode=ES&tag=music&https=true&order=clickcount&reverse=true&limit=500`)
+      fetch(`${base_url}countrycode=ES&https=true&order=clickcount&reverse=true&limit=600`),
+      fetch(`${base_url}countrynotcode=ES&tag=music&https=true&order=clickcount&reverse=true&limit=400`)
     ]);
 
     const [dataEspana, dataMundo] = await Promise.all([resEspana.json(), resMundo.json()]);
@@ -11632,10 +11665,9 @@ async function cargarRadiosDesdeAPI() {
           !mapaRadios.has(s.url_resolved) && !nombresVistos.has(nombreNorm)) {
           nombresVistos.add(nombreNorm);
           mapaRadios.set(s.url_resolved, {
-            id: btoa(s.url_resolved).substring(0, 16),
-            name: s.name.trim(),
-            url: s.url_resolved,
-            logo: finalLogo
+            n: s.name.trim(),
+            u: s.url_resolved,
+            l: finalLogo
           });
         }
       });
@@ -11670,11 +11702,11 @@ function renderRadioList() {
   let filteredIndices = RADIO_STATIONS.map((_, i) => i);
   if (term) {
     filteredIndices = filteredIndices.filter(idx =>
-      RADIO_STATIONS[idx].name.toLowerCase().includes(term)
+      RADIO_STATIONS[idx].n.toLowerCase().includes(term)
     );
   }
   filteredIndices.sort((a, b) => {
-    return favs.includes(RADIO_STATIONS[b].url) - favs.includes(RADIO_STATIONS[a].url);
+    return favs.includes(RADIO_STATIONS[b].u) - favs.includes(RADIO_STATIONS[a].u);
   });
 
   if (hudContainer) {
@@ -11705,10 +11737,10 @@ function renderRadioList() {
 
 function createRadioCard(idx) {
   const station = RADIO_STATIONS[idx];
-  const isFav = getRadioFavorites().includes(station.url);
+  const isFav = getRadioFavorites().includes(station.u);
   const isCurrent = currentRadioIdx === idx;
-  const stationLogo = (station.logo && !station.logo.includes("url=null") && station.logo !== "undefined")
-    ? station.logo
+  const stationLogo = (station.l && !station.l.includes("url=null") && station.l !== "undefined")
+    ? station.l
     : 'images/logo.png';
 
   const card = document.createElement('div');
@@ -11730,7 +11762,7 @@ function createRadioCard(idx) {
         <div class="radio-equalizer"><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div></div>
         <div class="radio-play-overlay"><i class="${isCurrent && radioIsPlaying ? 'ri-pause-fill' : 'ri-play-fill'}"></i></div>
       </div>
-      <span class="radio-card-name" style="display: block; margin-top: 5px; font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${station.name}</span>
+      <span class="radio-card-name" style="display: block; margin-top: 5px; font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${station.n}</span>
     `;
   card.onclick = () => toggleStation(idx);
   return card;
@@ -11817,7 +11849,7 @@ window.toggleStation = async function (index) {
   try {
     if (currentRadioIdx !== index) {
       audio.pause();
-      audio.src = RADIO_STATIONS[index].url;
+      audio.src = station.u;
       currentRadioIdx = index;
     }
 
@@ -11827,7 +11859,7 @@ window.toggleStation = async function (index) {
     await audio.play();
     radioIsPlaying = true;
     actualizarUIPlayer();
-    statusInfo.innerText = `EN DIRECTO: ${RADIO_STATIONS[index].name}`;
+    statusInfo.innerText = `EN DIRECTO: ${station.n}`;
 
     if (navigator.vibrate) navigator.vibrate(30);
   } catch (err) {
@@ -11852,21 +11884,21 @@ function actualizarUIPlayer() {
   });
 
   if (currentRadioIdx !== -1 && station) {
-    const isFav = favs.includes(station.url);
+    const isFav = favs.includes(station.u);
     const nameEl = document.getElementById('radio-current-name');
     const logoEl = document.getElementById('radio-current-logo');
     const playBtn = document.getElementById('radio-main-play-btn');
     const favBtn = document.getElementById('btn-fav-radio');
 
-    if (nameEl) nameEl.innerText = station.name;
+    if (nameEl) nameEl.innerText = station.n;
     if (logoEl) {
       const activeVis = localStorage.getItem("granaGo_active_visualizer");
 
       if (activeVis && radioIsPlaying) {
         logoEl.innerHTML = `<img src="${activeVis}" style="width:100%; height:100%; object-fit:contain; border-radius:20px; background:#000;">`;
       } else {
-        logoEl.innerHTML = `<img src="${station.logo}" 
-                                 alt="${station.name}" 
+        logoEl.innerHTML = `<img src="${station.l}" 
+                                 alt="${station.n}" 
                                  style="width:100%; height:100%; object-fit:cover; border-radius:20px;" 
                                  onerror="this.src='images/logo.png'; this.onerror=null;">`;
       }
@@ -11879,14 +11911,14 @@ function actualizarUIPlayer() {
 
     if ('mediaSession' in navigator) {
       const activeVis = localStorage.getItem("granaGo_active_visualizer");
-      let imageToUse = (activeVis && radioIsPlaying) ? activeVis : station.logo;
+      let imageToUse = (activeVis && radioIsPlaying) ? activeVis : station.l;
 
       if (!imageToUse || imageToUse === "undefined" || imageToUse.includes("url=null")) {
         imageToUse = "https://granago.github.io/images/logo.png";
       }
 
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: station.name,
+        title: station.n,
         artist: "Radio Graná",
         album: "En directo",
         artwork: [
@@ -11911,13 +11943,13 @@ window.toggleRadioFav = function () {
   if (currentRadioIdx === -1) return;
   const station = RADIO_STATIONS[currentRadioIdx];
   let favs = getRadioFavorites();
-  const isFav = favs.includes(station.url);
+  const isFav = favs.includes(station.u);
 
   if (isFav) {
-    favs = favs.filter(url => url !== station.url);
+    favs = favs.filter(url => url !== station.u);
     showNotification("Eliminado", "Quitado de favoritos", "info");
   } else {
-    favs.push(station.url);
+    favs.push(station.u);
     showNotification("Guardado", "Añadido a favoritos", "success");
   }
 
@@ -12048,94 +12080,90 @@ window.toggleHudLayout = async function () {
   if (navigator.vibrate) navigator.vibrate(30);
 };
 
+function renderMetroUI(data) {
+  const container = document.getElementById("home-metro-content");
+  if (!container) return;
+
+  if (data.status === 'ok') {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 10px 0;">
+        <i class="ri-checkbox-circle-fill" style="color: #10b981; font-size: 1.5rem;"></i>
+        <p style="font-size: 0.85rem; margin-top: 5px; color: var(--text-primary);">Servicio sin incidencias</p>
+      </div>`;
+    return;
+  }
+
+  if (data.status === 'alert' && data.tweets) {
+    let html = data.tweets.map(t => `
+      <div style="margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle);">
+        <p style="font-size: 0.82rem; line-height: 1.4; color: var(--text-primary); margin: 0 0 4px 0;">${t.text}</p>
+        <span style="font-size: 0.65rem; color: var(--text-secondary); opacity: 0.7;">${t.date}</span>
+      </div>
+    `).join('');
+
+    html += `<div style="font-size: 0.65rem; opacity: 0.5; margin-top: 5px; display: flex; align-items: center; gap: 4px;">
+               <i class="ri-twitter-x-fill"></i> Estado del Servicio
+             </div>`;
+    container.innerHTML = html;
+  }
+}
+
 async function updateMetroXWidget() {
   const container = document.getElementById("home-metro-content");
   if (!container) return;
 
   const CACHE_KEY = "granaGo_metro_cache";
-  const cachedHTML = localStorage.getItem(CACHE_KEY);
+  const cachedData = localStorage.getItem(CACHE_KEY);
 
-  if (cachedHTML) {
-    container.innerHTML = cachedHTML;
+  if (cachedData) {
+    try {
+      renderMetroUI(JSON.parse(cachedData));
+    } catch (e) {
+      localStorage.removeItem(CACHE_KEY);
+    }
   } else {
     container.innerHTML = '<div class="spinner" style="margin: 10px auto; width:20px; height:20px;"></div>';
   }
 
-  const instances = [
-    "nitter.cz",
-    "nitter.it",
-    "nitter.privacydev.net",
-    "nitter.poast.org",
-    "nitter.net"
-  ];
-
+  const instances = ["nitter.cz", "nitter.it", "nitter.privacydev.net", "nitter.poast.org", "nitter.net"];
   let success = false;
 
   for (const instance of instances) {
     if (success) break;
-
     const url = `https://${instance}/MetroGranada`;
     const finalUrl = PROXY_URL + encodeURIComponent(url);
 
     try {
       const res = await fetch(finalUrl, { priority: 'low' });
-      if (!res.ok) throw new Error("Fallo de instancia");
+      if (!res.ok) throw new Error("Fallo de red");
 
       const html = await res.text();
       const doc = new DOMParser().parseFromString(html, "text/html");
-
       const allTweets = Array.from(doc.querySelectorAll(".timeline-item:not(.pinned)"));
 
-      const filteredTweets = allTweets.filter(tweet => {
-        const content = tweet.querySelector(".tweet-content")?.innerText.trim() || "";
-        return content.startsWith("🔴");
-      });
+      if (allTweets.length === 0) throw new Error("Instancia vacía");
 
-      let newContentHTML = "";
+      const filteredTweets = allTweets
+        .filter(tweet => tweet.querySelector(".tweet-content")?.innerText.trim().startsWith("🔴"))
+        .slice(0, 2)
+        .map(tweet => ({
+          text: tweet.querySelector(".tweet-content")?.innerText.trim() || "Sin contenido",
+          date: tweet.querySelector(".tweet-date a")?.title || "Reciente"
+        }));
 
-      if (filteredTweets.length > 0) {
-        let tweetsHTML = "";
-        const count = Math.min(filteredTweets.length, 2);
+      const dataToSave = filteredTweets.length > 0
+        ? { status: 'alert', tweets: filteredTweets }
+        : { status: 'ok' };
 
-        for (let i = 0; i < count; i++) {
-          const tweet = filteredTweets[i];
-          const text = tweet.querySelector(".tweet-content")?.innerText.trim() || "Sin contenido";
-          const date = tweet.querySelector(".tweet-date a")?.title || "Reciente";
-
-          tweetsHTML += `
-            <div style="margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle);">
-              <p style="font-size: 0.82rem; line-height: 1.4; color: var(--text-primary); margin: 0 0 4px 0;">${text}</p>
-              <span style="font-size: 0.65rem; color: var(--text-secondary); opacity: 0.7;">${date}</span>
-            </div>
-          `;
-        }
-
-        newContentHTML = tweetsHTML + `
-          <div style="font-size: 0.65rem; opacity: 0.5; margin-top: 5px; display: flex; align-items: center; gap: 4px;">
-            <i class="ri-twitter-x-fill"></i> Estado del Servicio
-          </div>
-        `;
-      } else if (allTweets.length > 0) {
-        newContentHTML = `
-          <div style="text-align: center; padding: 10px 0;">
-            <i class="ri-checkbox-circle-fill" style="color: #10b981; font-size: 1.5rem;"></i>
-            <p style="font-size: 0.85rem; margin-top: 5px; color: var(--text-primary);">Servicio sin incidencias</p>
-          </div>`;
-      }
-
-      if (newContentHTML && newContentHTML !== cachedHTML) {
-        container.innerHTML = newContentHTML;
-        localStorage.setItem(CACHE_KEY, newContentHTML);
-        console.log("Caché de Metro actualizado con nuevos tweets.");
-      }
-
+      renderMetroUI(dataToSave);
+      localStorage.setItem(CACHE_KEY, JSON.stringify(dataToSave));
       success = true;
     } catch (e) {
-      console.warn(`La instancia ${instance} no responde...`);
+      console.warn(`Instancia ${instance} falló, probando siguiente...`);
     }
   }
 
-  if (!success && !cachedHTML) {
+  if (!success && !cachedData) {
     container.innerHTML = `<div class="summary-sub">Novedades no disponibles. Toca para abrir X.</div>`;
   }
 }
@@ -12202,8 +12230,8 @@ window.beginActivity = function () {
 function processRunPosition(pos) {
   if (!runState.active || runState.paused) return;
 
-  const lat = pos.coords.latitude;
-  const lng = pos.coords.longitude;
+  const lat = parseFloat(pos.coords.latitude.toFixed(5));
+  const lng = parseFloat(pos.coords.longitude.toFixed(5));
   const speed = pos.coords.speed ? (pos.coords.speed * 3.6) : 0;
 
   document.getElementById('run-speed').innerHTML = `${speed.toFixed(1)} <small>km/h</small>`;
@@ -12259,7 +12287,7 @@ window.finishRun = function () {
     distance: runState.distance.toFixed(2),
     time: timeStr,
     avgSpeed: avgSpeed,
-    path: isTraceValid ? runState.path : []
+    path: isTraceValid ? compressPath(runState.path) : []
   });
 
   localStorage.setItem('granaGo_run_history', JSON.stringify(history));
@@ -12403,7 +12431,8 @@ window.initSharedRoute = async function (encodedData) {
         window.sharedRouteMapInstance = L.map('shared-route-map', { zoomControl: false, attributionControl: false });
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(window.sharedRouteMapInstance);
 
-        const polyline = L.polyline(data.p, { color: '#ec4899', weight: 4 }).addTo(window.sharedRouteMapInstance);
+        const fullPath = decompressPath(data.p);
+        const polyline = L.polyline(fullPath, { color: '#ec4899', weight: 4 }).addTo(window.sharedRouteMapInstance);
         window.sharedRouteMapInstance.fitBounds(polyline.getBounds(), { padding: [15, 15] });
       }, 400);
     } else {
@@ -12516,7 +12545,7 @@ window.exportUserData = function () {
     }
   }
 
-  const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify(dataToExport)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
 
@@ -12529,7 +12558,7 @@ window.exportUserData = function () {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 
-  showNotification("Copia creada", "Archivo de seguridad descargado", "success");
+  showNotification("Copia creada", "Archivo de seguridad optimizado descargado", "success");
 };
 
 window.triggerImport = function () {
@@ -12591,3 +12620,26 @@ document.addEventListener("click", (e) => {
   if (summaryModal && e.target === summaryModal) closeRunSummary();
 });
 
+function compressPath(path) {
+  if (!path || path.length === 0) return [];
+  const compressed = [[path[0][0], path[0][1]]];
+  for (let i = 1; i < path.length; i++) {
+    const dLat = parseFloat((path[i][0] - path[i - 1][0]).toFixed(5));
+    const dLng = parseFloat((path[i][1] - path[i - 1][1]).toFixed(5));
+    compressed.push([dLat, dLng]);
+  }
+  return compressed;
+}
+
+function decompressPath(path) {
+  if (!path || path.length < 2) return path;
+  if (Math.abs(path[1][0]) > 1) return path;
+
+  const decompressed = [[path[0][0], path[0][1]]];
+  for (let i = 1; i < path.length; i++) {
+    const lat = parseFloat((decompressed[i - 1][0] + path[i][0]).toFixed(5));
+    const lng = parseFloat((decompressed[i - 1][1] + path[i][1]).toFixed(5));
+    decompressed.push([lat, lng]);
+  }
+  return decompressed;
+}
