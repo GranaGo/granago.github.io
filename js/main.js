@@ -27,6 +27,7 @@ let currentWeatherData = null;
 let weatherLocationActive = null;
 let tempHomeLayout = [];
 let supportTimeout = null;
+let runIndexToDelete = null;
 
 let mapInstance = null;
 let currentTileLayer = null;
@@ -12268,13 +12269,32 @@ window.finishRun = function () {
 };
 
 window.deleteRunFromHistory = function (index) {
-  if (confirm("¿Eliminar esta ruta del historial?")) {
-    const history = JSON.parse(localStorage.getItem('granaGo_run_history') || "[]");
-    history.splice(index, 1);
-    localStorage.setItem('granaGo_run_history', JSON.stringify(history));
-    renderRunHistory();
-  }
+  runIndexToDelete = index;
+  const modal = document.getElementById('delete-confirm-modal');
+  modal.classList.add('visible');
+
+  const confirmBtn = document.getElementById('btn-confirm-delete-final');
+  confirmBtn.onclick = function () {
+    executeDeleteRun();
+  };
 };
+
+window.closeDeleteConfirm = function () {
+  document.getElementById('delete-confirm-modal').classList.remove('visible');
+  runIndexToDelete = null;
+};
+
+function executeDeleteRun() {
+  if (runIndexToDelete === null) return;
+
+  const history = JSON.parse(localStorage.getItem('granaGo_run_history') || "[]");
+  history.splice(runIndexToDelete, 1);
+  localStorage.setItem('granaGo_run_history', JSON.stringify(history));
+
+  closeDeleteConfirm();
+  renderRunHistory();
+  showNotification("Eliminado", "La ruta ha sido borrada", "info");
+}
 
 function showRunSummary() {
   document.getElementById('run-summary-modal').classList.add('visible');
@@ -12598,6 +12618,34 @@ document.addEventListener("click", (e) => {
 
   const summaryModal = document.getElementById("run-summary-modal");
   if (summaryModal && e.target === summaryModal) closeRunSummary();
+
+  const deleteModal = document.getElementById("delete-confirm-modal");
+  if (deleteModal && e.target === deleteModal) closeDeleteConfirm();
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === 'hidden') {
+
+    if (runState.active && !radioIsPlaying) {
+      const avisoVoz = "Atención: La pantalla se ha apagado sin audio activo. El seguimiento GPS podría pausarse. Te recomendamos activar la radio en silencio.";
+      if (typeof speak === "function") {
+        speak(avisoVoz);
+      }
+
+      if (navigator.vibrate) {
+        navigator.vibrate([400, 100, 400]);
+      }
+
+      showNotification(
+        "¡Riesgo de pausa!",
+        "Usa el truco de la radio para que el GPS no se detenga con la pantalla apagada.",
+        "error",
+        6000
+      );
+
+      console.warn("Detección de posible suspensión de GPS: Pantalla oculta sin audio.");
+    }
+  }
 });
 
 function compressPath(path) {
