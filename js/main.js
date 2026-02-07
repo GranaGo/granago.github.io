@@ -12467,10 +12467,20 @@ function renderRunHistory() {
     return;
   }
 
-  container.innerHTML = history.slice().reverse().map((run, index) => {
+  const totalKm = history.reduce((acc, run) => acc + parseFloat(run.d || 0), 0).toFixed(2);
+  const totalHeaderHTML = `
+    <div class="info-card" style="margin-bottom: 20px; background: var(--text-accent); color: white; border: none; text-align: center; padding: 15px;">
+        <span style="font-size: 0.8rem; text-transform: uppercase; font-weight: 700; opacity: 0.9;">Distancia Total Acumulada</span>
+        <div style="font-size: 2.2rem; font-weight: 900; line-height: 1;">${totalKm} <small style="font-size: 1rem;">km</small></div>
+    </div>
+  `;
+
+  const listHTML = history.slice().reverse().map((run, index) => {
     const originalIndex = history.length - 1 - index;
     const hasPath = run.p && run.p.length > 1;
+
     const dateStr = new Date(run.ts).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+
     const runData = { p: run.p, d: run.d, t: run.t, s: run.s };
     const encodedData = btoa(JSON.stringify(runData));
 
@@ -12502,6 +12512,8 @@ function renderRunHistory() {
             </div>
         </div>`;
   }).join('');
+
+  container.innerHTML = totalHeaderHTML + listHTML;
 }
 
 window.exportUserData = function () {
