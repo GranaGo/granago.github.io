@@ -2,6 +2,7 @@ import pandas as pd
 import json
 import os
 
+# Configuración de rutas y parámetros para cada tipo de transporte
 CONFIG = {
     "urbano": {
         "ruta_gtfs": "raw_data/gtfs_urbano",
@@ -18,9 +19,12 @@ CONFIG = {
 }
 
 def corregir_hora(hora_str):
+    """Normaliza las horas GTFS (que pueden ser > 24h) al formato HH:MM"""
     if pd.isna(hora_str): return None
     try:
-        h, m, s = map(int, hora_str.split(':'))
+        parts = hora_str.strip().split(':')
+        h = int(parts[0])
+        m = int(parts[1])
         if h >= 24: h -= 24
         return f"{h:02d}:{m:02d}"
     except:
@@ -30,46 +34,45 @@ def procesar_tipo(tipo):
     conf = CONFIG[tipo]
     print(f"🚀 Generando índice de tiempos para: {tipo.upper()}...")
     
-    try:
-        df_calendar = pd.read_csv(f"{conf['ruta_gtfs']}/calendar.txt", dtype=str)
-        df_trips = pd.read_csv(f"{conf['ruta_gtfs']}/trips.txt", dtype=str)
-        df_stop_times = pd.read_csv(f"{conf['ruta_gtfs']}/stop_times.txt", dtype=str)
-        df_routes = pd.read_csv(f"{conf['ruta_gtfs']}/routes.txt", dtype=str)
-        
-        mapa_paradas_id_a_clave = {}
-        if conf['usar_stop_code']:
-            df_stops = pd.read_csv(f"{conf['ruta_gtfs']}/stops.txt", dtype=str)
-            for _, row in df_stops.iterrows():
-                mapa_paradas_id_a_clave[row['stop_id']] = row.get('stop_code') or row['stop_id']
-    except FileNotFoundError as e:
-        print(f"❌ Error: No se encontró el archivo {e.filename}")
-        return
+    f_calendar = os.path.join(conf['ruta_gtfs'], "calendar.txt")
+    f_trips = os.path.join(conf['ruta_gtfs'], "trips.txt")
+    f_routes = os.path.join(conf['ruta_gtfs'], "routes.txt")
+    f_stops = os.path.join(conf['ruta_gtfs'], "stops.txt")
+    f_stop_times = os.path.join(conf['ruta_gtfs'], "stop_times.txt")
 
-    if conf['agencia_objetivo']:
-        df_routes = df_routes[df_routes['agency_id'] == conf['agencia_objetivo']]
-    
-    valid_route_ids = set(df_routes['route_id'])
+    try:
+        df_calendar = pd.read_csv(f_calendar, dtype=str)
+        df_trips = pd.read_csv(f_trips, dtype=str)
+        df_routes = pd.read_csv(f_routes, dtype=str)
+        df_stops = pd.read_csv(f_stops, dtype=str)
+        df_stop_times = pd.read_csv(f_stop_times, dtype=str)
+    except Exception as e:
+        print(f"❌ Error cargando archivos para {tipo}: {e}")
+        return
 
     mapa_dias = {}
     for _, row in df_calendar.iterrows():
-        sid = row['service_id']
-        dias = []
-        if row.get('monday') == '1' and row.get('thursday') == '1': dias.append("L-J")
-        if row.get('friday') == '1': dias.append("V")
-        if row.get('saturday') == '1': dias.append("S")
-        if row.get('sunday') == '1': dias.append("D")
-        mapa_dias[sid] = dias
+        dias = set()
+        if any(row[d] == '1' for d in ['monday', 'tuesday', 'wednesday', 'thursday']):
+            dias.add("L-J")
+        if row['friday'] == '1':
+            dias.add("V")
+        if row['saturday'] == '1':
+            dias.add("S")
+        if row['sunday'] == '1':
+            dias.add("D")
+        
+        mapa_dias[row['service_id']] = list(dias)
 
-    mapa_lineas = {r['route_id']: str(r['route_short_name']).lstrip('0') or "0" 
-                   for _, r in df_routes.iterrows()}
-
-    df_trips = df_trips[df_trips['route_id'].isin(valid_route_ids)][['trip_id', 'route_id', 'service_id']]
-    df_stop_times = df_stop_times[['trip_id', 'stop_id', 'departure_time']]
-    merged = pd.merge(df_stop_times, df_trips, on='trip_id')
+    mapa_lineas = {row['route_id']: row['route_short_name'] for _, row in df_routes.iterrows()}
+    mapa_paradas_id_a_clave = {row['stop_id']: row['stop_code'] for _, row in df_stops.iterrows()}
+    df_merged = pd.merge(df_stop_times[['trip_id', 'stop_id', 'departure_time']], 
+                         df_trips[['trip_id', 'route_id', 'service_id']], 
+                         on='trip_id')
     
     resultado = {}
 
-    for _, row in merged.iterrows():
+    for _, row in df_merged.iterrows():
         linea = mapa_lineas.get(row['route_id'])
         if not linea: continue
         
@@ -79,7 +82,8 @@ def procesar_tipo(tipo):
         dias_operativos = mapa_dias.get(row['service_id'], [])
         hora = corregir_hora(row['departure_time'])
 
-        if not hora or not dias_operativos: continue
+        if not hora or not dias_operativos:
+            continue
 
         if stop_key not in resultado:
             resultado[stop_key] = {}
@@ -97,10 +101,20 @@ def procesar_tipo(tipo):
                 resultado[sid][lin][d].sort()
 
     os.makedirs(os.path.dirname(conf['ruta_salida']), exist_ok=True)
-    with open(conf['ruta_salida'], "w", encoding="utf-8") as f:
+    with open(conf['ruta_salida'], 'w', encoding='utf-8') as f:
         json.dump(resultado, f, ensure_ascii=False)
     
-    print(f"✅ Archivo creado con éxito en: {conf['ruta_salida']}")
+    print(f"✅ Archivo generado: {conf['ruta_salida']}")
+    
+    if tipo == "urbano":
+        if "74" in resultado:
+            if "9" in resultado["74"]:
+                print("⭐ ¡ÉXITO! La línea 9 se ha encontrado para la parada 74.")
+            else:
+                print("⚠️ La parada 74 está en el JSON, pero NO tiene horarios para la línea 9.")
+                print(f"   Líneas encontradas en parada 74: {list(resultado['74'].keys())}")
+        else:
+            print("⚠️ La parada 74 NO aparece en los datos generados.")
 
 if __name__ == "__main__":
     procesar_tipo("urbano")
