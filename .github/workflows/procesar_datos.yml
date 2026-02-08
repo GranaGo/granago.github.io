@@ -28,7 +28,7 @@ jobs:
       - name: ⚙️ Ejecutar script de conversión de GTFS
         run: python scripts/procesar_gtfs.py
 
-      - name: ⚙️ Ejecutar script de tiempos estimados Interurbanos
+      - name: ⚙️ Ejecutar script de tiempos estimados
         run: python scripts/gtfs_tiempos_estimados.py
 
       - name: 📸 Procesar Radares PDF
