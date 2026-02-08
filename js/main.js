@@ -2613,7 +2613,6 @@ document.addEventListener("click", (e) => {
 });
 
 async function fetchRealTimeData(id, type) {
-  const content = document.getElementById("realtime-content");
   const cacheKey = `${type}_${id}`;
   const now = Date.now();
 
@@ -2645,25 +2644,22 @@ async function fetchRealTimeData(id, type) {
 
         const stopData = resTiempos[id];
         if (stopData) {
-          const apiLines = new Set((data.proximos || []).map(p => p.linea.toString()));
-          const allLinesAtStop = new Set();
-          Object.keys(resParadas).forEach(lineId => {
-            const passes = (resParadas[lineId].ida || []).some(s => s.stop_code == id) ||
-              (resParadas[lineId].vuelta || []).some(s => s.stop_code == id);
-            if (passes) allLinesAtStop.add(lineId);
-          });
+          const apiLines = new Set((data.proximos || []).map(p => {
+            return (p.linea?.id || p.linea || "").toString().trim();
+          }));
 
           const nowDate = new Date();
           const currentTime = nowDate.getHours().toString().padStart(2, '0') + ":" +
             nowDate.getMinutes().toString().padStart(2, '0');
-
           const day = nowDate.getDay();
           let dayKey = "L-J";
           if (day === 5) dayKey = "V"; else if (day === 6) dayKey = "S"; else if (day === 0) dayKey = "D";
 
-          allLinesAtStop.forEach(lineId => {
-            if (!apiLines.has(lineId) && stopData[lineId]) {
-              const schedule = stopData[lineId][dayKey] || [];
+          Object.keys(resParadas).forEach(lineId => {
+            const lineIdStr = lineId.toString().trim();
+
+            if (!apiLines.has(lineIdStr) && stopData[lineIdStr]) {
+              const schedule = stopData[lineIdStr][dayKey] || [];
               const nextTime = schedule.find(t => t > currentTime);
 
               if (nextTime) {
@@ -2671,11 +2667,13 @@ async function fetchRealTimeData(id, type) {
                 const arrivalDate = new Date();
                 arrivalDate.setHours(h, m, 0, 0);
                 const diffMin = Math.round((arrivalDate - nowDate) / 60000);
+                const lineInfo = resParadas[lineIdStr];
+                const destName = lineInfo.ida?.[0]?.nombre_linea || lineInfo.vuelta?.[0]?.nombre_linea || `Línea ${lineIdStr}`;
 
                 if (!data.proximos) data.proximos = [];
                 data.proximos.push({
-                  linea: lineId,
-                  destino: "Horario programado",
+                  linea: lineIdStr,
+                  destino: destName,
                   minutos: diffMin,
                   horaExacta: nextTime,
                   isStatic: true
@@ -2683,14 +2681,9 @@ async function fetchRealTimeData(id, type) {
               }
             }
           });
-
-          if (data.proximos) {
-            data.proximos.sort((a, b) => a.minutos - b.minutos);
-          }
+          if (data.proximos) data.proximos.sort((a, b) => a.minutos - b.minutos);
         }
-      } catch (staticErr) {
-        console.warn("No se pudo cargar el fallback estático urbano:", staticErr);
-      }
+      } catch (e) { console.warn("Error en fallback urbano", e); }
 
       realtimeCache.set(cacheKey, { data, timestamp: now });
       renderRealTimeResults(data, type);
@@ -2711,19 +2704,7 @@ async function fetchRealTimeData(id, type) {
       const stopData = allData[id];
 
       if (!stopData) {
-        const currentHour = new Date().getHours();
-        const isNightTime = currentHour >= 0 && currentHour < 6;
-
-        if (isNightTime) {
-          content.innerHTML = `
-            <div class="status-message" style="text-align:center; padding:20px; color:var(--text-secondary);">
-               <span style="font-size:2rem; display:block; margin-bottom:10px;">🌙</span>
-               <span style="font-weight:600;">Servicio nocturno</span>
-               <p style="font-size:0.8rem; margin-top:5px;">Sin estimaciones en este horario</p>
-            </div>`;
-        } else {
-          content.innerHTML = `<div class="status-message" style="text-align:center; padding:20px;">Sin horarios disponibles para esta parada.</div>`;
-        }
+        renderRealTimeResults({ proximos: [] }, "interurbano");
         return;
       }
 
@@ -2734,9 +2715,7 @@ async function fetchRealTimeData(id, type) {
 
       const day = nowDate.getDay();
       let dayKey = "L-J";
-      if (day === 5) dayKey = "V";
-      else if (day === 6) dayKey = "S";
-      else if (day === 0) dayKey = "D";
+      if (day === 5) dayKey = "V"; else if (day === 6) dayKey = "S"; else if (day === 0) dayKey = "D";
 
       for (const [lineaId, schedule] of Object.entries(stopData)) {
         const times = schedule[dayKey] || [];
@@ -2753,13 +2732,13 @@ async function fetchRealTimeData(id, type) {
             linea: lineaId,
             destino: lineName,
             minutos: diffMin,
-            horaExacta: t
+            horaExacta: t,
+            isStatic: true
           });
         });
       }
 
       proximos.sort((a, b) => a.minutos - b.minutos);
-
       renderRealTimeResults({ proximos }, "interurbano");
       realtimeCache.set(cacheKey, { data: { proximos }, timestamp: Date.now() });
       return;
@@ -2772,21 +2751,7 @@ async function fetchRealTimeData(id, type) {
     renderRealTimeResults(data, type);
   } catch (e) {
     if (e.name === 'AbortError') return;
-    console.error("Error Tiempos:", e);
-    const currentHour = new Date().getHours();
-    const isNightTime = currentHour >= 0 && currentHour < 6;
-    const errorIcon = isNightTime ? "🌙" : "⚠️";
-    const errorMsg = isNightTime ? "Servicio nocturno" : UNAVAILABLE_MESSAGE;
-
-    content.innerHTML = `
-      <div class="status-message" style="text-align:center; padding:20px; color:var(--text-secondary);">
-         <span style="font-size:2rem; display:block; margin-bottom:10px;">${errorIcon}</span>
-         <span style="font-weight:600;">${errorMsg}</span>
-         ${isNightTime
-        ? '<p style="font-size:0.8rem; margin-top:5px;">Sin estimaciones en este horario</p>'
-        : ""
-      }
-      </div>`;
+    renderRealTimeResults({ proximos: [] }, type);
   }
 }
 
@@ -2802,15 +2767,15 @@ function renderRealTimeResults(data, type) {
     if (isNightTime) {
       content.innerHTML = `
         <div class="status-message" style="text-align:center; padding:20px; color:var(--text-secondary);">
-           <span style="font-size:2rem; display:block; margin-bottom:10px;">🌙</span>
-           <span style="font-weight:600;">Servicio nocturno</span>
-           <p style="font-size:0.8rem; margin-top:5px;">Sin estimaciones en este horario</p>
+           <span style="font-size:2.5rem; display:block; margin-bottom:10px;">🌙</span>
+           <span style="font-weight:700; font-size:1.1rem; color:var(--text-primary);">SERVICIO NOCTURNO</span>
+           <p style="font-size:0.85rem; margin-top:5px; opacity:0.7;">Sin estimaciones programadas en esta franja.</p>
         </div>`;
     } else {
       content.innerHTML = `
         <div style="text-align:center; padding:20px; color:var(--text-secondary);">
             <span style="font-size:2rem; display:block; margin-bottom:10px;">🚍</span>
-            <span>Sin estimaciones próximas</span>
+            <span>Sin llegadas próximas...</span>
         </div>`;
     }
     return;
@@ -2831,13 +2796,7 @@ function renderRealTimeResults(data, type) {
       html += `<div style="font-size:0.75rem; font-weight:700; color:var(--text-secondary); margin-bottom:5px; text-transform:uppercase; letter-spacing:1px;">HACIA ${dest}</div>`;
       grouped[dest].forEach((p) => {
         const timeObj = formatTime(p.minutos, "metro");
-        html += createRowHTML(
-          timeObj,
-          "M",
-          "#009a44",
-          "ri-train-fill",
-          "Metro",
-        );
+        html += createRowHTML(timeObj, "M", "#009a44", "ri-train-fill", "Metro");
       });
       html += `</div>`;
     });
@@ -2847,29 +2806,21 @@ function renderRealTimeResults(data, type) {
     arrivals.forEach((p) => {
       const lineId = (p.linea?.id || p.linea || "?").toString();
       const regexRedundancy = new RegExp(`^(L[íi]nea\\s+)?${lineId}\\s*[-]?\\s*`, "i");
-      let destinoClean = p.destino.replace(regexRedundancy, "").trim();
+      let destinoDisplay = p.destino.replace(regexRedundancy, "").trim();
 
       let timeObj;
-      const esDatoEstatico = p.isStatic || type === "interurbano";
 
-      if (esDatoEstatico && p.minutos > 30) {
-        timeObj = { text: p.horaExacta, class: "time-bus" };
-
-        if (p.isStatic) {
-          destinoClean = `<span style="opacity:0.6; font-size:0.85em;">(Teórico)</span> ${destinoClean}`;
-        }
+      if (p.isStatic) {
+        const timeText = (p.minutos > 30) ? p.horaExacta : `${p.minutos} min`;
+        timeObj = { text: timeText, class: "time-scheduled" };
+        destinoDisplay = `<span style="opacity:0.6; font-size:0.8em; font-weight:400;">(Teórico)</span> ${destinoDisplay}`;
       } else {
         timeObj = formatTime(p.minutos, "urbano");
       }
 
-      const realColor =
-        window.appColors &&
-          window.appColors[type] &&
-          window.appColors[type][lineId]
-          ? window.appColors[type][lineId]
-          : (type === "interurbano" ? "#2757f5" : "#D9281C");
+      const realColor = window.appColors?.[type]?.[lineId] || (type === "interurbano" ? "#2757f5" : "#D9281C");
 
-      html += createRowHTML(timeObj, lineId, realColor, null, destinoClean);
+      html += createRowHTML(timeObj, lineId, realColor, null, destinoDisplay);
     });
   }
 

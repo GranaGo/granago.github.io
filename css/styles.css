@@ -4862,3 +4862,8 @@ body.keyboard-open .glass-dock {
   color: #fbbf24;
   font-weight: 800;
 }
+
+.time-scheduled {
+  color: #f59e0b !important;
+  font-weight: 800;
+}
