@@ -6963,10 +6963,32 @@ function startGameUI(isRestoring = false) {
 
 window.useWordlePowerup = function () {
   if (wordleConfig.gameOver) return;
+
+  let pendingIndices = [];
+  for (let i = 0; i < wordleConfig.len; i++) {
+    let alreadySolved = false;
+    for (let r = 0; r < wordleConfig.currentAttempt; r++) {
+      const tile = document.getElementById(`tile-${r * wordleConfig.len + i}`);
+      if (tile && tile.classList.contains("correct")) alreadySolved = true;
+    }
+    if (!alreadySolved) pendingIndices.push(i);
+  }
+
+  if (pendingIndices.length === 0) {
+    showNotification("Aviso", "¡Ya tienes todas las letras situadas!", "info");
+    return;
+  }
+
   if (useInventoryItem("pista-wordle")) {
-    const letters = wordleConfig.originalTarget.split("");
-    const randomChar = letters[Math.floor(Math.random() * letters.length)];
-    showNotification("Pista", `La palabra contiene la letra: ${randomChar}`, "info");
+    const randomIdx = pendingIndices[Math.floor(Math.random() * pendingIndices.length)];
+    const letter = wordleConfig.originalTarget[randomIdx];
+
+    showNotification("Lupa", `La letra en la posición ${randomIdx + 1} es la ${letter}`, "success", 4000);
+
+    for (let r = 0; r < wordleConfig.attempts; r++) {
+      const t = document.getElementById(`tile-${r * wordleConfig.len + randomIdx}`);
+      if (t) t.style.boxShadow = "0 0 15px var(--text-accent)";
+    }
 
     updatePowerUpButton("btn-pwr-wordle", "pista-wordle");
   }
@@ -7894,7 +7916,7 @@ window.useMemoryPowerup = function () {
       memoryConfig.lockBoard = false;
 
       updatePowerUpButton("btn-pwr-memory", "ojo-memory");
-    }, 2000);
+    }, 4000);
 
     showNotification("Power-up", "Visualizando tablero...", "info");
   }
@@ -7970,8 +7992,9 @@ function showQuestion() {
   const inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
   const btnPwr = document.getElementById("btn-pwr-quiz");
   if (btnPwr) {
-    btnPwr.style.display =
-      inv["mitad-quiz"] > 0 && !quizConfig.isAnswered ? "block" : "none";
+    btnPwr.style.display = (inv["mitad-quiz"] > 0) ? "block" : "none";
+    btnPwr.disabled = false;
+    btnPwr.style.opacity = "1";
   }
   counterEl.innerText = `PREGUNTA ${quizConfig.currentIdx + 1} / ${quizConfig.questionsPerRound
     }`;
@@ -9089,19 +9112,13 @@ window.useMastermindPowerup = function () {
   if (useInventoryItem("codigo-mind")) {
     const pos = Math.floor(Math.random() * 4);
     const iconClass = mastermindConfig.target[pos];
+    const slots = document.getElementById("mastermind-board").children;
+    if (slots[pos]) {
+      slots[pos].innerHTML = `<i class="${iconClass}" style="color:var(--color-success)"></i>`;
+      slots[pos].style.borderColor = "var(--color-success)";
+    }
 
-    const iconNames = {
-      "ri-bus-fill": "Autobús",
-      "ri-train-fill": "Metro",
-      "ri-taxi-fill": "Taxi",
-      "ri-parking-box-fill": "Parking",
-      "ri-gas-station-fill": "Gasolinera",
-      "ri-camera-lens-fill": "Cámara",
-    };
-
-    const name = iconNames[iconClass] || "icono";
-    showNotification("Eco-Código", `Pista: en el hueco ${pos + 1} hay un ${name}`, "info");
-
+    showNotification("Eco-Código", `¡Posición ${pos + 1} revelada!`, "success");
     updatePowerUpButton("btn-pwr-mastermind", "codigo-mind");
   }
 };
@@ -9445,8 +9462,7 @@ function initBlackjackRound() {
   document.getElementById("play-buttons").style.display = "none";
   document.getElementById("betting-area").style.display = "flex";
 
-  const btnPwr = document.getElementById("btn-pwr-blackjack");
-  if (btnPwr) btnPwr.style.display = "none";
+  document.getElementById("btn-pwr-blackjack").disabled = false;
 
   updateBJUI();
 }
@@ -9667,15 +9683,13 @@ window.useBlackjackPowerup = function () {
 
   if (useInventoryItem("seguro-bj")) {
     bjState.hasInsurance = true;
-    showNotification(
-      "Seguro Activado",
-      "Recuperarás el 50% de tu apuesta si pierdes.",
-      "info",
-    );
+    showNotification("Seguro Activado", "Si pierdes esta mano, recuperas el 50% de la apuesta.", "info");
 
-    document.getElementById("btn-pwr-blackjack").style.display = "none";
-
-    if (navigator.vibrate) navigator.vibrate(50);
+    const btn = document.getElementById("btn-pwr-blackjack");
+    if (btn) {
+      btn.disabled = true;
+      btn.style.opacity = "0.5";
+    }
   }
 };
 
@@ -10068,8 +10082,8 @@ window.renderShop = function () {
            <p style="font-size:0.65rem; opacity:0.6; margin:0; line-height: 1.3;">${p.desc}</p>
         </div>
         <button class="cookie-btn secondary" 
-                style="width: 100%; height: 42px; padding: 0; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0;" 
-                onclick="buyItem('${p.id}', 'powerup')">
+            style="width: 100%; height: 42px; padding: 0; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 5px; flex: none;" 
+            onclick="buyItem('${p.id}', 'powerup')">
           <span style="font-weight: 800;">${p.price} G$</span>
           <span style="opacity: 0.5; font-size: 0.7rem; font-weight: 400;">(${count})</span>
         </button>
@@ -10104,9 +10118,9 @@ window.renderShop = function () {
       </div>
 
       ${isOwned
-          ? `<button class="cookie-btn ${isActive ? 'secondary' : 'primary'}" 
-                   style="width: 100%; height: 42px; font-size: 0.8rem;" 
-                   onclick="equiparVisualizador('${v.file}')" ${isActive ? 'disabled' : ''}>
+          ? `<button class="cookie-btn ${isOwned ? 'secondary' : 'primary'}" 
+                style="width: 100%; height: 42px; font-size: 0.8rem; flex: none; display: flex; align-items: center; justify-content: center;" 
+                onclick="equiparVisualizador('${v.file}')" ${isActive ? 'disabled' : ''}>
               ${isActive ? "Activo" : "Usar"}
            </button>`
           : `<button class="cookie-btn secondary" 
@@ -10791,13 +10805,12 @@ function nextGeoRound() {
   document.getElementById("geo-stats-text").innerText = `Puntos: ${geoConfig.score} | Ronda: ${geoConfig.round}/10`;
   document.getElementById("geo-options-overlay").style.display = "block";
 
-  const inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
-
   const btnLince = document.getElementById("pu-reveal-btn");
   const btn5050 = document.getElementById("pu-5050-btn");
+  const invGeo = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
 
-  if (btnLince) btnLince.style.display = (inv["geo-lince"] > 0) ? "flex" : "none";
-  if (btn5050) btn5050.style.display = (inv["geo-5050"] > 0) ? "flex" : "none";
+  if (btnLince) btnLince.style.display = (invGeo["geo-lince"] > 0) ? "flex" : "none";
+  if (btn5050) btn5050.style.display = (invGeo["geo-5050"] > 0) ? "flex" : "none";
 
   const isDark = document.body.classList.contains("dark-mode");
   geoLayer.setStyle((feature) => {
@@ -12187,8 +12200,8 @@ window.beginActivity = function () {
 
   const gpsOptions = {
     enableHighAccuracy: true,
-    maximumAge: runState.mode === 'run' ? 2000 : 5000,
-    timeout: 10000
+    maximumAge: runState.mode === 'run' ? 2500 : 10000,
+    timeout: 15000
   };
 
   runState.watchId = navigator.geolocation.watchPosition(processRunPosition, null, gpsOptions);
@@ -12226,8 +12239,28 @@ function startRunTimer() {
       const mins = Math.floor((runState.totalSeconds % 3600) / 60).toString().padStart(2, '0');
       const secs = (runState.totalSeconds % 60).toString().padStart(2, '0');
       document.getElementById('run-timer').innerText = `${hrs}:${mins}:${secs}`;
+      updateActivityMediaSession();
     }
   }, 1000);
+}
+
+function updateActivityMediaSession() {
+  if ('mediaSession' in navigator && runState.active) {
+    const timeStr = document.getElementById('run-timer').innerText;
+    const distStr = runState.distance.toFixed(2);
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: `Ruta en curso: ${distStr} km`,
+      artist: `Tiempo: ${timeStr}`,
+      album: 'GranáGo Actividad',
+      artwork: [
+        { src: 'https://granago.github.io/images/logo512.png', sizes: '512x512', type: 'image/png' }
+      ]
+    });
+
+    navigator.mediaSession.setActionHandler('play', () => { toggleRunPause(); });
+    navigator.mediaSession.setActionHandler('pause', () => { toggleRunPause(); });
+  }
 }
 
 window.toggleRunPause = function () {
@@ -12538,9 +12571,28 @@ function renderRunHistory() {
 
 window.exportUserData = function () {
   const dataToExport = {};
+
+  const blacklist = [
+    'granaGo_radio_cache',
+    'granaGo_events_cache',
+    'granaGo_events_cache_time',
+    'granaGo_metro_cache',
+    'granaGo_last_lat',
+    'granaGo_last_lng',
+    'granaGo_gps_name',
+    'granaGo_weather_active_idx',
+    'sudoku_daily_session',
+  ];
+
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
+
     if (key.startsWith('granaGo_') || key === 'theme' || key === 'last_visit_achievement') {
+
+      if (blacklist.includes(key)) continue;
+
+      if (key.startsWith('wordle_session_')) continue;
+
       dataToExport[key] = localStorage.getItem(key);
     }
   }
@@ -12548,17 +12600,16 @@ window.exportUserData = function () {
   const blob = new Blob([JSON.stringify(dataToExport)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-
   const date = new Date().toISOString().split('T')[0];
+
   a.href = url;
   a.download = `GranaGo_Backup_${date}.json`;
   document.body.appendChild(a);
   a.click();
-
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 
-  showNotification("Copia creada", "Archivo de seguridad optimizado descargado", "success");
+  showNotification("Copia creada", "Respaldo optimizado: se han guardado tus favoritos, saldo y logros.", "success");
 };
 
 window.triggerImport = function () {

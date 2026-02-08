@@ -634,7 +634,7 @@ body.dark-mode .switch-handle {
 
 .glass-dock {
   position: fixed;
-  bottom: 20px;
+  bottom: calc(10px + env(safe-area-inset-bottom, 10px));
   left: 20px;
   right: 20px;
   height: 70px;
@@ -651,7 +651,6 @@ body.dark-mode .switch-handle {
   align-items: center;
   padding: 0 5px;
   z-index: 1000;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
   pointer-events: none;
   transition: all 0.3s ease;
 }
@@ -692,8 +691,8 @@ body.dark-mode .switch-handle {
 
 .dock-center-wrapper {
   position: relative;
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
   display: flex;
   justify-content: center;
 }
