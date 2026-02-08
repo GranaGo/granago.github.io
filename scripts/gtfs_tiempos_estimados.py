@@ -2,7 +2,6 @@ import pandas as pd
 import json
 import os
 
-# Configuración de rutas y parámetros para cada tipo de transporte
 CONFIG = {
     "urbano": {
         "ruta_gtfs": "raw_data/gtfs_urbano",
@@ -53,19 +52,22 @@ def procesar_tipo(tipo):
     mapa_dias = {}
     for _, row in df_calendar.iterrows():
         dias = set()
-        if any(row[d] == '1' for d in ['monday', 'tuesday', 'wednesday', 'thursday']):
+        if any(row.get(d) == '1' for d in ['monday', 'tuesday', 'wednesday', 'thursday']):
             dias.add("L-J")
-        if row['friday'] == '1':
-            dias.add("V")
-        if row['saturday'] == '1':
-            dias.add("S")
-        if row['sunday'] == '1':
-            dias.add("D")
+        if row.get('friday') == '1': dias.add("V")
+        if row.get('saturday') == '1': dias.add("S")
+        if row.get('sunday') == '1': dias.add("D")
         
         mapa_dias[row['service_id']] = list(dias)
 
     mapa_lineas = {row['route_id']: row['route_short_name'] for _, row in df_routes.iterrows()}
-    mapa_paradas_id_a_clave = {row['stop_id']: row['stop_code'] for _, row in df_stops.iterrows()}
+    
+    if conf['usar_stop_code'] and 'stop_code' in df_stops.columns:
+        mapa_paradas_id_a_clave = {row['stop_id']: row['stop_code'] for _, row in df_stops.iterrows()}
+    else:
+        mapa_paradas_id_a_clave = {row['stop_id']: row['stop_id'] for _, row in df_stops.iterrows()}
+
+    # 4. Cruce de datos (Merge)
     df_merged = pd.merge(df_stop_times[['trip_id', 'stop_id', 'departure_time']], 
                          df_trips[['trip_id', 'route_id', 'service_id']], 
                          on='trip_id')
@@ -77,7 +79,7 @@ def procesar_tipo(tipo):
         if not linea: continue
         
         stop_id_interno = row['stop_id']
-        stop_key = mapa_paradas_id_a_clave.get(stop_id_interno, stop_id_interno) if conf['usar_stop_code'] else stop_id_interno
+        stop_key = mapa_paradas_id_a_clave.get(stop_id_interno, stop_id_interno)
 
         dias_operativos = mapa_dias.get(row['service_id'], [])
         hora = corregir_hora(row['departure_time'])
@@ -111,10 +113,9 @@ def procesar_tipo(tipo):
             if "9" in resultado["74"]:
                 print("⭐ ¡ÉXITO! La línea 9 se ha encontrado para la parada 74.")
             else:
-                print("⚠️ La parada 74 está en el JSON, pero NO tiene horarios para la línea 9.")
-                print(f"   Líneas encontradas en parada 74: {list(resultado['74'].keys())}")
+                print(f"⚠️ La parada 74 existe pero no tiene la línea 9. Líneas encontradas: {list(resultado['74'].keys())}")
         else:
-            print("⚠️ La parada 74 NO aparece en los datos generados.")
+            print("⚠️ La parada 74 no aparece en el JSON final.")
 
 if __name__ == "__main__":
     procesar_tipo("urbano")
