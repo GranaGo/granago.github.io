@@ -57,8 +57,11 @@ def procesar_tipo(tipo):
         if row.get('friday') == '1': dias.add("V")
         if row.get('saturday') == '1': dias.add("S")
         if row.get('sunday') == '1': dias.add("D")
-        
         mapa_dias[row['service_id']] = list(dias)
+
+    if conf['agencia_objetivo']:
+        print(f"🔍 Filtrando rutas por agencia: {conf['agencia_objetivo']}")
+        df_routes = df_routes[df_routes['agency_id'] == conf['agencia_objetivo']]
 
     mapa_lineas = {row['route_id']: row['route_short_name'] for _, row in df_routes.iterrows()}
     
@@ -67,7 +70,6 @@ def procesar_tipo(tipo):
     else:
         mapa_paradas_id_a_clave = {row['stop_id']: row['stop_id'] for _, row in df_stops.iterrows()}
 
-    # 4. Cruce de datos (Merge)
     df_merged = pd.merge(df_stop_times[['trip_id', 'stop_id', 'departure_time']], 
                          df_trips[['trip_id', 'route_id', 'service_id']], 
                          on='trip_id')
@@ -108,14 +110,8 @@ def procesar_tipo(tipo):
     
     print(f"✅ Archivo generado: {conf['ruta_salida']}")
     
-    if tipo == "urbano":
-        if "74" in resultado:
-            if "9" in resultado["74"]:
-                print("⭐ ¡ÉXITO! La línea 9 se ha encontrado para la parada 74.")
-            else:
-                print(f"⚠️ La parada 74 existe pero no tiene la línea 9. Líneas encontradas: {list(resultado['74'].keys())}")
-        else:
-            print("⚠️ La parada 74 no aparece en el JSON final.")
+    if tipo == "urbano" and "74" in resultado and "9" in resultado["74"]:
+        print("⭐ ¡ÉXITO! La línea 9 se ha encontrado para la parada 74.")
 
 if __name__ == "__main__":
     procesar_tipo("urbano")
