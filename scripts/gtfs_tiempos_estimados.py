@@ -1,3 +1,14 @@
+#  Copyright (C) 2026 GranáGo - https://github.com/granago/granago.github.io
+#
+#  Este programa es software libre: puedes redistribuirlo y/o modificarlo 
+#  bajo los términos de la Licencia Pública General GNU publicada por 
+#  la Free Software Foundation, ya sea la versión 3 de la Licencia, o 
+#  (a tu elección) cualquier versión posterior.
+#
+#  Este programa se distribuye con la esperanza de que sea útil, 
+#  pero SIN NINGUNA GARANTÍA; incluso sin la garantía implícita de 
+#  COMERCIALIZACIÓN o APTITUD PARA UN PROPÓSITO PARTICULAR.
+
 import pandas as pd
 import json
 import os
@@ -30,7 +41,7 @@ def corregir_hora(hora_str):
 
 def procesar_tipo(tipo):
     conf = CONFIG[tipo]
-    print(f"🚀 Procesando {tipo.upper()} con soporte para festivos/domingos...")
+    print(f"🚀 Procesando {tipo.upper()}...")
     
     df_calendar = pd.read_csv(os.path.join(conf['ruta_gtfs'], "calendar.txt"), dtype=str)
     df_dates = pd.read_csv(os.path.join(conf['ruta_gtfs'], "calendar_dates.txt"), dtype=str)

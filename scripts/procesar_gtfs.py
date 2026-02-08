@@ -50,26 +50,41 @@ def cargar_csv(ruta, archivo):
         return pd.read_csv(path, dtype=str)
     return pd.DataFrame()
 
-def analizar_calendario(df_calendar):
+def analizar_calendario(df_calendar, df_dates):
     mapa_servicios = {}
-    if df_calendar.empty: return mapa_servicios
+    
+    if not df_calendar.empty:
+        for _, row in df_calendar.iterrows():
+            sid = row['service_id']
+            dias = set()
+            
+            if any(row.get(d) == '1' for d in ['monday', 'tuesday', 'wednesday', 'thursday']):
+                dias.add("L-J")
+            if row.get('friday') == '1': dias.add("V")
+            if row.get('saturday') == '1': dias.add("S")
+            if row.get('sunday') == '1': dias.add("D")
 
-    for _, row in df_calendar.iterrows():
-        sid = row['service_id']
-        dias = []
-        lunes = int(row.get('monday', 0))
-        jueves = int(row.get('thursday', 0))
-        viernes = int(row.get('friday', 0))
-        sabado = int(row.get('saturday', 0))
-        domingo = int(row.get('sunday', 0))
+            mapa_servicios[sid] = dias
 
-        if lunes == 1 and jueves == 1: dias.append("L-J")
-        if viernes == 1: dias.append("V")
-        if sabado == 1: dias.append("S")
-        if domingo == 1: dias.append("D")
-
-        mapa_servicios[sid] = dias
-    return mapa_servicios
+    if not df_dates.empty:
+        for _, row in df_dates.iterrows():
+            sid = row['service_id']
+            if row['exception_type'] == '1':
+                try:
+                    fecha = datetime.strptime(row['date'], '%Y%m%d')
+                    weekday = fecha.weekday()
+                    
+                    if sid not in mapa_servicios:
+                        mapa_servicios[sid] = set()
+                    
+                    if weekday < 4: mapa_servicios[sid].add("L-J")
+                    elif weekday == 4: mapa_servicios[sid].add("V")
+                    elif weekday == 5: mapa_servicios[sid].add("S")
+                    elif weekday == 6: mapa_servicios[sid].add("D")
+                except:
+                    continue
+                    
+    return {k: list(v) for k, v in mapa_servicios.items()}
 
 def procesar_gtfs(modo, ruta_entrada):
     print(f"\n--- 🚌 Procesando {modo.upper()} ---")
@@ -81,6 +96,7 @@ def procesar_gtfs(modo, ruta_entrada):
     df_times = cargar_csv(ruta_entrada, "stop_times.txt")
     df_shapes = cargar_csv(ruta_entrada, "shapes.txt")
     df_calendar = cargar_csv(ruta_entrada, "calendar.txt")
+    df_dates = cargar_csv(ruta_entrada, "calendar_dates.txt")
 
     if modo == "interurbano" and not df_agency.empty:
         agencias = df_agency[df_agency['agency_id'] == AGENCIA_INTERURBANO_OBJETIVO]['agency_id'].tolist()
@@ -92,7 +108,7 @@ def procesar_gtfs(modo, ruta_entrada):
             df_stops = df_stops[df_stops['stop_id'].isin(valid_stops)]
             print(f"   ✅ Filtrado CTAG: {len(df_routes)} líneas.")
 
-    mapa_dias = analizar_calendario(df_calendar)
+    mapa_dias = analizar_calendario(df_calendar, df_dates)
 
     out_rutas = {}
     out_paradas = {}
