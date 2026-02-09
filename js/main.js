@@ -2635,14 +2635,9 @@ async function fetchRealTimeData(id, type) {
       try {
         url = `${API_BASE}/bus/llegadas/${id}`;
         const res = await fetch(url, { priority: 'high', signal: currentRTController.signal });
-        if (res.ok) {
-          data = await res.json();
-        } else {
-          console.warn("La API de bus no respondió correctamente, se usarán datos estáticos.");
-        }
+        if (res.ok) data = await res.json();
       } catch (apiErr) {
         if (apiErr.name === 'AbortError') return;
-        console.warn("Error de conexión con la API, procediendo a carga estática.");
       }
 
       try {
@@ -2652,89 +2647,47 @@ async function fetchRealTimeData(id, type) {
         ]);
 
         const stopData = resTiempos[id];
-
         if (stopData) {
-          const apiLines = new Set((data.proximos || []).map(p => {
-            const idLinea = (p.linea?.id || p.linea || "").toString().trim();
-            return idLinea;
-          }));
-
+          const apiLines = new Set((data.proximos || []).map(p => (p.linea?.id || p.linea || "").toString().trim()));
           const nowDate = new Date();
-          const currentTime = nowDate.getHours().toString().padStart(2, '0') + ":" +
-            nowDate.getMinutes().toString().padStart(2, '0');
+          const currentTime = nowDate.getHours().toString().padStart(2, '0') + ":" + nowDate.getMinutes().toString().padStart(2, '0');
+          const dayKey = (nowDate.getDay() === 5) ? "V" : (nowDate.getDay() === 6) ? "S" : (nowDate.getDay() === 0) ? "D" : "L-J";
 
-          const day = nowDate.getDay();
-          let dayKey = "L-J";
-          if (day === 5) dayKey = "V";
-          else if (day === 6) dayKey = "S";
-          else if (day === 0) dayKey = "D";
-
-          Object.keys(stopData).forEach(lineIdStr => {
-            const lineId = lineIdStr.trim();
-
-            if (!apiLines.has(lineId)) {
-              const schedule = stopData[lineId][dayKey] || [];
-              const nextTime = schedule.find(t => t > currentTime);
-
+          Object.keys(stopData).forEach(lineId => {
+            if (!apiLines.has(lineId.trim())) {
+              const nextTime = (stopData[lineId][dayKey] || []).find(t => t > currentTime);
               if (nextTime) {
                 const [h, m] = nextTime.split(":").map(Number);
                 const arrivalDate = new Date();
                 arrivalDate.setHours(h, m, 0, 0);
-
-                let diffMin = Math.round((arrivalDate - nowDate) / 60000);
-                if (diffMin < 0) return;
-
-                const lineInfo = resParadas[lineId];
-                const destName = lineInfo?.ida?.[0]?.nombre_linea ||
-                  lineInfo?.vuelta?.[0]?.nombre_linea ||
-                  `Línea ${lineId}`;
-
-                if (!data.proximos) data.proximos = [];
-                data.proximos.push({
-                  linea: lineId,
-                  destino: destName,
-                  minutos: diffMin,
-                  horaExacta: nextTime,
-                  isStatic: true
-                });
+                const diffMin = Math.round((arrivalDate - nowDate) / 60000);
+                if (diffMin >= 0) {
+                  const lineInfo = resParadas[lineId];
+                  const longName = lineInfo?.ida?.[0]?.nombre_linea || lineInfo?.vuelta?.[0]?.nombre_linea || `Línea ${lineId}`;
+                  data.proximos.push({ linea: lineId, destino: longName, minutos: diffMin, horaExacta: nextTime, isStatic: true });
+                }
               }
             }
           });
-
-          if (data.proximos) {
-            data.proximos.sort((a, b) => a.minutos - b.minutos);
-          }
+          data.proximos.sort((a, b) => a.minutos - b.minutos);
         }
-      } catch (staticErr) {
-        console.error("Error cargando archivos estáticos:", staticErr);
-      }
+      } catch (e) { }
 
       realtimeCache.set(cacheKey, { data, timestamp: now });
       renderRealTimeResults(data, type);
-      return;
 
     } else if (type === "metro") {
-      const numericId = parseInt(id);
-      const finalId = 100 + numericId;
-      url = `${API_BASE}/metro/llegadas/${finalId}`;
-
+      url = `${API_BASE}/metro/llegadas/${100 + parseInt(id)}`;
       try {
         const res = await fetch(url, { priority: 'high', signal: currentRTController.signal });
-        if (!res.ok) throw new Error("Error API Metro");
+        if (!res.ok) throw new Error();
         const metroData = await res.json();
-
-        if (!metroData.proximos || metroData.proximos.length === 0) {
-          throw new Error("Sin datos en tiempo real");
-        }
+        if (!metroData.proximos || metroData.proximos.length === 0) throw new Error();
 
         realtimeCache.set(cacheKey, { data: metroData, timestamp: now });
         renderRealTimeResults(metroData, type);
-        return;
-
       } catch (e) {
         if (e.name === 'AbortError') return;
-        console.warn("Fallo en tiempo real de Metro, usando estimaciones programadas...");
-
         try {
           const [resTiempos, resParadas] = await Promise.all([
             fetch("data/metro/tiempos_proximos.json").then(r => r.json()),
@@ -2742,101 +2695,78 @@ async function fetchRealTimeData(id, type) {
           ]);
 
           const stopData = resTiempos[id];
-          if (!stopData) {
-            renderRealTimeResults({ proximos: [] }, "metro");
-            return;
-          }
+          if (!stopData) return renderRealTimeResults({ proximos: [] }, "metro");
 
           const proximos = [];
           const nowDate = new Date();
-          const currentTime = nowDate.getHours().toString().padStart(2, '0') + ":" +
-            nowDate.getMinutes().toString().padStart(2, '0');
-
-          const day = nowDate.getDay();
-          let dayKey = (day === 5) ? "V" : (day === 6) ? "S" : (day === 0) ? "D" : "L-J";
+          const currentTime = nowDate.getHours().toString().padStart(2, '0') + ":" + nowDate.getMinutes().toString().padStart(2, '0');
+          const dayKey = (nowDate.getDay() === 5) ? "V" : (nowDate.getDay() === 6) ? "S" : (nowDate.getDay() === 0) ? "D" : "L-J";
 
           for (const [lineaId, schedule] of Object.entries(stopData)) {
-            const times = schedule[dayKey] || [];
-            const nextTimes = times.filter(t => t > currentTime).slice(0, 2);
-
+            const nextTimes = (schedule[dayKey] || []).filter(t => t > currentTime).slice(0, 2);
             const lineInfo = resParadas[lineaId];
-            const destName = lineInfo?.ida?.[0]?.nombre_linea || `Línea ${lineaId}`;
+            const longName = lineInfo?.ida?.[0]?.nombre_linea || lineInfo?.vuelta?.[0]?.nombre_linea || `Línea ${lineaId}`;
 
             nextTimes.forEach(t => {
               const [h, m] = t.split(":").map(Number);
               const arrivalDate = new Date();
               arrivalDate.setHours(h, m, 0, 0);
-
               proximos.push({
                 linea: lineaId,
-                direccion: destName,
+                direccion: longName,
                 minutos: Math.round((arrivalDate - nowDate) / 60000),
                 horaExacta: t,
                 isStatic: true
               });
             });
           }
-
           proximos.sort((a, b) => a.minutos - b.minutos);
-          const finalData = { proximos };
-          realtimeCache.set(cacheKey, { data: finalData, timestamp: now });
-          renderRealTimeResults(finalData, "metro");
-          return;
-
-        } catch (staticErr) {
-          console.error("Error en fallback de Metro:", staticErr);
-          renderRealTimeResults({ proximos: [] }, "metro");
-        }
+          renderRealTimeResults({ proximos }, "metro");
+        } catch (err) { renderRealTimeResults({ proximos: [] }, "metro"); }
       }
+
     } else if (type === "interurbano") {
-      const [resTiempos, resParadas] = await Promise.all([
-        fetch("data/interurbano/tiempos_proximos.json").then(r => r.json()),
-        fetch("data/interurbano/paradas.json").then(r => r.json())
-      ]);
+      try {
+        const [resTiempos, resParadas] = await Promise.all([
+          fetch("data/interurbano/tiempos_proximos.json").then(r => r.json()),
+          fetch("data/interurbano/paradas.json").then(r => r.json())
+        ]);
 
-      const stopData = resTiempos[id];
-      if (!stopData) {
-        renderRealTimeResults({ proximos: [] }, "interurbano");
-        return;
-      }
+        const stopData = resTiempos[id];
+        if (!stopData) return renderRealTimeResults({ proximos: [] }, "interurbano");
 
-      const proximos = [];
-      const nowDate = new Date();
-      const currentTime = nowDate.getHours().toString().padStart(2, '0') + ":" +
-        nowDate.getMinutes().toString().padStart(2, '0');
+        const proximos = [];
+        const nowDate = new Date();
+        const currentTime = nowDate.getHours().toString().padStart(2, '0') + ":" + nowDate.getMinutes().toString().padStart(2, '0');
+        const dayKey = (nowDate.getDay() === 5) ? "V" : (nowDate.getDay() === 6) ? "S" : (nowDate.getDay() === 0) ? "D" : "L-J";
 
-      const day = nowDate.getDay();
-      let dayKey = (day === 5) ? "V" : (day === 6) ? "S" : (day === 0) ? "D" : "L-J";
+        for (const [lineaId, schedule] of Object.entries(stopData)) {
+          const nextTimes = (schedule[dayKey] || []).filter(t => t > currentTime).slice(0, 2);
+          const cleanId = lineaId.trim().replace(/^0+/, '');
+          const lineInfo = resParadas[cleanId] || resParadas[lineaId];
+          const longName = lineInfo?.ida?.[0]?.nombre_linea || lineInfo?.vuelta?.[0]?.nombre_linea || `Línea ${lineaId}`;
 
-      for (const [lineaId, schedule] of Object.entries(stopData)) {
-        const times = schedule[dayKey] || [];
-        const nextTimes = times.filter(t => t > currentTime).slice(0, 2);
-        const lineName = resParadas[lineaId]?.ida[0]?.nombre_linea || `Línea ${lineaId}`;
-
-        nextTimes.forEach(t => {
-          const [h, m] = t.split(":").map(Number);
-          const arrivalDate = new Date();
-          arrivalDate.setHours(h, m, 0, 0);
-          proximos.push({
-            linea: lineaId,
-            destino: lineName,
-            minutos: Math.round((arrivalDate - nowDate) / 60000),
-            horaExacta: t,
-            isStatic: true
+          nextTimes.forEach(t => {
+            const [h, m] = t.split(":").map(Number);
+            const arrivalDate = new Date();
+            arrivalDate.setHours(h, m, 0, 0);
+            proximos.push({
+              linea: lineaId,
+              destino: longName,
+              minutos: Math.round((arrivalDate - nowDate) / 60000),
+              horaExacta: t,
+              isStatic: true
+            });
           });
-        });
-      }
-
-      proximos.sort((a, b) => a.minutos - b.minutos);
-      const finalData = { proximos };
-      realtimeCache.set(cacheKey, { data: finalData, timestamp: now });
-      renderRealTimeResults(finalData, "interurbano");
-      return;
+        }
+        proximos.sort((a, b) => a.minutos - b.minutos);
+        renderRealTimeResults({ proximos }, "interurbano");
+      } catch (err) { renderRealTimeResults({ proximos: [] }, "interurbano"); }
     }
 
   } catch (e) {
     if (e.name === 'AbortError') return;
-    console.error("Error general en fetchRealTimeData:", e);
+    console.error("Error general:", e);
     renderRealTimeResults({ proximos: [] }, type);
   }
 }
