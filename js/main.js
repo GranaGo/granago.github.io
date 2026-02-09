@@ -2718,13 +2718,76 @@ async function fetchRealTimeData(id, type) {
       const finalId = 100 + numericId;
       url = `${API_BASE}/metro/llegadas/${finalId}`;
 
-      const res = await fetch(url, { priority: 'high', signal: currentRTController.signal });
-      if (!res.ok) throw new Error("Error API Metro");
-      const metroData = await res.json();
-      realtimeCache.set(cacheKey, { data: metroData, timestamp: now });
-      renderRealTimeResults(metroData, type);
-      return;
+      try {
+        const res = await fetch(url, { priority: 'high', signal: currentRTController.signal });
+        if (!res.ok) throw new Error("Error API Metro");
+        const metroData = await res.json();
 
+        if (!metroData.proximos || metroData.proximos.length === 0) {
+          throw new Error("Sin datos en tiempo real");
+        }
+
+        realtimeCache.set(cacheKey, { data: metroData, timestamp: now });
+        renderRealTimeResults(metroData, type);
+        return;
+
+      } catch (e) {
+        if (e.name === 'AbortError') return;
+        console.warn("Fallo en tiempo real de Metro, usando estimaciones programadas...");
+
+        try {
+          const [resTiempos, resParadas] = await Promise.all([
+            fetch("data/metro/tiempos_proximos.json").then(r => r.json()),
+            fetch("data/metro/paradas.json").then(r => r.json())
+          ]);
+
+          const stopData = resTiempos[id];
+          if (!stopData) {
+            renderRealTimeResults({ proximos: [] }, "metro");
+            return;
+          }
+
+          const proximos = [];
+          const nowDate = new Date();
+          const currentTime = nowDate.getHours().toString().padStart(2, '0') + ":" +
+            nowDate.getMinutes().toString().padStart(2, '0');
+
+          const day = nowDate.getDay();
+          let dayKey = (day === 5) ? "V" : (day === 6) ? "S" : (day === 0) ? "D" : "L-J";
+
+          for (const [lineaId, schedule] of Object.entries(stopData)) {
+            const times = schedule[dayKey] || [];
+            const nextTimes = times.filter(t => t > currentTime).slice(0, 2);
+
+            const lineInfo = resParadas[lineaId];
+            const destName = lineInfo?.ida?.[0]?.nombre_linea || `Línea ${lineaId}`;
+
+            nextTimes.forEach(t => {
+              const [h, m] = t.split(":").map(Number);
+              const arrivalDate = new Date();
+              arrivalDate.setHours(h, m, 0, 0);
+
+              proximos.push({
+                linea: lineaId,
+                direccion: destName,
+                minutos: Math.round((arrivalDate - nowDate) / 60000),
+                horaExacta: t,
+                isStatic: true
+              });
+            });
+          }
+
+          proximos.sort((a, b) => a.minutos - b.minutos);
+          const finalData = { proximos };
+          realtimeCache.set(cacheKey, { data: finalData, timestamp: now });
+          renderRealTimeResults(finalData, "metro");
+          return;
+
+        } catch (staticErr) {
+          console.error("Error en fallback de Metro:", staticErr);
+          renderRealTimeResults({ proximos: [] }, "metro");
+        }
+      }
     } else if (type === "interurbano") {
       const [resTiempos, resParadas] = await Promise.all([
         fetch("data/interurbano/tiempos_proximos.json").then(r => r.json()),

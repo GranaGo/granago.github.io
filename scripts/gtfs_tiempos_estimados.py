@@ -26,6 +26,12 @@ CONFIG = {
         "ruta_salida": "data/interurbano/tiempos_proximos.json",
         "agencia_objetivo": "CTAG",
         "usar_stop_code": False
+    },
+    "metro": {
+        "ruta_gtfs": "raw_data/gtfs_metro",
+        "ruta_salida": "data/metro/tiempos_proximos.json",
+        "agencia_objetivo": None,
+        "usar_stop_code": False
     }
 }
 
@@ -112,3 +118,4 @@ def procesar_tipo(tipo):
 if __name__ == "__main__":
     procesar_tipo("urbano")
     procesar_tipo("interurbano")
+    procesar_tipo("metro")
