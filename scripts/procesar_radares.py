@@ -154,8 +154,9 @@ def procesar():
                 
                 coords = obtener_tramo_coords(mapa_geo, ref, inicio, fin)
                 if coords:
-                    g_type = "LineString" if len(coords) > 1 else "Point"
-                    g_coords = coords if len(coords) > 1 else coords[0]
+                    rounded_coords = [[round(float(c), 5) for c in pt] for pt in coords]
+                    g_type = "LineString" if len(rounded_coords) > 1 else "Point"
+                    g_coords = rounded_coords if len(rounded_coords) > 1 else rounded_coords[0]
                     feature = {
                         "type": "Feature",
                         "geometry": { "type": g_type, "coordinates": g_coords },
@@ -170,8 +171,9 @@ def procesar():
                 inicio, fin = min(pks), max(pks)
                 coords = obtener_tramo_coords(mapa_geo, ref, inicio, fin)
                 if coords:
-                    g_type = "LineString" if len(coords) > 1 else "Point"
-                    g_coords = coords if len(coords) > 1 else coords[0]
+                    rounded_coords = [[round(float(c), 5) for c in pt] for pt in coords]
+                    g_type = "LineString" if len(rounded_coords) > 1 else "Point"
+                    g_coords = rounded_coords if len(rounded_coords) > 1 else rounded_coords[0]
                     feature = {
                         "type": "Feature",
                         "geometry": { "type": g_type, "coordinates": g_coords },
@@ -195,9 +197,11 @@ def procesar():
                         coords_next = mapa_geo[ref][proximo_pk]
                         bearing_vía = calcular_bearing(coords, coords_next)
 
+                    rounded_coords = [round(float(c), 5) for c in coords]
+
                     feature = {
                         "type": "Feature",
-                        "geometry": { "type": "Point", "coordinates": coords },
+                        "geometry": { "type": "Point", "coordinates": rounded_coords },
                         "properties": { 
                             "road": ctra_raw, 
                             "type": "fijo", 

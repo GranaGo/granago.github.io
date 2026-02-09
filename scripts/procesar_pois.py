@@ -113,14 +113,18 @@ for f in raw["features"]:
     if not coords:
         continue
 
-    uid = generate_id(name, coords)
+    rounded_coords = [round(float(c), 5) for c in coords]
+    
+    uid = generate_id(name, rounded_coords)
     if uid in seen:
         continue
     seen.add(uid)
+    new_geom = geom.copy()
+    new_geom["coordinates"] = rounded_coords
 
     features.append({
         "type": "Feature",
-        "geometry": geom,
+        "geometry": new_geom,
         "properties": {
             "id": uid,
             "name": name,
