@@ -82,7 +82,7 @@ def procesar_tipo(tipo):
     if conf['agencia_objetivo']:
         df_routes = df_routes[df_routes['agency_id'] == conf['agencia_objetivo']]
     
-    mapa_lineas = {row['route_id']: row['route_short_name'] for _, row in df_routes.iterrows()}
+    mapa_lineas = {row['route_id']: row['route_short_name'].lstrip('0') or '0' for _, row in df_routes.iterrows()}
     mapa_paradas = {row['stop_id']: row['stop_code'] for _, row in df_stops.iterrows()} if conf['usar_stop_code'] else {row['stop_id']: row['stop_id'] for _, row in df_stops.iterrows()}
     merged = pd.merge(df_stop_times[['trip_id', 'stop_id', 'departure_time']], 
                       df_trips[['trip_id', 'route_id', 'service_id']], on='trip_id')
