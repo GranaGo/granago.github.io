@@ -2777,8 +2777,9 @@ function renderRealTimeResults(data, type) {
   let arrivals = data.proximos || [];
 
   if (!arrivals.length) {
-    const currentHour = new Date().getHours();
-    const isNightTime = currentHour >= 0 && currentHour < 6;
+    const now = new Date();
+    const currentTime = now.getHours() + now.getMinutes() / 60;
+    const isNightTime = currentTime >= 23.5 || currentTime < 6.5;
 
     if (isNightTime) {
       content.innerHTML = `
@@ -2827,8 +2828,15 @@ function renderRealTimeResults(data, type) {
       let timeObj;
 
       if (p.isStatic) {
-        const timeText = (p.minutos > 30) ? p.horaExacta : `${p.minutos} min`;
-        timeObj = { text: timeText, class: "time-scheduled" };
+        let timeText = (p.minutos > 30) ? p.horaExacta : `${p.minutos} min`;
+        let timeClass = "time-scheduled";
+
+        if (p.minutos === 0) {
+          timeText = "AHORA";
+          timeClass = "time-llegando";
+        }
+
+        timeObj = { text: timeText, class: timeClass };
         destinoDisplay = `${destinoDisplay}`;
       } else {
         timeObj = formatTime(p.minutos, "urbano");
