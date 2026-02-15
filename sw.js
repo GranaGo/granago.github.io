@@ -56,6 +56,10 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(event.request.url);
 
+  if (url.hostname === "movgr.apis.mianfg.me") {
+    return;
+  }
+
   if (url.pathname.includes('/data/')) {
     event.respondWith(
       caches.open(CACHE_NAME).then((cache) => {
