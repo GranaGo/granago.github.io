@@ -2618,7 +2618,7 @@ async function fetchRealTimeData(id, type) {
 
   if (realtimeCache.has(cacheKey)) {
     const cached = realtimeCache.get(cacheKey);
-    if (now - cached.timestamp < 20000) {
+    if (now - cached.timestamp < 5000) {
       renderRealTimeResults(cached.data, type);
       return;
     }
@@ -2632,29 +2632,36 @@ async function fetchRealTimeData(id, type) {
     let url = "";
 
     if (type === "urbano") {
+      let apiSuccess = false;
+
       try {
         url = `${API_BASE}/bus/llegadas/${id}`;
-        const res = await fetch(url, { priority: 'high', signal: currentRTController.signal });
-        if (res.ok) data = await res.json();
+        const res = await fetch(url, { priority: 'high', signal: currentRTController.signal, cache: 'no-cache' });
+        if (res.ok) {
+          const apiData = await res.json();
+          if (apiData.proximos && apiData.proximos.length > 0) {
+            data = apiData;
+            apiSuccess = true;
+          }
+        }
       } catch (apiErr) {
         if (apiErr.name === 'AbortError') return;
       }
 
-      try {
-        const [resTiempos, resParadas] = await Promise.all([
-          fetch("data/urbano/tiempos_proximos.json").then(r => r.json()),
-          fetch("data/urbano/paradas.json").then(r => r.json())
-        ]);
+      if (!apiSuccess) {
+        try {
+          const [resTiempos, resParadas] = await Promise.all([
+            fetch("data/urbano/tiempos_proximos.json").then(r => r.json()),
+            fetch("data/urbano/paradas.json").then(r => r.json())
+          ]);
 
-        const stopData = resTiempos[id];
-        if (stopData) {
-          const apiLines = new Set((data.proximos || []).map(p => (p.linea?.id || p.linea || "").toString().trim()));
-          const nowDate = new Date();
-          const currentTime = nowDate.getHours().toString().padStart(2, '0') + ":" + nowDate.getMinutes().toString().padStart(2, '0');
-          const dayKey = (nowDate.getDay() === 5) ? "V" : (nowDate.getDay() === 6) ? "S" : (nowDate.getDay() === 0) ? "D" : "L-J";
+          const stopData = resTiempos[id];
+          if (stopData) {
+            const nowDate = new Date();
+            const currentTime = nowDate.getHours().toString().padStart(2, '0') + ":" + nowDate.getMinutes().toString().padStart(2, '0');
+            const dayKey = (nowDate.getDay() === 5) ? "V" : (nowDate.getDay() === 6) ? "S" : (nowDate.getDay() === 0) ? "D" : "L-J";
 
-          Object.keys(stopData).forEach(lineId => {
-            if (!apiLines.has(lineId.trim())) {
+            Object.keys(stopData).forEach(lineId => {
               const nextTime = (stopData[lineId][dayKey] || []).find(t => t > currentTime);
               if (nextTime) {
                 const [h, m] = nextTime.split(":").map(Number);
@@ -2667,11 +2674,13 @@ async function fetchRealTimeData(id, type) {
                   data.proximos.push({ linea: lineId, destino: longName, minutos: diffMin, horaExacta: nextTime, isStatic: true });
                 }
               }
-            }
-          });
-          data.proximos.sort((a, b) => a.minutos - b.minutos);
+            });
+            data.proximos.sort((a, b) => a.minutos - b.minutos);
+          }
+        } catch (e) {
+          console.error("Error en fallback urbano:", e);
         }
-      } catch (e) { }
+      }
 
       realtimeCache.set(cacheKey, { data, timestamp: now });
       renderRealTimeResults(data, type);
@@ -2679,7 +2688,7 @@ async function fetchRealTimeData(id, type) {
     } else if (type === "metro") {
       url = `${API_BASE}/metro/llegadas/${100 + parseInt(id)}`;
       try {
-        const res = await fetch(url, { priority: 'high', signal: currentRTController.signal });
+        const res = await fetch(url, { priority: 'high', signal: currentRTController.signal, cache: 'no-cache' });
         if (!res.ok) throw new Error();
         const metroData = await res.json();
         if (!metroData.proximos || metroData.proximos.length === 0) throw new Error();
@@ -2722,7 +2731,9 @@ async function fetchRealTimeData(id, type) {
           }
           proximos.sort((a, b) => a.minutos - b.minutos);
           renderRealTimeResults({ proximos }, "metro");
-        } catch (err) { renderRealTimeResults({ proximos: [] }, "metro"); }
+        } catch (err) {
+          renderRealTimeResults({ proximos: [] }, "metro");
+        }
       }
 
     } else if (type === "interurbano") {
@@ -2744,7 +2755,7 @@ async function fetchRealTimeData(id, type) {
           const nextTimes = (schedule[dayKey] || []).filter(t => t > currentTime).slice(0, 2);
           const cleanId = lineaId.trim().replace(/^0+/, '');
           const lineInfo = resParadas[cleanId] || resParadas[lineaId];
-          const longName = lineInfo?.ida?.[0]?.nombre_linea || lineInfo?.vuelta?.[0]?.nombre_linea || `Línea ${lineaId}`;
+          const longName = lineInfo?.ida?.[0]?.nombre_linea || lineInfo?.vuelta?.[0]?.nombre_linea || `Línea ${lineId}`;
 
           nextTimes.forEach(t => {
             const [h, m] = t.split(":").map(Number);
@@ -2761,7 +2772,9 @@ async function fetchRealTimeData(id, type) {
         }
         proximos.sort((a, b) => a.minutos - b.minutos);
         renderRealTimeResults({ proximos }, "interurbano");
-      } catch (err) { renderRealTimeResults({ proximos: [] }, "interurbano"); }
+      } catch (err) {
+        renderRealTimeResults({ proximos: [] }, "interurbano");
+      }
     }
 
   } catch (e) {
