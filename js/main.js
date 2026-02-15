@@ -12189,7 +12189,7 @@ async function updateMetroXWidget() {
     container.innerHTML = '<div class="spinner" style="margin: 10px auto; width:20px; height:20px;"></div>';
   }
 
-  const instances = ["nitter.cz", "nitter.it", "nitter.privacydev.net", "nitter.poast.org", "nitter.net"];
+  const instances = ["nitter.net", "nitter.privacyredirect.com", "nitter.poast.org", "nitter.tiekoetter.com", "nuku.trabun.org", "nitter.space"];
   let success = false;
 
   for (const instance of instances) {
