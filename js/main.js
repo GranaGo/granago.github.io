@@ -16,6 +16,7 @@
 
 const GRANADA_COORDS = { lat: 37.173485, lon: -3.599678 };
 const API_BASE = "https://movgr.apis.mianfg.me";
+const PROXY_URL = "https://proxy.contacto-granago.workers.dev/?url=";
 const UNAVAILABLE_MESSAGE = "Sin llegadas próximas...";
 
 let newWorker;
@@ -2615,7 +2616,6 @@ document.addEventListener("click", (e) => {
 async function fetchRealTimeData(id, type) {
   const cacheKey = `${type}_${id}`;
   const now = Date.now();
-
   if (realtimeCache.has(cacheKey)) {
     const cached = realtimeCache.get(cacheKey);
     if (now - cached.timestamp < 5000) {
@@ -2629,23 +2629,36 @@ async function fetchRealTimeData(id, type) {
 
   try {
     let data = { proximos: [] };
-    let url = "";
+
+    const calcularMinutos = (h, m) => {
+      const arrivalDate = new Date();
+      const nowDate = new Date();
+      arrivalDate.setHours(h, m, 0, 0);
+      if (arrivalDate < nowDate) {
+        arrivalDate.setDate(arrivalDate.getDate() + 1);
+      }
+      return Math.round((arrivalDate - nowDate) / 60000);
+    };
 
     if (type === "urbano") {
       let apiSuccess = false;
-
       try {
-        url = `${API_BASE}/bus/llegadas/${id}`;
-        const res = await fetch(url, { priority: 'high', signal: currentRTController.signal, cache: 'no-cache' });
+        const url = `${API_BASE}/bus/llegadas/${id}`;
+        const res = await fetch(PROXY_URL + encodeURIComponent(url), {
+          priority: 'high', signal: currentRTController.signal, cache: 'no-cache'
+        });
+
         if (res.ok) {
           const apiData = await res.json();
-          if (apiData.proximos && apiData.proximos.length > 0) {
-            data = apiData;
+          const apiArrivals = apiData.proximos || apiData.llegadas;
+          if (apiArrivals && apiArrivals.length > 0) {
+            data.proximos = apiArrivals;
             apiSuccess = true;
           }
         }
       } catch (apiErr) {
         if (apiErr.name === 'AbortError') return;
+        console.warn("API de bus fallida, usando respaldo estático");
       }
 
       if (!apiSuccess) {
@@ -2665,9 +2678,8 @@ async function fetchRealTimeData(id, type) {
               const nextTime = (stopData[lineId][dayKey] || []).find(t => t > currentTime);
               if (nextTime) {
                 const [h, m] = nextTime.split(":").map(Number);
-                const arrivalDate = new Date();
-                arrivalDate.setHours(h, m, 0, 0);
-                const diffMin = Math.round((arrivalDate - nowDate) / 60000);
+                const diffMin = calcularMinutos(h, m);
+
                 if (diffMin >= 0) {
                   const lineInfo = resParadas[lineId];
                   const longName = lineInfo?.ida?.[0]?.nombre_linea || lineInfo?.vuelta?.[0]?.nombre_linea || `Línea ${lineId}`;
@@ -2675,64 +2687,54 @@ async function fetchRealTimeData(id, type) {
                 }
               }
             });
-            data.proximos.sort((a, b) => a.minutos - b.minutos);
           }
         } catch (e) {
           console.error("Error en fallback urbano:", e);
         }
       }
 
-      realtimeCache.set(cacheKey, { data, timestamp: now });
-      renderRealTimeResults(data, type);
-
     } else if (type === "metro") {
-      url = `${API_BASE}/metro/llegadas/${100 + parseInt(id)}`;
+      const url = `${API_BASE}/metro/llegadas/${parseInt(id)}`;
       try {
-        const res = await fetch(url, { priority: 'high', signal: currentRTController.signal, cache: 'no-cache' });
-        if (!res.ok) throw new Error();
-        const metroData = await res.json();
-        if (!metroData.proximos || metroData.proximos.length === 0) throw new Error();
+        const res = await fetch(PROXY_URL + encodeURIComponent(url), { priority: 'high', signal: currentRTController.signal, cache: 'no-cache' });
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
-        realtimeCache.set(cacheKey, { data: metroData, timestamp: now });
-        renderRealTimeResults(metroData, type);
+        const metroData = await res.json();
+        const apiArrivals = metroData.proximos || metroData.llegadas;
+        if (!apiArrivals || apiArrivals.length === 0) throw new Error("No hay llegadas en la API");
+
+        data.proximos = apiArrivals.map(p => {
+          let direccionLimpia = (p.direccion || p.destino || "Metro").trim();
+          if (direccionLimpia.toLowerCase().includes("armilla")) direccionLimpia = "Armilla";
+          if (direccionLimpia.toLowerCase().includes("albolote")) direccionLimpia = "Albolote";
+          return { ...p, direccion: direccionLimpia };
+        });
+
       } catch (e) {
         if (e.name === 'AbortError') return;
+        console.warn("⚠️ Error en API Metro. Usando estático:", e.message);
+
         try {
-          const [resTiempos, resParadas] = await Promise.all([
-            fetch("data/metro/tiempos_proximos.json").then(r => r.json()),
-            fetch("data/metro/paradas.json").then(r => r.json())
-          ]);
-
+          const resTiempos = await fetch("data/metro/tiempos_proximos.json").then(r => r.json());
           const stopData = resTiempos[id];
-          if (!stopData) return renderRealTimeResults({ proximos: [] }, "metro");
 
-          const proximos = [];
-          const nowDate = new Date();
-          const currentTime = nowDate.getHours().toString().padStart(2, '0') + ":" + nowDate.getMinutes().toString().padStart(2, '0');
-          const dayKey = (nowDate.getDay() === 5) ? "V" : (nowDate.getDay() === 6) ? "S" : (nowDate.getDay() === 0) ? "D" : "L-J";
+          if (stopData) {
+            const nowDate = new Date();
+            const currentTime = nowDate.getHours().toString().padStart(2, '0') + ":" + nowDate.getMinutes().toString().padStart(2, '0');
+            const dayKey = (nowDate.getDay() === 5) ? "V" : (nowDate.getDay() === 6) ? "S" : (nowDate.getDay() === 0) ? "D" : "L-J";
 
-          for (const [lineaId, schedule] of Object.entries(stopData)) {
-            const nextTimes = (schedule[dayKey] || []).filter(t => t > currentTime).slice(0, 2);
-            const lineInfo = resParadas[lineaId];
-            const longName = lineInfo?.ida?.[0]?.nombre_linea || lineInfo?.vuelta?.[0]?.nombre_linea || `Línea ${lineaId}`;
+            for (const [dirKey, schedule] of Object.entries(stopData)) {
+              const nextTimes = (schedule[dayKey] || []).filter(t => t > currentTime).slice(0, 2);
+              let destName = (dirKey === "2" || dirKey === "0" || dirKey.toLowerCase().includes("armilla")) ? "Armilla" : "Albolote";
 
-            nextTimes.forEach(t => {
-              const [h, m] = t.split(":").map(Number);
-              const arrivalDate = new Date();
-              arrivalDate.setHours(h, m, 0, 0);
-              proximos.push({
-                linea: lineaId,
-                direccion: longName,
-                minutos: Math.round((arrivalDate - nowDate) / 60000),
-                horaExacta: t,
-                isStatic: true
+              nextTimes.forEach(t => {
+                const [h, m] = t.split(":").map(Number);
+                data.proximos.push({ linea: "1", direccion: destName, minutos: calcularMinutos(h, m), horaExacta: t, isStatic: true });
               });
-            });
+            }
           }
-          proximos.sort((a, b) => a.minutos - b.minutos);
-          renderRealTimeResults({ proximos }, "metro");
         } catch (err) {
-          renderRealTimeResults({ proximos: [] }, "metro");
+          console.error("Error en fallback de metro:", err);
         }
       }
 
@@ -2744,38 +2746,32 @@ async function fetchRealTimeData(id, type) {
         ]);
 
         const stopData = resTiempos[id];
-        if (!stopData) return renderRealTimeResults({ proximos: [] }, "interurbano");
+        if (stopData) {
+          const nowDate = new Date();
+          const currentTime = nowDate.getHours().toString().padStart(2, '0') + ":" + nowDate.getMinutes().toString().padStart(2, '0');
+          const dayKey = (nowDate.getDay() === 5) ? "V" : (nowDate.getDay() === 6) ? "S" : (nowDate.getDay() === 0) ? "D" : "L-J";
 
-        const proximos = [];
-        const nowDate = new Date();
-        const currentTime = nowDate.getHours().toString().padStart(2, '0') + ":" + nowDate.getMinutes().toString().padStart(2, '0');
-        const dayKey = (nowDate.getDay() === 5) ? "V" : (nowDate.getDay() === 6) ? "S" : (nowDate.getDay() === 0) ? "D" : "L-J";
+          for (const [lineaId, schedule] of Object.entries(stopData)) {
+            const nextTimes = (schedule[dayKey] || []).filter(t => t > currentTime).slice(0, 2);
+            const cleanId = lineaId.trim().replace(/^0+/, '');
+            const lineInfo = resParadas[cleanId] || resParadas[lineaId];
 
-        for (const [lineaId, schedule] of Object.entries(stopData)) {
-          const nextTimes = (schedule[dayKey] || []).filter(t => t > currentTime).slice(0, 2);
-          const cleanId = lineaId.trim().replace(/^0+/, '');
-          const lineInfo = resParadas[cleanId] || resParadas[lineaId];
-          const longName = lineInfo?.ida?.[0]?.nombre_linea || lineInfo?.vuelta?.[0]?.nombre_linea || `Línea ${lineId}`;
+            const longName = lineInfo?.ida?.[0]?.nombre_linea || lineInfo?.vuelta?.[0]?.nombre_linea || `Línea ${lineaId}`;
 
-          nextTimes.forEach(t => {
-            const [h, m] = t.split(":").map(Number);
-            const arrivalDate = new Date();
-            arrivalDate.setHours(h, m, 0, 0);
-            proximos.push({
-              linea: lineaId,
-              destino: longName,
-              minutos: Math.round((arrivalDate - nowDate) / 60000),
-              horaExacta: t,
-              isStatic: true
+            nextTimes.forEach(t => {
+              const [h, m] = t.split(":").map(Number);
+              data.proximos.push({ linea: lineaId, destino: longName, minutos: calcularMinutos(h, m), horaExacta: t, isStatic: true });
             });
-          });
+          }
         }
-        proximos.sort((a, b) => a.minutos - b.minutos);
-        renderRealTimeResults({ proximos }, "interurbano");
       } catch (err) {
-        renderRealTimeResults({ proximos: [] }, "interurbano");
+        console.error("Error en fallback interurbano:", err);
       }
     }
+
+    data.proximos.sort((a, b) => a.minutos - b.minutos);
+    realtimeCache.set(cacheKey, { data, timestamp: Date.now() });
+    renderRealTimeResults(data, type);
 
   } catch (e) {
     if (e.name === 'AbortError') return;
@@ -2815,6 +2811,8 @@ function renderRealTimeResults(data, type) {
 
   if (type === "metro") {
     const grouped = {};
+    arrivals.sort((a, b) => a.minutos - b.minutos);
+
     arrivals.forEach((p) => {
       const dest = p.direccion;
       if (!grouped[dest]) grouped[dest] = [];
@@ -2824,8 +2822,23 @@ function renderRealTimeResults(data, type) {
     Object.keys(grouped).forEach((dest) => {
       html += `<div style="margin-bottom:15px;">`;
       html += `<div style="font-size:0.75rem; font-weight:700; color:var(--text-secondary); margin-bottom:5px; text-transform:uppercase; letter-spacing:1px;">HACIA ${dest}</div>`;
+
       grouped[dest].forEach((p) => {
-        const timeObj = formatTime(p.minutos, "metro");
+        let timeObj;
+
+        if (p.isStatic) {
+          let timeText = (p.minutos > 30) ? p.horaExacta : `${p.minutos} min`;
+          let timeClass = "time-scheduled";
+
+          if (p.minutos === 0) {
+            timeText = "AHORA";
+            timeClass = "time-llegando";
+          }
+          timeObj = { text: timeText, class: timeClass };
+        } else {
+          timeObj = formatTime(p.minutos, "metro");
+        }
+
         html += createRowHTML(timeObj, "M", "#009a44", "ri-train-fill", "Metro");
       });
       html += `</div>`;
@@ -2836,7 +2849,7 @@ function renderRealTimeResults(data, type) {
     arrivals.forEach((p) => {
       const lineId = (p.linea?.id || p.linea || "?").toString();
       const regexRedundancy = new RegExp(`^(L[íi]nea\\s+)?${lineId}\\s*[-]?\\s*`, "i");
-      let destinoDisplay = p.destino.replace(regexRedundancy, "").trim();
+      let destinoDisplay = (p.destino || "Desconocido").replace(regexRedundancy, "").trim();
 
       let timeObj;
 
@@ -5354,7 +5367,7 @@ async function initHomeDashboard() {
   }
 }
 
-const PROXY_URL = "https://proxy.contacto-granago.workers.dev/?url=";
+
 const URLS = {
   rss:
     PROXY_URL +
