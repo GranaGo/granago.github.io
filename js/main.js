@@ -2614,15 +2614,6 @@ document.addEventListener("click", (e) => {
 });
 
 async function fetchRealTimeData(id, type) {
-  const cacheKey = `${type}_${id}`;
-  const now = Date.now();
-  if (realtimeCache.has(cacheKey)) {
-    const cached = realtimeCache.get(cacheKey);
-    if (now - cached.timestamp < 5000) {
-      renderRealTimeResults(cached.data, type);
-      return;
-    }
-  }
 
   if (currentRTController) currentRTController.abort();
   currentRTController = new AbortController();
@@ -2770,7 +2761,6 @@ async function fetchRealTimeData(id, type) {
     }
 
     data.proximos.sort((a, b) => a.minutos - b.minutos);
-    realtimeCache.set(cacheKey, { data, timestamp: Date.now() });
     renderRealTimeResults(data, type);
 
   } catch (e) {

@@ -51,12 +51,47 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+const REALTIME_TTL = 10000;
+
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   const url = new URL(event.request.url);
 
-  if (url.hostname === "movgr.apis.mianfg.me") {
+  const isRealTimeAPI = url.href.includes("movgr.apis.mianfg.me");
+
+  if (isRealTimeAPI) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then(async (cache) => {
+        const cachedResponse = await cache.match(event.request);
+
+        if (cachedResponse) {
+          const cachedDate = cachedResponse.headers.get("x-sw-cache-date");
+          const now = Date.now();
+
+          if (cachedDate && (now - parseInt(cachedDate)) < REALTIME_TTL) {
+            return cachedResponse;
+          }
+        }
+
+        return fetch(event.request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            const headers = new Headers(responseToCache.headers);
+            headers.append("x-sw-cache-date", Date.now().toString());
+
+            responseToCache.blob().then((body) => {
+              cache.put(event.request, new Response(body, {
+                status: responseToCache.status,
+                statusText: responseToCache.statusText,
+                headers: headers
+              }));
+            });
+          }
+          return networkResponse;
+        }).catch(() => cachedResponse);
+      })
+    );
     return;
   }
 
