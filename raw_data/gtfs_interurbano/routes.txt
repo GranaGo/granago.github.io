@@ -229,7 +229,6 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 3_1048,CTAG,"0360","Granada - Alhendín - Padul - Marchena - Durcal - Nigüelas - Talará",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=1048,FF0000,FFFFFF
 3_1049,CTAG,"0361","Granada - Padul - Marchena - Dúrcal - Nigüelas",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=1049,FF0000,FFFFFF
 3_1050,CTAG,"0158D","Granada - Churriana V. - Gabia (Directo)",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=1050,FF0000,FFFFFF
-3_1053,CTAG,"SNI","Granada Y Sierra Nevada-Invierno",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=1053,FF0000,FFFFFF
 3_1071,CTAG,"0122U","Granada - Maracena - Albolote - Atarfe (Universitario)",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=1071,FF0000,FFFFFF
 3_1076,CTAG,"0122A","Granada - Maracena - Albolote - Atarfe (Lunes A Viernes)",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=1076,FF0000,FFFFFF
 3_1077,CTAG,"0124","Granada - Atarfe",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=1077,FF0000,FFFFFF
@@ -253,7 +252,6 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 3_1118,CTAG,"0305","Granada - Pulianas - Güevéjar - Nívar - Cogollos V.",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=1118,FF0000,FFFFFF
 3_1119,CTAG,"0242","Granada - Santa Fe - Chauchina - Cijuela - Láchar",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=1119,FF0000,FFFFFF
 3_1120,CTAG,"0111L","Peligros - Maracena",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=1120,FF0000,FFFFFF
-3_1121,CTAG,"0180D","Granada - Cájar (Directo)",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=1121,FF0000,FFFFFF
 3_1122,CTAG,"0105","Granada - Pulianas",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=1122,FF0000,FFFFFF
 3_1123,CTAG,"0256C","Granada - Citai",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=1123,FF0000,FFFFFF
 3_1125,CTAG,"0100","Granada - Jun - A.Humeya - Víznar",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=1125,FF0000,FFFFFF
@@ -261,6 +259,7 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 3_1127,CTAG,"0102","Granada - Jun - Alfacar",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=1127,FF0000,FFFFFF
 3_1128,CTAG,"0104","A.Humeya - Jun - S.Jerónimo",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=1128,FF0000,FFFFFF
 3_1130,CTAG,"0390P","Granada - Pinos Genil - Güejar Sierra Provisional",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=1130,FF0000,FFFFFF
+3_1131,CTAG,"0180D","Granada - Cájar (Directo)",3,https://siu.ctagr.es/es/horarios_lineas_tabla.php?linea=1131,FF0000,FFFFFF
 4_1,CTMAM,"M-110","Málaga-Torremolinos-Benalmádena Costa",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=1,006600,FFFFFF
 4_3,CTMAM,"M-112","Málaga-Mijas",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=3,009900,FFFFFF
 4_4,CTMAM,"M-113","Málaga-Las Lagunas-Fuengirola (Directo)",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=4,009900,FFFFFF
@@ -293,9 +292,7 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 4_100,CTMAM,"M-330","Málaga-Zalea-El Burgo",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=100,009900,FFFFFF
 4_109,CTMAM,"M-161","Málaga-Centro Comercial Rincón De La Victoria-Totalán",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=109,009900,FFFFFF
 4_110,CTMAM,"M-162","Málaga-Olías",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=110,009900,FFFFFF
-4_113,CTMAM,"M-260","Málaga-Vélez Málaga (Por Torre Benagalbón)",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=113,009900,FFFFFF
 4_114,CTMAM,"M-360","Málaga-Olías-Comares",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=114,009900,FFFFFF
-4_115,CTMAM,"M-362","Málaga-Nerja (Por Torre Benagalbón)",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=115,009900,FFFFFF
 4_121,CTMAM,"M-340","Álora-Bermejo-El Chorro/Caminito Del Rey",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=121,009900,FFFFFF
 4_122,CTMAM,"M-341","Álora-Venta Tendilla",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=122,009900,FFFFFF
 4_123,CTMAM,"M-342","Álora-Estación De Álora",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=123,009900,FFFFFF
@@ -328,14 +325,13 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 4_274,CTMAM,"M-167","Coín-Alhaurín El Grande-Málaga",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=274,009900,FFFFFF
 4_276,CTMAM,"M-170","Alhaurín De La Torre-Málaga",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=276,009900,FFFFFF
 4_279,CTMAM,"M-153B","Hospital-Cártama-Maqueda",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=279,009900,FFFFFF
-4_281,CTMAM,"M-257","Málaga-Sevilla Por Antequera",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=281,009900,FFFFFF
+4_281,CTMAM,"M-257","Antequera-Málaga-Torre Del Mar",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=281,009900,FFFFFF
 4_282,CTMAM,"M-258","Ubeda-Málaga Por Antequera",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=282,009900,FFFFFF
 4_283,CTMAM,"M-259","Córdoba-Málaga Por Antequera",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=283,009900,FFFFFF
 4_284,CTMAM,"M-256","Málaga-Antequera-Valle De Abdalajís",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=284,009900,FFFFFF
 4_285,CTMAM,"M-265","Alameda-Málaga Por Antequera",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=285,009900,FFFFFF
 4_286,CTMAM,"M-266","Villanueva De La Concepción-Antequera",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=286,009900,FFFFFF
 4_291,CTMAM,"M-104B","Pizarra-Zalea-Cerralba-Hospital",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=291,009900,FFFFFF
-4_293,CTMAM,"M-591","Coín-Fuengirola (Servicio De Verano)",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=293,009900,FFFFFF
 4_294,CTMAM,"M-429","Coín-Alhaurín El Grande-Feria De Málaga",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=294,009900,FFFFFF
 4_296,CTMAM,"M-262","Rincón De La Victoria-Benagalbón-Moclinejo-El Valdés (Av)",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=296,009900,FFFFFF
 4_297,CTMAM,"M-168C","Málaga-Rincón De La Victoria (Cotomar) (Buho)",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=297,009900,FFFFFF
@@ -346,6 +342,15 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 4_308,CTMAM,"M-152B","Málaga-Los Gámez",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=308,009900,FFFFFF
 4_313,CTMAM,"M-060B","Fuengirola-La Cala De Mijas-Marbella (Directo)",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=313,009900,FFFFFF
 4_314,CTMAM,"M-165B","La Cala Del Moral-El Palo",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=314,009900,FFFFFF
+4_318,CTMAM,"M-368","Málaga-Torre Del Mar-Motril",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=318,009900,FFFFFF
+4_321,CTMAM,"M-260","Málaga-Torre Benagalbón-Torre Del Mar-Vélez Málaga",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=321,009900,FFFFFF
+4_322,CTMAM,"M-362","Málaga-Nerja",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=322,009900,FFFFFF
+4_324,CTMAM,"M-369","Almería-Torre Del Mar-Málaga",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=324,009900,FFFFFF
+4_325,CTMAM,"M-363","Málaga-Torre De Mar-Hospital Vélez-Torrox",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=325,009900,FFFFFF
+4_326,CTMAM,"M-366","Málaga-Torre De Mar-Cuevas De Nerja",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=326,009900,FFFFFF
+4_327,CTMAM,"M-367","Málaga-Torre Del Mar-Maro",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=327,009900,FFFFFF
+4_328,CTMAM,"M-364","Málaga-Torre Del Mar-Vélez Málaga-Periana",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=328,009900,FFFFFF
+4_329,CTMAM,"M-365","Málaga-Torre Del Mar-Vélez Málaga-Riogordo",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=329,009900,FFFFFF
 5_1,CTMCG,"M-110","Los Barrios-Algeciras Directo",3,https://siu.ctmcg.es/es/horarios_lineas_tabla.php?linea=1,ff0000,FFFFFF
 5_2,CTMCG,"M-112","Los Barrios-Algeciras Por Puente Romano",3,https://siu.ctmcg.es/es/horarios_lineas_tabla.php?linea=2,00ff33,FFFFFF
 5_4,CTMCG,"M-120","Algeciras-La Línea",3,https://siu.ctmcg.es/es/horarios_lineas_tabla.php?linea=4,0000cc,FFFFFF
