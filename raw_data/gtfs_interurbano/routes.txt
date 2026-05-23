@@ -342,6 +342,7 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 4_308,CTMAM,"M-152B","Málaga-Los Gámez",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=308,009900,FFFFFF
 4_313,CTMAM,"M-060B","Fuengirola-La Cala De Mijas-Marbella (Directo)",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=313,009900,FFFFFF
 4_314,CTMAM,"M-165B","La Cala Del Moral-El Palo",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=314,009900,FFFFFF
+4_315,CTMAM,"M-270","Valle De Abdalajís-Estación De Álora",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=315,006600,FFFFFF
 4_318,CTMAM,"M-368","Málaga-Torre Del Mar-Motril",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=318,009900,FFFFFF
 4_321,CTMAM,"M-260","Málaga-Torre Benagalbón-Torre Del Mar-Vélez Málaga",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=321,009900,FFFFFF
 4_322,CTMAM,"M-362","Málaga-Nerja",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=322,009900,FFFFFF
