@@ -3041,15 +3041,6 @@ stop_id,stop_name,stop_lat,stop_lon
 4_845,"Molino Del Cura V",36.59279444444444,-4.6321166666666675
 4_846,"Molino Del Cura",36.593075,-4.632036111111112
 4_847,"Rotonda Ford",36.54561666666667,-4.633077777777778
-4_848,"Ciencias",36.716094444444444,-4.472788888888889
-4_849,"Jardín Botánico",36.71626666666667,-4.47155
-4_850,"Filosofía Y Letras",36.716475,-4.470058333333333
-4_851,"Derecho",36.71746666666667,-4.4696444444444445
-4_852,"Medicina",36.71687222222222,-4.473902777777778
-4_853,"Clínico",36.71740277777778,-4.476075
-4_854,"Industriales",36.7162,-4.490563888888889
-4_855,"Industriales V",36.71609166666667,-4.490491666666666
-4_856,"Ingenierías V",36.71601666666667,-4.493902777777778
 4_857,"Rotonda García Lorca (Manferga) V",36.59997777777778,-4.530777777777778
 4_858,"C.A.R.E.",36.71325,-4.424127777777778
 4_859,"Parque San Antonio",36.722122222222225,-4.396894444444444
@@ -3481,7 +3472,6 @@ stop_id,stop_name,stop_lat,stop_lon
 4_1486,"Azahares De Alhaurín",36.647638888888885,-4.698538888888889
 4_1487,"Azahares De Alhaurín V",36.64754166666667,-4.698777777777778
 4_1509,"Entrada Torrealquería",36.68763333333333,-4.597766666666667
-4_1513,"Ciencias De La Salud",36.71532222222223,-4.500002777777778
 4_1520,"Playamar",36.63205833333333,-4.499736111111111
 4_1522,"Gibralmora",36.74425277777778,-4.698327777777778
 4_1523,"Gibralmora V",36.74582777777778,-4.699163888888889
@@ -3494,7 +3484,6 @@ stop_id,stop_name,stop_lat,stop_lon
 4_1533,"Rotonda El Encuentro",36.66992222222222,-4.5568583333333335
 4_1534,"Rotonda El Encuentro V",36.670341666666666,-4.555316666666666
 4_1552,"Urbanización Peralta",36.66487222222222,-4.584680555555555
-4_1553,"Ingenierías",36.716166666666666,-4.493947222222222
 4_1554,"Instituto",36.823211111111114,-4.539466666666667
 4_1556,"Los Narcisos",36.753166666666665,-4.25565
 4_1557,"Los Narcisos V",36.75321944444445,-4.256155555555556
@@ -3783,7 +3772,6 @@ stop_id,stop_name,stop_lat,stop_lon
 4_1943,"Venta El Pozo V",36.73365555555556,-4.661180555555556
 4_1944,"El Atabal Ii",36.731163888888894,-4.4690111111111115
 4_1945,"El Atabal Ii V",36.73113055555556,-4.469252777777778
-4_1952,"Andalucía Tech",36.719186111111114,-4.495041666666666
 4_1956,"Estados Unidos 1",36.72742222222222,-4.233625
 4_1957,"Estados Unidos 2",36.730536111111114,-4.236186111111111
 4_1958,"Estados Unidos 3",36.730311111111114,-4.239655555555555
@@ -3813,7 +3801,6 @@ stop_id,stop_name,stop_lat,stop_lon
 4_1999,"Hotel Cordial Mijas Golf 1",36.55656666666666,-4.669755555555556
 4_2000,"Mijas Golf (Parada A La Demanda)",36.55642777777778,-4.678455555555556
 4_2002,"Chare Benalmádena (Urbano)",36.59989166666667,-4.557336111111111
-4_2003,"Churriana",36.66267777777777,-4.505616666666667
 4_2004,"Urb. Rosa De Las Piedras",36.60043888888889,-4.681361111111111
 4_2005,"Urb. Rosa De Las Piedras V",36.60041666666667,-4.6815750000000005
 4_2006,"Camino Borbote",36.601680555555554,-4.686225
@@ -4198,7 +4185,6 @@ stop_id,stop_name,stop_lat,stop_lon
 6_163,"Almería - Piedras Redondas",36.856829,-2.448564
 6_164,"Almería - Plaza Teruel",36.860901,-2.445115
 6_166,"Cercado - Villa Pilar",36.878615,-2.438215
-6_167,"Viator - Paseo",36.888746,-2.428496
 6_169,"Viator - Piscina",36.887872,-2.422521
 6_170,"Viator - Barrio De La Cruz",36.887943,-2.420441
 6_172,"El Parador - Karting",36.800381,-2.601144
@@ -4550,7 +4536,6 @@ stop_id,stop_name,stop_lat,stop_lon
 6_653,"Hotel Golf Trinidad",36.724323,-2.626025
 6_654,"Hotel Playaluna",36.721674,-2.630630
 6_655,"Playa Serena - Paseo Golf",36.723616,-2.633973
-6_657,"Urba - Guatemala",36.745622,-2.613571
 6_658,"Urba - Plaza Colón",36.742518,-2.616124
 6_659,"Urba - Hotel Zoraida V",36.740969,-2.614081
 6_660,"Los Millares",36.962229,-2.527048
@@ -4561,7 +4546,6 @@ stop_id,stop_name,stop_lat,stop_lon
 6_668,"Res. Sta. Teresa Jornet",36.854406,-2.415082
 6_670,"Paraje Chumbo - Autovía",36.936651,-2.206856
 6_671,"Paraje Chumbo - Autovía",36.938346,-2.207080
-6_672,"Universidad",36.827804,-2.403870
 6_673,"Huércal - Pl. Constitución",36.884440,-2.436233
 6_675,"Huércal - Paso A Nivel",36.885880,-2.437163
 6_677,"Huércal - Ramón Y Cajal",36.885135,-2.438513
@@ -4606,8 +4590,6 @@ stop_id,stop_name,stop_lat,stop_lon
 6_757,"Argamasón",36.971331,-1.980009
 7_1,"Estación De Autobuses De Jaén",37.771548,-3.787237
 7_4,"Puente Nuevo",37.778522,-3.746984
-7_5,"Grañena",37.863333,-3.768559
-7_7,"Las Infantas",37.914717,-3.783777
 7_8,"La Yuca I",37.778288,-3.733590
 7_9,"La Yuca V V",37.778840,-3.732490
 7_13,"Puente Nuevo V V",37.779115,-3.747189
@@ -4631,15 +4613,8 @@ stop_id,stop_name,stop_lat,stop_lon
 7_36,"C/ San Bartolome  64(Vuelta)",37.773730,-3.899860
 7_37,"C/ San Bartolome  43(Ida)",37.77388,-3.89985
 7_38,"Mª Auxiliadora-I/V",37.746795,-3.914441
-7_39,"Plaza De La Constitución V",37.738367,-3.651098
-7_40,"Virgen De Las Nieves",37.740485,-3.644079
 7_41,"La Cerradura",37.699099,-3.638852
 7_42,"Avd. De Jaén Nº 43",37.873824,-3.883123
-7_45,"Plaza De La Constitución",37.951840,-3.59811
-7_49,"Avd. Doctor Sagaz 5-V",37.938687,-3.735377
-7_50,"C/ La Parra-V",37.909979,-3.661691
-7_51,"Avd. De Andalucia Nº 20",37.943056,-3.639167
-7_52,"Crta. Torrequebradilla Esq. Benjumea V V",37.938118,-3.730271
 7_53,"Estación De Autobuses De Martos",37.716944,-3.971667
 7_54,"Apeadero Torredelcampo",37.775396,-3.892896
 7_55,"Apeadero Torredonjimeno",37.764640,-3.949370
@@ -4647,16 +4622,12 @@ stop_id,stop_name,stop_lat,stop_lon
 7_57,"Campus Universitario-V V",37.78664,-3.77379
 7_58,"Apeadero Mengibar",37.970267,-3.802664
 7_59,"Hospital Neurotrau. Solo Bajada (8 A 10 Y 15 A 16) V",37.795579,-3.779451
-7_60,"C/ La Parra V",37.909855,-3.661673
 7_61,"Plaza De La Constitución",37.647156,-3.905485
 7_62,"Ctra. Martos (Cooperativa)",37.64552,-3.91551
 7_68,"Parque Científico Tecnológico (Geolit)",37.941064,-3.78998
 7_69,"Plaza De La Constitución",37.59041,-3.81960
 7_70,"Calle Santísimo",37.591389,-3.817222
-7_71,"Crta. Torrequebradilla Esq. Benjumea",37.938108,-3.730298
 7_78,"Avd. La Paz",37.689640,-3.823500
-7_83,"Jardines",37.958894,-3.664440
-7_84,"Plaza",37.996398,-3.637240
 7_85,"Calle Párroco Casado (Junto Cooperativa)",37.65276,-3.63454
 7_86,"C/ Belen",37.635570,-3.63837
 7_87,"Avd. De España",37.637188,-3.639852
@@ -4679,7 +4650,6 @@ stop_id,stop_name,stop_lat,stop_lon
 7_115,"Parque",38.006211,-3.912287
 7_116,"Frante Al Parque V",38.00680,-3.91095
 7_124,"Rotonda Km 42 (N-323A) V",37.7731040297,-3.7165023548
-7_126,"Electrodomésticos "El Pilar"",37.739927,-3.647014
 7_128,"Avd. España Con C/Velazquez V",37.64098,-3.63912
 7_130,"Plaza Pilar Bombo",37.98296,-3.88109
 8_3,"Los Mochos 1",37.8341800423,-4.95153071174

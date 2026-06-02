@@ -174,12 +174,7 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 2_177,CMTBC,"M-053","Cádiz-Jerez De La Frontera (Por Hospital De Jerez)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=177,ff0000,FFFFFF
 2_219,CMTBC,"M-966","Chipiona-Costa Ballena-Rota",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=219,FF0000,FFFFFF
 2_220,CMTBC,"M-035","Cádiz-Escuela De Ingeniería",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=220,FF0000,FFFFFF
-2_221,CMTBC,"M-231","Chiclana De La Frontera-Campus Universitario De Puerto Real",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=221,FF00FF,FFFFFF
-2_222,CMTBC,"M-330","Puerto Real-Escuela De Ingeniería",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=222,0000FF,FFFFFF
-2_223,CMTBC,"M-351","Jerez De La Frontera-Campus Universitario De Puerto Real  (Por Cuatro Caminos)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=223,CC6666,FFFFFF
-2_224,CMTBC,"M-352","Jerez De La Frontera-Campus Universitario De Puerto Real (Por El Puerto De Santa María)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=224,00FF00,FFFFFF
 2_225,CMTBC,"M-967","Chipiona-Sanlúcar De Barrameda-Cádiz  (Por Campus De Puerto Real)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=225,FF0000,FFFFFF
-2_226,CMTBC,"M-340","El Puerto De Santa María-Campus Universitario De Puerto Real",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=226,0000FF,FFFFFF
 2_230,CMTBC,"M-965","Chipiona-Sanlúcar De Barrameda (Sevilla/Utrera)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=230,0000FF,FFFFFF
 2_231,CMTBC,"M-974","Costa Ballena-Chipiona-Sanlúcar De Barrameda (Sevilla)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=231,FF00FF,FFFFFF
 2_234,CMTBC,"M-911","Cádiz-Conil-Barbate (Por La Barca/Por Los Caños)",3,https://siu.cmtbc.es/es/horarios_lineas_tabla.php?linea=234,FF0000,FFFFFF
@@ -263,8 +258,6 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 4_1,CTMAM,"M-110","Málaga-Torremolinos-Benalmádena Costa",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=1,006600,FFFFFF
 4_3,CTMAM,"M-112","Málaga-Mijas",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=3,009900,FFFFFF
 4_4,CTMAM,"M-113","Málaga-Las Lagunas-Fuengirola (Directo)",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=4,009900,FFFFFF
-4_5,CTMAM,"M-114","Mijas-Teatinos (Del 15/09/25 Al 29/05/26)",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=5,009900,FFFFFF
-4_7,CTMAM,"M-116","Teatinos-Torremolinos-Benalmádena",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=7,009900,FFFFFF
 4_8,CTMAM,"M-120","Torremolinos-Fuengirola",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=8,009900,FFFFFF
 4_9,CTMAM,"M-121","Mijas-Benalmádena-Torremolinos",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=9,009900,FFFFFF
 4_10,CTMAM,"M-122","Fuengirola-Mijas",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=10,009900,FFFFFF
@@ -284,7 +277,6 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 4_25,CTMAM,"M-320","Málaga-Marbella",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=25,009900,FFFFFF
 4_89,CTMAM,"M-135","Málaga-Aeropuerto-Santa Amalia",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=89,009900,FFFFFF
 4_90,CTMAM,"M-136","Cártama-Alhaurín De La Torre-Plaza Mayor-Los Álamos",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=90,009900,FFFFFF
-4_93,CTMAM,"M-143","Alh. De La Torre-Churriana-Teatinos",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=93,009900,FFFFFF
 4_96,CTMAM,"M-151","Málaga-Casabermeja-Vva.Concepción",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=96,009900,FFFFFF
 4_97,CTMAM,"M-137","Gibralgalia-Pizarra",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=97,009900,FFFFFF
 4_98,CTMAM,"M-144","Gibralgalia-El Sexmo",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=98,009900,FFFFFF
@@ -297,7 +289,6 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 4_122,CTMAM,"M-341","Álora-Venta Tendilla",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=122,009900,FFFFFF
 4_123,CTMAM,"M-342","Álora-Estación De Álora",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=123,009900,FFFFFF
 4_130,CTMAM,"M-343","Álora-Polígono Industrial",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=130,009900,FFFFFF
-4_137,CTMAM,"M-166","Universidad-Clínico-Rincón De La Victoria",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=137,009900,FFFFFF
 4_140,CTMAM,"M-103","Urbano De Benalmádena - Línea 1 Higuerón-Torremuelle",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=140,009900,FFFFFF
 4_163,CTMAM,"M-344","Málaga-Tolox",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=163,009900,FFFFFF
 4_164,CTMAM,"M-345","Málaga-Cártama-Coín",3,https://siu.ctmam.ctan.es/es/horarios_lineas_tabla.php?linea=164,009900,FFFFFF
@@ -383,7 +374,6 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 6_22,CTAL,"M-334","Roquetas - La Mojonera - Las Norias - Hospital Poniente Nn",3,https://siu.ctal.es/es/horarios_lineas_tabla.php?linea=22,FF9966,FFFFFF
 6_26,CTAL,"M-351","Almería - Aguadulce - Barrio Archilla - La Mojonera - Las Norias - El Ejido Nn",3,https://siu.ctal.es/es/horarios_lineas_tabla.php?linea=26,FF9966,FFFFFF
 6_29,CTAL,"M-354","San Agustín - La Mojonera - Las Norias - El Ejido Nn",3,https://siu.ctal.es/es/horarios_lineas_tabla.php?linea=29,FF6600,FFFFFF
-6_31,CTAL,"M-356","Universidad - Aguadulce - El Ejido - Adra - Berja Nn",3,https://siu.ctal.es/es/horarios_lineas_tabla.php?linea=31,FF0000,FFFFFF
 6_32,CTAL,"M-370","Almería - Aguadulce - El Parador - Puebla De Vícar - El Ejido - Dalías - Berja Nn",3,https://siu.ctal.es/es/horarios_lineas_tabla.php?linea=32,FF6633,FFFFFF
 6_37,CTAL,"M-372","Santa María Del Águila - El Ejido - Dalías - Berja Nn",3,https://siu.ctal.es/es/horarios_lineas_tabla.php?linea=37,FF6633,FFFFFF
 6_38,CTAL,"M-373","Adra - Berja Nn",3,https://siu.ctal.es/es/horarios_lineas_tabla.php?linea=38,FF6600,FFFFFF
@@ -391,11 +381,7 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 6_41,CTAL,"M-381","Almería - El Ejido - Adra Nn",3,https://siu.ctal.es/es/horarios_lineas_tabla.php?linea=41,FF6600,FFFFFF
 6_47,CTAL,"M-383","Almería - Aguadulce - El Parador - Puebla De Vícar - El Ejido - Guardias Viejas - Balerma Nn",3,https://siu.ctal.es/es/horarios_lineas_tabla.php?linea=47,FF6600,FFFFFF
 6_49,CTAL,"M-999","Aguadulce - Roquetas - Las Marinas",3,https://siu.ctal.es/es/horarios_lineas_tabla.php?linea=49,CC0000,FFFFFF
-6_50,CTAL,"M-336","Universidad - Roquetas - Las Marinas - La Mojonera - Cortijos De Marín Nn",3,https://siu.ctal.es/es/horarios_lineas_tabla.php?linea=50,FF33FF,FFFFFF
-6_52,CTAL,"M-108","Pechina - Huércal - Universidad Nn",3,https://siu.ctal.es/es/horarios_lineas_tabla.php?linea=52,CC0066,FFFFFF
 6_97,CTAL,"M-100","Circular Huércal De Almería",3,https://siu.ctal.es/es/horarios_lineas_tabla.php?linea=97,CC0000,FFFFFF
-6_115,CTAL,"M-109","Alhama De Almería - Universidad",3,https://siu.ctal.es/es/horarios_lineas_tabla.php?linea=115,FF0099,FFFFFF
-6_116,CTAL,"M-110","Tabernas - Universidad",3,https://siu.ctal.es/es/horarios_lineas_tabla.php?linea=116,FFFF33,FFFFFF
 7_14,CTJA,"M1-5","Quesada - Jaén",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=14,ff0000,FFFFFF
 7_15,CTJA,"M1-6","Jódar - Jaén",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=15,ff0000,FFFFFF
 7_17,CTJA,"M1-9","Mancha Real - Jaén",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=17,ff0000,FFFFFF
@@ -407,16 +393,14 @@ route_id,agency_id,route_short_name,route_long_name,route_type,route_url,route_c
 7_32,CTJA,"M3-60","Granada - Cazorla",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=32,cc3300,FFFFFF
 7_34,CTJA,"M3-80","Jaén - Villarrodrigo",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=34,cc3300,FFFFFF
 7_35,CTJA,"M3-103","Úbeda - Jaén",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=35,cc3300,FFFFFF
-7_44,CTJA,"M10-1","Jaén - Sotogordo Por Vados De Torralba",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=44,ff0000,FFFFFF
-7_45,CTJA,"M10-2","Jaén - Villargordo",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=45,663366,FFFFFF
-7_49,CTJA,"M11-2","Jaén - Pegalajar (N-323-A)",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=49,0000ff,FFFFFF
 7_55,CTJA,"M17-1","Jaén - Los Villares",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=55,66ff00,FFFFFF
 7_56,CTJA,"M17-2","Jaén - Valdepeñas",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=56,ff0000,FFFFFF
 7_60,CTJA,"M14-1","Noalejo - Jaén",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=60,6699cc,FFFFFF
 7_61,CTJA,"M15-1","Jaén - Fuerte Del Rey",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=61,FF3333,FFFFFF
 7_62,CTJA,"M15-2","Andújar - Jaén Por Fuerte Del Rey",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=62,00FF33,FFFFFF
 7_71,CTJA,"M16-1","Santa Elena - Jaén",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=71,66ffff,FFFFFF
-7_176,CTJA,"M10-6","Jaén -Torreblascopedro Por Vados De Torralba",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=176,33CC33,FFFFFF
+7_72,CTJA,"M16-2","La Carolina - Jaén",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=72,66ffff,FFFFFF
+7_73,CTJA,"M16-3","Bailén - Jaén",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=73,66ffff,FFFFFF
 7_203,CTJA,"M04-8","Linares - Jaén",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=203,333399,FFFFFF
 7_205,CTJA,"M04-15","Jaén - Mengibar",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=205,FF3333,FFFFFF
 7_216,CTJA,"M15-3","Andújar - Jaén",3,https://siu.ctja.es/es/horarios_lineas_tabla.php?linea=216,FFFF00,FFFFFF
