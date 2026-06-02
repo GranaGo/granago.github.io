@@ -228,11 +228,11 @@ def procesar_gtfs(modo, ruta_entrada):
     with open(f"{path_salida}/paradas.json", "w", encoding="utf-8") as f:
         json.dump(out_paradas, f, ensure_ascii=False, separators=(',', ':'))
     with open(f"{path_salida}/rutas.json", "w", encoding="utf-8") as f:
-        json.dump(out_paradas, f, ensure_ascii=False, separators=(',', ':'))
+        json.dump(out_rutas, f, ensure_ascii=False, separators=(',', ':'))
     with open(f"{path_salida}/horarios.json", "w", encoding="utf-8") as f:
-        json.dump(out_paradas, f, ensure_ascii=False, separators=(',', ':'))
+        json.dump(out_horarios, f, ensure_ascii=False, separators=(',', ':'))
     with open(f"{path_salida}/colores.json", "w", encoding="utf-8") as f:
-        json.dump(out_paradas, f, ensure_ascii=False, separators=(',', ':'))
+        json.dump(out_colores, f, ensure_ascii=False, separators=(',', ':'))
     
     print(f"   💾 Guardados paradas, rutas, horarios y colores en {path_salida}")
 

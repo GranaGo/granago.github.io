@@ -2441,14 +2441,14 @@ async function loadLinesData() {
   const typeToLoad = currentTransportType || "urbano";
 
   if (linesDataCache[typeToLoad].paradas) {
-    restoreTabState(typeToLoad);
+    await restoreTabState(typeToLoad);
     return;
   }
 
   showLoader(true);
   try {
     await fetchTransportData(typeToLoad);
-    restoreTabState(typeToLoad);
+    await restoreTabState(typeToLoad);
   } catch (e) {
     console.error("Error cargando líneas", e);
     showNotification("Error", "No se pudieron cargar las líneas", "error");
@@ -2457,24 +2457,27 @@ async function loadLinesData() {
   }
 }
 
-function restoreTabState(type) {
+async function restoreTabState(type) {
   const tabs = document.querySelectorAll("#lineas-view .tab-pill");
   let targetBtn = null;
+
   tabs.forEach((btn) => {
     const onclickAttr = btn.getAttribute("onclick") || "";
     if (onclickAttr.includes(`'${type}'`)) {
       targetBtn = btn;
     }
   });
+
   if (!targetBtn) {
     targetBtn = Array.from(tabs).find((t) =>
       t.innerText.toLowerCase().includes(type),
     );
   }
+
   if (targetBtn) {
-    filterLines(type, targetBtn);
+    await filterLines(type, targetBtn);
   } else if (tabs.length > 0) {
-    filterLines(type, tabs[0]);
+    await filterLines(type, tabs[0]);
   }
 }
 
@@ -5599,7 +5602,7 @@ const ALL_WIDGETS = {
     title: "Eventos Hoy",
     icon: "ri-calendar-event-fill",
     class: "widget-event",
-    action: "navigateTo('cortes')",
+    action: () => navigateTo("cortes"),
     render: updateHomeEventsWidget,
   },
   eco: {
@@ -5607,7 +5610,7 @@ const ALL_WIDGETS = {
     title: "Impacto Ecológico",
     icon: "ri-leaf-fill",
     class: "widget-eco",
-    action: "openEcoCalculator()",
+    action: () => openEcoCalculator(),
     render: updateHomeEcoWidget,
   },
   parking: {
@@ -5615,7 +5618,7 @@ const ALL_WIDGETS = {
     title: "Parkings",
     icon: "ri-parking-box-fill",
     class: "widget-parking",
-    action: "navigateTo('parkings')",
+    action: () => navigateTo("parkings"),
     render: updateHomeParking,
   },
   bus: {
@@ -5623,7 +5626,7 @@ const ALL_WIDGETS = {
     title: "Estado del Bus Urbano",
     icon: "ri-bus-fill",
     class: "widget-bus",
-    action: "navigateTo('paradas')",
+    action: () => navigateTo("paradas"),
     render: updateHomeBusWidget,
   },
   metro: {
@@ -5638,7 +5641,7 @@ const ALL_WIDGETS = {
     title: "Combustible",
     icon: "ri-gas-station-fill",
     class: "widget-fuel",
-    action: "navigateTo('repostar')",
+    action: () => navigateTo("repostar"),
     render: updateHomeFuel,
   },
   achievements: {
@@ -5653,7 +5656,7 @@ const ALL_WIDGETS = {
     title: "Paradas Recientes",
     icon: "ri-history-line",
     class: "widget-recent-stops",
-    action: "navigateTo('paradas')",
+    action: () => navigateTo("paradas"),
     render: updateHomeRecentWidgets,
   },
   games: {
@@ -5661,7 +5664,7 @@ const ALL_WIDGETS = {
     title: "Últimos Juegos",
     icon: "ri-play-list-add-line",
     class: "widget-recent-games",
-    action: "navigateTo('juegos')",
+    action: () => navigateTo("juegos"),
     render: updateHomeRecentWidgets,
   },
   driving: {
@@ -5669,7 +5672,7 @@ const ALL_WIDGETS = {
     title: "Modo Conducción",
     icon: "ri-steering-2-fill",
     class: "widget-driving",
-    action: "toggleDrivingMode()",
+    action: () => toggleDrivingMode(),
     render: updateHomeDrivingWidget,
   },
   running: {
@@ -5677,7 +5680,7 @@ const ALL_WIDGETS = {
     title: "Modo Actividad",
     icon: "ri-run-fill",
     class: "widget-running",
-    action: "openRunningSetup()",
+    action: () => openRunningSetup(),
     render: updateHomeRunning,
   },
   radio: {
@@ -5685,7 +5688,7 @@ const ALL_WIDGETS = {
     title: "Radio Graná",
     icon: "ri-radio-2-fill",
     class: "widget-radio",
-    action: "navigateTo('radio')",
+    action: () => navigateTo("radio"),
     render: updateHomeRadioWidget,
   },
 };
@@ -5749,7 +5752,7 @@ async function renderHomeDashboard() {
     card.className = `summary-card ${w.class}`;
     card.dataset.widgetId = config.id;
     card.onclick = () => {
-      if (w.action) eval(w.action);
+      if (typeof w.action === "function") w.action();
     };
 
     card.innerHTML = `

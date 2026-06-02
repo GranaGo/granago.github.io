@@ -41,15 +41,7 @@ jobs:
           echo "✅ Versión actualizada a: $NEW_VERSION"
 
       - name: Guardar cambios (Commit & Push)
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Solo hace commit si sed realmente cambió algo
-          if [[ -n $(git status -s) ]]; then
-            git add sw.js
-            git commit -m "🤖 Auto-update SW version [skip ci]"
-            git push
-          else
-            echo "No hay cambios necesarios."
-          fi
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🤖 Auto: Actualizada versión de caché del Service Worker"
+          file_pattern: "sw.js"
