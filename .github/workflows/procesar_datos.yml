@@ -15,15 +15,16 @@ jobs:
 
     steps:
       - name: 📥 Descargar repositorio
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: 🐍 Configurar Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
 
       - name: 📦 Instalar dependencias
-        run: pip install pandas pypdf
+        run: pip install pypdf
 
       - name: ⚙️ Ejecutar script de conversión de GTFS
         run: python scripts/procesar_gtfs.py
@@ -47,7 +48,7 @@ jobs:
         run: git pull origin main --rebase --autostash
 
       - name: 💾 Guardar y subir cambios (Commit & Push)
-        uses: stefanzweifel/git-auto-commit-action@v7
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "🤖 Auto: Nuevos datos generados"
           file_pattern: "data/**"

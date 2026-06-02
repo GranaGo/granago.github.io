@@ -9,9 +9,11 @@
 #  pero SIN NINGUNA GARANTÍA; incluso sin la garantía implícita de 
 #  COMERCIALIZACIÓN o APTITUD PARA UN PROPÓSITO PARTICULAR.
 
-import pandas as pd
+import csv
 import json
 import os
+from datetime import datetime
+from collections import defaultdict, Counter
 
 RUTAS_ENTRADA = {
     "metro": "raw_data/gtfs_metro",
@@ -29,14 +31,14 @@ COLORES_DEFECTO = {
 }
 
 def limpiar_nombre_linea(nombre, es_interurbano):
-    if pd.isna(nombre): return "Sin Nombre"
+    if not nombre: return "Sin Nombre"
     nombre = str(nombre).strip()
     if es_interurbano:
         return nombre.lstrip('0') or "0"
     return nombre
 
 def corregir_hora(hora_str):
-    if pd.isna(hora_str): return None
+    if not hora_str: return None
     try:
         h, m, s = map(int, hora_str.split(':'))
         if h >= 24: h -= 24
@@ -46,95 +48,101 @@ def corregir_hora(hora_str):
 
 def cargar_csv(ruta, archivo):
     path = os.path.join(ruta, archivo)
-    if os.path.exists(path):
-        return pd.read_csv(path, dtype=str)
-    return pd.DataFrame()
+    if not os.path.exists(path): return []
+    with open(path, mode='r', encoding='utf-8-sig') as f:
+        return list(csv.DictReader(f))
 
-def analizar_calendario(df_calendar, df_dates):
-    mapa_servicios = {}
+def analizar_calendario(datos_calendar, datos_dates):
+    mapa_servicios = defaultdict(set)
     
-    if not df_calendar.empty:
-        for _, row in df_calendar.iterrows():
-            sid = row['service_id']
-            dias = set()
-            
-            if any(row.get(d) == '1' for d in ['monday', 'tuesday', 'wednesday', 'thursday']):
-                dias.add("L-J")
-            if row.get('friday') == '1': dias.add("V")
-            if row.get('saturday') == '1': dias.add("S")
-            if row.get('sunday') == '1': dias.add("D")
+    for row in datos_calendar:
+        sid = row['service_id']
+        if any(row.get(d) == '1' for d in ['monday', 'tuesday', 'wednesday', 'thursday']):
+            mapa_servicios[sid].add("L-J")
+        if row.get('friday') == '1': mapa_servicios[sid].add("V")
+        if row.get('saturday') == '1': mapa_servicios[sid].add("S")
+        if row.get('sunday') == '1': mapa_servicios[sid].add("D")
 
-            mapa_servicios[sid] = dias
-
-    if not df_dates.empty:
-        for _, row in df_dates.iterrows():
-            sid = row['service_id']
-            if row['exception_type'] == '1':
-                try:
-                    fecha = datetime.strptime(row['date'], '%Y%m%d')
-                    weekday = fecha.weekday()
-                    
-                    if sid not in mapa_servicios:
-                        mapa_servicios[sid] = set()
-                    
-                    if weekday < 4: mapa_servicios[sid].add("L-J")
-                    elif weekday == 4: mapa_servicios[sid].add("V")
-                    elif weekday == 5: mapa_servicios[sid].add("S")
-                    elif weekday == 6: mapa_servicios[sid].add("D")
-                except:
-                    continue
-                    
+    for row in datos_dates:
+        sid = row['service_id']
+        if row.get('exception_type') == '1':
+            try:
+                fecha = datetime.strptime(row['date'], '%Y%m%d')
+                weekday = fecha.weekday()
+                if weekday < 4: mapa_servicios[sid].add("L-J")
+                elif weekday == 4: mapa_servicios[sid].add("V")
+                elif weekday == 5: mapa_servicios[sid].add("S")
+                elif weekday == 6: mapa_servicios[sid].add("D")
+            except:
+                pass
     return {k: list(v) for k, v in mapa_servicios.items()}
 
 def procesar_gtfs(modo, ruta_entrada):
     print(f"\n--- 🚌 Procesando {modo.upper()} ---")
     
-    df_agency = cargar_csv(ruta_entrada, "agency.txt")
-    df_routes = cargar_csv(ruta_entrada, "routes.txt")
-    df_trips = cargar_csv(ruta_entrada, "trips.txt")
-    df_stops = cargar_csv(ruta_entrada, "stops.txt")
-    df_times = cargar_csv(ruta_entrada, "stop_times.txt")
-    df_shapes = cargar_csv(ruta_entrada, "shapes.txt")
-    df_calendar = cargar_csv(ruta_entrada, "calendar.txt")
-    df_dates = cargar_csv(ruta_entrada, "calendar_dates.txt")
+    datos_agency = cargar_csv(ruta_entrada, "agency.txt")
+    datos_routes = cargar_csv(ruta_entrada, "routes.txt")
+    datos_trips = cargar_csv(ruta_entrada, "trips.txt")
+    datos_stops = cargar_csv(ruta_entrada, "stops.txt")
+    datos_calendar = cargar_csv(ruta_entrada, "calendar.txt")
+    datos_dates = cargar_csv(ruta_entrada, "calendar_dates.txt")
+    
+    mapa_dias = analizar_calendario(datos_calendar, datos_dates)
 
-    if modo == "interurbano" and not df_agency.empty:
-        agencias = df_agency[df_agency['agency_id'] == AGENCIA_INTERURBANO_OBJETIVO]['agency_id'].tolist()
-        if agencias:
-            df_routes = df_routes[df_routes['agency_id'].isin(agencias)]
-            df_trips = df_trips[df_trips['route_id'].isin(df_routes['route_id'])]
-            df_times = df_times[df_times['trip_id'].isin(df_trips['trip_id'])]
-            valid_stops = df_times['stop_id'].unique()
-            df_stops = df_stops[df_stops['stop_id'].isin(valid_stops)]
-            print(f"   ✅ Filtrado CTAG: {len(df_routes)} líneas.")
+    valid_agency_ids = set()
+    if modo == "interurbano" and datos_agency:
+        valid_agency_ids = {a['agency_id'] for a in datos_agency if a.get('agency_id') == AGENCIA_INTERURBANO_OBJETIVO}
+        datos_routes = [r for r in datos_routes if r.get('agency_id') in valid_agency_ids]
+        print(f"   ✅ Filtrado CTAG: {len(datos_routes)} líneas.")
 
-    mapa_dias = analizar_calendario(df_calendar, df_dates)
+    valid_route_ids = {r['route_id'] for r in datos_routes}
+    valid_trips = [t for t in datos_trips if t['route_id'] in valid_route_ids]
+    valid_trip_ids = {t['trip_id'] for t in valid_trips}
+    
+    used_shape_ids = {t['shape_id'] for t in valid_trips if t.get('shape_id')}
+    path_shapes = os.path.join(ruta_entrada, "shapes.txt")
+    mapa_shapes = defaultdict(list)
+    if os.path.exists(path_shapes):
+        with open(path_shapes, mode='r', encoding='utf-8-sig') as f:
+            for row in csv.DictReader(f):
+                if row['shape_id'] in used_shape_ids:
+                    mapa_shapes[row['shape_id']].append({
+                        'lat': float(row['shape_pt_lat']),
+                        'lon': float(row['shape_pt_lon']),
+                        'seq': int(row['shape_pt_sequence'])
+                    })
+    for sid in mapa_shapes:
+        mapa_shapes[sid].sort(key=lambda x: x['seq'])
+
+    path_times = os.path.join(ruta_entrada, "stop_times.txt")
+    stop_times_por_trip = defaultdict(list)
+    if os.path.exists(path_times):
+        with open(path_times, mode='r', encoding='utf-8-sig') as f:
+            for row in csv.DictReader(f):
+                if row['trip_id'] in valid_trip_ids:
+                    stop_times_por_trip[row['trip_id']].append({
+                        'stop_id': row['stop_id'],
+                        'departure_time': row.get('departure_time', ''),
+                        'seq': int(row['stop_sequence'])
+                    })
+    for tid in stop_times_por_trip:
+        stop_times_por_trip[tid].sort(key=lambda x: x['seq'])
+
+    mapa_paradas_info = {s['stop_id']: s for s in datos_stops}
 
     out_rutas = {}
     out_paradas = {}
     out_horarios = {}
     out_colores = {}
 
-    for _, ruta in df_routes.iterrows():
+    for ruta in datos_routes:
         rid = ruta['route_id']
         r_short = limpiar_nombre_linea(ruta.get('route_short_name', ''), modo == "interurbano")
         r_long = ruta.get('route_long_name', '')
         
-        color_final = None
-        
-        if not color_final:
-            gtfs_color = ruta.get('route_color')
-            
-            if pd.notna(gtfs_color):
-                c_str = str(gtfs_color).strip()
-                if c_str and c_str.lower() != "nan":
-                    color_final = c_str
-        
-        if not color_final:
-            color_final = COLORES_DEFECTO[modo]
-        
-        if not color_final.startswith('#'):
-            color_final = '#' + color_final
+        c_str = ruta.get('route_color', '').strip()
+        color_final = c_str if c_str and c_str.lower() != "nan" else COLORES_DEFECTO[modo]
+        if not color_final.startswith('#'): color_final = '#' + color_final
             
         out_colores[r_short] = color_final
         out_rutas[r_short] = {"ida": [], "vuelta": []}
@@ -142,85 +150,78 @@ def procesar_gtfs(modo, ruta_entrada):
         out_horarios[r_short] = {"ida": {"L-J":[], "V":[], "S":[], "D":[]}, 
                                  "vuelta": {"L-J":[], "V":[], "S":[], "D":[]}}
 
-        trips_linea = df_trips[df_trips['route_id'] == rid]
+        trips_linea = [t for t in valid_trips if t['route_id'] == rid]
 
         for direction_id in ['0', '1']:
             dir_key = "ida" if direction_id == '0' else "vuelta"
-            trips_dir = trips_linea[trips_linea['direction_id'] == direction_id]
-            
-            if trips_dir.empty: continue
+            trips_dir = [t for t in trips_linea if t.get('direction_id') == direction_id]
+            if not trips_dir: continue
 
-            if not df_shapes.empty:
-                shape_id = trips_dir['shape_id'].mode()
-                if not shape_id.empty:
-                    s_id = shape_id[0]
-                    puntos = df_shapes[df_shapes['shape_id'] == s_id].sort_values(by='shape_pt_sequence', key=lambda x: x.astype(int))
-                    out_rutas[r_short][dir_key] = puntos[['shape_pt_lat', 'shape_pt_lon']].astype(float).values.tolist()
+            shapes_counts = Counter(t['shape_id'] for t in trips_dir if t.get('shape_id'))
+            if shapes_counts:
+                s_id = shapes_counts.most_common(1)[0][0]
+                if s_id in mapa_shapes:
+                    out_rutas[r_short][dir_key] = [[pt['lat'], pt['lon']] for pt in mapa_shapes[s_id]]
 
-            trip_ids = trips_dir['trip_id'].unique()
+            trip_ids_dir = list({t['trip_id'] for t in trips_dir})
             best_trip = None
-            max_stops = 0
+            max_stops = -1
             
-            for t in trip_ids[:5]:
-                count = len(df_times[df_times['trip_id'] == t])
+            for t in trip_ids_dir[:5]:
+                count = len(stop_times_por_trip.get(t, []))
                 if count > max_stops:
                     max_stops = count
                     best_trip = t
             
-            if best_trip:
-                st_trip = df_times[df_times['trip_id'] == best_trip].sort_values(by='stop_sequence', key=lambda x: x.astype(int))
+            if best_trip and max_stops > 0:
                 lista_p = []
-                for _, row in st_trip.iterrows():
-                    stop_info = df_stops[df_stops['stop_id'] == row['stop_id']].iloc[0]
+                for st in stop_times_por_trip[best_trip]:
+                    s_info = mapa_paradas_info.get(st['stop_id'], {})
+                    if not s_info: continue
                     lista_p.append({
-                        "stop_id": row['stop_id'],
-                        "stop_code": str(stop_info.get('stop_code', '')),
-                        "n": stop_info['stop_name'],
-                        "lat": round(float(stop_info['stop_lat']), 5),
-                        "lon": round(float(stop_info['stop_lon']), 5),
+                        "stop_id": st['stop_id'],
+                        "stop_code": str(s_info.get('stop_code', '')),
+                        "n": s_info.get('stop_name', ''),
+                        "lat": round(float(s_info.get('stop_lat', 0)), 5),
+                        "lon": round(float(s_info.get('stop_lon', 0)), 5),
                         "linea": r_short,
                         "nombre_linea": r_long
                     })
                 out_paradas[r_short][dir_key] = lista_p
 
             temp_horarios = {"L-J": [], "V": [], "S": [], "D": []}
-
-            for _, trip in trips_dir.iterrows():
+            for trip in trips_dir:
                 tid = trip['trip_id']
                 sid = trip['service_id']
-                
                 dias_operativos = mapa_dias.get(sid, [])
                 if not dias_operativos: continue
 
-                times = df_times[df_times['trip_id'] == tid].sort_values(by='stop_sequence', key=lambda x: x.astype(int))
-                if times.empty: continue
+                times = stop_times_por_trip.get(tid, [])
+                if not times: continue
 
-                raw_salida = times.iloc[0]['departure_time']
+                raw_salida = times[0]['departure_time']
                 h_salida = corregir_hora(raw_salida)
+                if not h_salida: continue
                 
                 dato_viaje = { "sort": raw_salida, "show": h_salida }
-
                 for dia in dias_operativos:
                     temp_horarios[dia].append(dato_viaje)
 
             for dia in ["L-J", "V", "S", "D"]:
                 lista = temp_horarios[dia]
-                
                 if not lista:
                     out_horarios[r_short][dir_key][dia] = None 
                 else:
                     lista.sort(key=lambda x: x['sort'])
-                    
                     if modo == "interurbano":
                         horas_unicas = sorted(list(set([x['show'] for x in lista])))
                         out_horarios[r_short][dir_key][dia] = horas_unicas
                     else:
-                        primer_viaje = lista[0]['show']
-                        ultimo_viaje = lista[-1]['show']
                         out_horarios[r_short][dir_key][dia] = {
-                            "inicio": primer_viaje,
-                            "fin": ultimo_viaje
+                            "inicio": lista[0]['show'],
+                            "fin": lista[-1]['show']
                         }
+
     path_salida = os.path.join(CARPETA_SALIDA, modo)
     os.makedirs(path_salida, exist_ok=True)
 
@@ -237,7 +238,6 @@ def procesar_gtfs(modo, ruta_entrada):
 
 if __name__ == "__main__":
     os.makedirs(CARPETA_SALIDA, exist_ok=True)
-    
     try: procesar_gtfs("metro", RUTAS_ENTRADA["metro"])
     except Exception as e: print(f"❌ Error Metro: {e}")
 
