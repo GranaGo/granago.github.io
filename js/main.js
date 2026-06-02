@@ -115,7 +115,7 @@ let oraTileLayer = null;
 let staticParkingsLayerGroup = null;
 let vehicleConfig = {
   isResident: localStorage.getItem("granaGo_is_resident") === "true",
-  badge: localStorage.getItem("granaGo_vehicle_badge") || "NONE"
+  badge: localStorage.getItem("granaGo_vehicle_badge") || "NONE",
 };
 let zbePolygon = null;
 let lastZBEAlertTime = 0;
@@ -130,7 +130,7 @@ let dragStartIndex = null;
 let runState = {
   active: false,
   paused: false,
-  mode: 'walk',
+  mode: "walk",
   startTime: null,
   endTime: null,
   totalSeconds: 0,
@@ -138,7 +138,7 @@ let runState = {
   path: [],
   lastCoord: null,
   watchId: null,
-  timerInterval: null
+  timerInterval: null,
 };
 let summaryMap = null;
 
@@ -149,23 +149,23 @@ let slotBet = 10;
 let slotsSpinning = false;
 let shopItemsCache = null;
 
-let currentFeedbackType = 'Error';
+let currentFeedbackType = "Error";
 const ECO_CONFIG = {
   PT_AVG_KM: 3.5,
   BIKE_AVG_KM: 2.5,
   CO2_SAVED_PER_KM: 0.15,
-  EURO_SAVED_PER_KM: 0.2
+  EURO_SAVED_PER_KM: 0.2,
 };
 
 let geoMapInstance = null;
 let geoLayer = null;
 let geoConfig = {
-  mode: '',
+  mode: "",
   round: 0,
   score: 0,
   targetFeatures: [],
   currentTarget: null,
-  isAnswered: false
+  isAnswered: false,
 };
 
 let minesConfig = {
@@ -175,8 +175,8 @@ let minesConfig = {
   board: [],
   gameOver: false,
   flags: 0,
-  diff: 'easy',
-  firstClick: true
+  diff: "easy",
+  firstClick: true,
 };
 
 let taxiMapInstance = null;
@@ -189,28 +189,182 @@ let zbeTileLayer = null;
 let zbeDataLoaded = false;
 
 const ACHIEVEMENTS_DATA = {
-  'eco_start': { title: 'Primer paso verde', desc: 'Ahorra tu primer kg de CO2', goal: 1, reward: 100, icon: 'ri-leaf-line', type: 'eco' },
-  'eco_hero': { title: 'Héroe de Granada', desc: 'Ahorra 10 kg de CO2', goal: 10, reward: 500, icon: 'ri-plant-fill', type: 'eco' },
-  'bus_fan': { title: 'Viajero Frecuente', desc: 'Consulta 25 paradas', goal: 25, reward: 150, icon: 'ri-bus-fill', type: 'stps' },
-  'cycling': { title: 'A piñón fijo', desc: 'Registra 10km en bici', goal: 10, reward: 200, icon: 'ri-riding-fill', type: 'bike' },
-  'wordle_win': { title: 'Linguista', desc: 'Adivina 5 Granádles', goal: 5, reward: 200, icon: 'ri-chat-check-fill', type: 'game' },
-  'sudoku_master': { title: 'Mente Analítica', desc: 'Resuelve 3 Sudokus', goal: 3, reward: 250, icon: 'ri-grid-fill', type: 'game' },
-  'quiz_perfect': { title: 'Granadino de Pura Cepa', desc: 'Saca un 10/10 en el Quiz', goal: 1, reward: 300, icon: 'ri-medal-fill', type: 'game' },
-  'memory_fast': { title: 'Memoria de Lince', desc: 'Gana en Granámory', goal: 10, reward: 100, icon: 'ri-brain-fill', type: 'game' },
-  'mind_expert': { title: 'Descifrador', desc: 'Gana en Granámind', goal: 10, reward: 150, icon: 'ri-lock-unlock-fill', type: 'game' },
-  'chain_pro': { title: 'Encadenado', desc: 'Llega a 35 puntos en Encadenadas', goal: 35, reward: 200, icon: 'ri-link', type: 'game' },
-  'bj_lucky': { title: 'As del Tapete', desc: 'Gana 10 manos de Blackjack', goal: 10, reward: 200, icon: 'ri-playing-cards-fill', type: 'game' },
-  'slot_jackpot': { title: '¡Jackpot!', desc: 'Consigue una línea de Metros', goal: 1, reward: 400, icon: 'ri-money-euro-box-fill', type: 'game' },
-  'geo_expert': { title: 'Guía Turístico', desc: 'Acierta 10 municipios en GeoGraná', goal: 10, reward: 250, icon: 'ri-map-2-fill', type: 'game' },
-  'mines_expert': { title: 'Barrendero Mayor', desc: 'Gana 5 partidas de BuscaGraná', goal: 5, reward: 200, icon: 'ri-blur-off-fill', type: 'game' },
-  'shopper': { title: 'Con Estilo', desc: 'Compra tu primer color de acento', goal: 1, reward: 100, icon: 'ri-palette-fill', type: 'shop' },
-  'collector': { title: 'Coleccionista', desc: 'Desbloquea 3 colores distintos', goal: 3, reward: 300, icon: 'ri-paint-brush-fill', type: 'shop' },
-  'powerup_user': { title: 'Ventaja Táctica', desc: 'Usa 5 power-ups', goal: 5, reward: 150, icon: 'ri-flashlight-fill', type: 'shop' },
-  'ambassador': { title: 'Embajador', desc: 'Comparte la app con amigos', goal: 5, reward: 200, icon: 'ri-share-forward-fill', type: 'soc' },
-  'night_owl': { title: 'Búho Nocturno', desc: 'Usa la app después de medianoche', goal: 5, reward: 100, icon: 'ri-moon-clear-fill', type: 'app' },
-  'driver_mode': { title: 'Al volante', desc: 'Activa el Modo Conducción', goal: 10, reward: 100, icon: 'ri-steering-2-fill', type: 'app' },
-  'loyal': { title: 'Vecino Fiel', desc: 'Abre la app 5 días distintos', goal: 5, reward: 500, icon: 'ri-calendar-check-fill', type: 'app' },
-  'sport_master': { title: 'Km a Km', desc: 'Acumula 10km corriendo o andando', goal: 10, reward: 300, icon: 'ri-run-line', type: 'sport' }
+  eco_start: {
+    title: "Primer paso verde",
+    desc: "Ahorra tu primer kg de CO2",
+    goal: 1,
+    reward: 100,
+    icon: "ri-leaf-line",
+    type: "eco",
+  },
+  eco_hero: {
+    title: "Héroe de Granada",
+    desc: "Ahorra 10 kg de CO2",
+    goal: 10,
+    reward: 500,
+    icon: "ri-plant-fill",
+    type: "eco",
+  },
+  bus_fan: {
+    title: "Viajero Frecuente",
+    desc: "Consulta 25 paradas",
+    goal: 25,
+    reward: 150,
+    icon: "ri-bus-fill",
+    type: "stps",
+  },
+  cycling: {
+    title: "A piñón fijo",
+    desc: "Registra 10km en bici",
+    goal: 10,
+    reward: 200,
+    icon: "ri-riding-fill",
+    type: "bike",
+  },
+  wordle_win: {
+    title: "Linguista",
+    desc: "Adivina 5 Granádles",
+    goal: 5,
+    reward: 200,
+    icon: "ri-chat-check-fill",
+    type: "game",
+  },
+  sudoku_master: {
+    title: "Mente Analítica",
+    desc: "Resuelve 3 Sudokus",
+    goal: 3,
+    reward: 250,
+    icon: "ri-grid-fill",
+    type: "game",
+  },
+  quiz_perfect: {
+    title: "Granadino de Pura Cepa",
+    desc: "Saca un 10/10 en el Quiz",
+    goal: 1,
+    reward: 300,
+    icon: "ri-medal-fill",
+    type: "game",
+  },
+  memory_fast: {
+    title: "Memoria de Lince",
+    desc: "Gana en Granámory",
+    goal: 10,
+    reward: 100,
+    icon: "ri-brain-fill",
+    type: "game",
+  },
+  mind_expert: {
+    title: "Descifrador",
+    desc: "Gana en Granámind",
+    goal: 10,
+    reward: 150,
+    icon: "ri-lock-unlock-fill",
+    type: "game",
+  },
+  chain_pro: {
+    title: "Encadenado",
+    desc: "Llega a 35 puntos en Encadenadas",
+    goal: 35,
+    reward: 200,
+    icon: "ri-link",
+    type: "game",
+  },
+  bj_lucky: {
+    title: "As del Tapete",
+    desc: "Gana 10 manos de Blackjack",
+    goal: 10,
+    reward: 200,
+    icon: "ri-playing-cards-fill",
+    type: "game",
+  },
+  slot_jackpot: {
+    title: "¡Jackpot!",
+    desc: "Consigue una línea de Metros",
+    goal: 1,
+    reward: 400,
+    icon: "ri-money-euro-box-fill",
+    type: "game",
+  },
+  geo_expert: {
+    title: "Guía Turístico",
+    desc: "Acierta 10 municipios en GeoGraná",
+    goal: 10,
+    reward: 250,
+    icon: "ri-map-2-fill",
+    type: "game",
+  },
+  mines_expert: {
+    title: "Barrendero Mayor",
+    desc: "Gana 5 partidas de BuscaGraná",
+    goal: 5,
+    reward: 200,
+    icon: "ri-blur-off-fill",
+    type: "game",
+  },
+  shopper: {
+    title: "Con Estilo",
+    desc: "Compra tu primer color de acento",
+    goal: 1,
+    reward: 100,
+    icon: "ri-palette-fill",
+    type: "shop",
+  },
+  collector: {
+    title: "Coleccionista",
+    desc: "Desbloquea 3 colores distintos",
+    goal: 3,
+    reward: 300,
+    icon: "ri-paint-brush-fill",
+    type: "shop",
+  },
+  powerup_user: {
+    title: "Ventaja Táctica",
+    desc: "Usa 5 power-ups",
+    goal: 5,
+    reward: 150,
+    icon: "ri-flashlight-fill",
+    type: "shop",
+  },
+  ambassador: {
+    title: "Embajador",
+    desc: "Comparte la app con amigos",
+    goal: 5,
+    reward: 200,
+    icon: "ri-share-forward-fill",
+    type: "soc",
+  },
+  night_owl: {
+    title: "Búho Nocturno",
+    desc: "Usa la app después de medianoche",
+    goal: 5,
+    reward: 100,
+    icon: "ri-moon-clear-fill",
+    type: "app",
+  },
+  driver_mode: {
+    title: "Al volante",
+    desc: "Activa el Modo Conducción",
+    goal: 10,
+    reward: 100,
+    icon: "ri-steering-2-fill",
+    type: "app",
+  },
+  loyal: {
+    title: "Vecino Fiel",
+    desc: "Abre la app 5 días distintos",
+    goal: 5,
+    reward: 500,
+    icon: "ri-calendar-check-fill",
+    type: "app",
+  },
+  sport_master: {
+    title: "Km a Km",
+    desc: "Acumula 10km corriendo o andando",
+    goal: 10,
+    reward: 300,
+    icon: "ri-run-line",
+    type: "sport",
+  },
 };
 
 function getShopItems() {
@@ -219,36 +373,179 @@ function getShopItems() {
   shopItemsCache = {
     colors: [
       { id: "color-default", name: "GranáGo", hex: "#2563eb", price: 0 },
-      { id: "color-alhambra", name: "Atardecer Alhambra", hex: "#d97706", price: 5000 },
+      {
+        id: "color-alhambra",
+        name: "Atardecer Alhambra",
+        hex: "#d97706",
+        price: 5000,
+      },
       { id: "color-sierra", name: "Nieve Sierra", hex: "#06b6d4", price: 6500 },
-      { id: "color-generalife", name: "Verde Generalife", hex: "#10b981", price: 7000 },
-      { id: "color-sacromonte", name: "Cueva Sacromonte", hex: "#8b5cf6", price: 8000 },
-      { id: "color-albaicin", name: "Oro Albaicín", hex: "#f59e0b", price: 10000 },
+      {
+        id: "color-generalife",
+        name: "Verde Generalife",
+        hex: "#10b981",
+        price: 7000,
+      },
+      {
+        id: "color-sacromonte",
+        name: "Cueva Sacromonte",
+        hex: "#8b5cf6",
+        price: 8000,
+      },
+      {
+        id: "color-albaicin",
+        name: "Oro Albaicín",
+        hex: "#f59e0b",
+        price: 10000,
+      },
       { id: "color-darro", name: "Río Darro", hex: "#14b8a6", price: 15000 },
-      { id: "color-realejo", name: "Barrio Realejo", hex: "#ec4899", price: 20000 },
+      {
+        id: "color-realejo",
+        name: "Barrio Realejo",
+        hex: "#ec4899",
+        price: 20000,
+      },
     ],
     powerups: [
-      { id: "pista-wordle", name: "Lupa Granádle", desc: "Revela una letra", price: 500, icon: "ri-search-eye-line", game: "wordle" },
-      { id: "celda-sudoku", name: "Saber-doku", desc: "Resuelve una celda", price: 500, icon: "ri-lightbulb-flash-line", game: "sudoku" },
-      { id: "ojo-memory", name: "Ojo de Lince", desc: "Mira las cartas 2s", price: 750, icon: "ri-eye-fill", game: "memory" },
-      { id: "mitad-quiz", name: "Cincuenta%", desc: "Quita 2 respuestas", price: 500, icon: "ri-scissors-2-fill", game: "quiz" },
-      { id: "codigo-mind", name: "Eco-Código", desc: "Revela 1 posición", price: 500, icon: "ri-radar-line", game: "mastermind" },
-      { id: "tiempo-encadenadas", name: "Reloj de Arena", desc: "+15s extra", price: 750, icon: "ri-hourglass-2-fill", game: "encadenadas" },
-      { id: "auto-encadenadas", name: "Auto-Cadena", desc: "Encuentra una palabra por ti", price: 1000, icon: "ri-magic-line", game: "encadenadas" },
-      { id: "seguro-bj", name: "Seguro GranáJack", desc: "Recupera 50% si pierdes", price: 1000, icon: "ri-shield-check-fill", game: "blackjack" },
-      { id: "geo-lince", name: "Geo-Lince", desc: "Marca la respuesta correcta", price: 750, icon: "ri-eye-fill", game: "geograna" },
-      { id: "geo-5050", name: "Geo 50/50", desc: "Quita 2 respuestas falsas", price: 500, icon: "ri-scissors-2-fill", game: "geograna" },
+      {
+        id: "pista-wordle",
+        name: "Lupa Granádle",
+        desc: "Revela una letra",
+        price: 500,
+        icon: "ri-search-eye-line",
+        game: "wordle",
+      },
+      {
+        id: "celda-sudoku",
+        name: "Saber-doku",
+        desc: "Resuelve una celda",
+        price: 500,
+        icon: "ri-lightbulb-flash-line",
+        game: "sudoku",
+      },
+      {
+        id: "ojo-memory",
+        name: "Ojo de Lince",
+        desc: "Mira las cartas 2s",
+        price: 750,
+        icon: "ri-eye-fill",
+        game: "memory",
+      },
+      {
+        id: "mitad-quiz",
+        name: "Cincuenta%",
+        desc: "Quita 2 respuestas",
+        price: 500,
+        icon: "ri-scissors-2-fill",
+        game: "quiz",
+      },
+      {
+        id: "codigo-mind",
+        name: "Eco-Código",
+        desc: "Revela 1 posición",
+        price: 500,
+        icon: "ri-radar-line",
+        game: "mastermind",
+      },
+      {
+        id: "tiempo-encadenadas",
+        name: "Reloj de Arena",
+        desc: "+15s extra",
+        price: 750,
+        icon: "ri-hourglass-2-fill",
+        game: "encadenadas",
+      },
+      {
+        id: "auto-encadenadas",
+        name: "Auto-Cadena",
+        desc: "Encuentra una palabra por ti",
+        price: 1000,
+        icon: "ri-magic-line",
+        game: "encadenadas",
+      },
+      {
+        id: "seguro-bj",
+        name: "Seguro GranáJack",
+        desc: "Recupera 50% si pierdes",
+        price: 1000,
+        icon: "ri-shield-check-fill",
+        game: "blackjack",
+      },
+      {
+        id: "geo-lince",
+        name: "Geo-Lince",
+        desc: "Marca la respuesta correcta",
+        price: 750,
+        icon: "ri-eye-fill",
+        game: "geograna",
+      },
+      {
+        id: "geo-5050",
+        name: "Geo 50/50",
+        desc: "Quita 2 respuestas falsas",
+        price: 500,
+        icon: "ri-scissors-2-fill",
+        game: "geograna",
+      },
     ],
     visualizers: [
-      { id: 'vis-cat', name: 'Gato Vibes', price: 10000, file: 'images/gifs/cat.gif', icon: 'ri-music-fill' },
-      { id: 'vis-rat', name: 'Rata Bailando', price: 7500, file: 'images/gifs/rat.gif', icon: 'ri-disc-fill' },
-      { id: 'vis-seal', name: 'Foca con Saxofon', price: 5000, file: 'images/gifs/seal.gif', icon: 'ri-music-fill' },
-      { id: 'vis-pepo', name: 'Pepo DJ', price: 2500, file: 'images/gifs/pepo.gif', icon: 'ri-disc-fill' },
-      { id: 'vis-top', name: 'Indescriptible', price: 15000, file: 'images/gifs/top.gif', icon: 'ri-music-fill' },
-      { id: 'vis-homer', name: 'Homer Shakira', price: 12500, file: 'images/gifs/homer.gif', icon: 'ri-disc-fill' },
-      { id: 'vis-racoon', name: 'Mapache de Fiesta', price: 2500, file: 'images/gifs/racoon.gif', icon: 'ri-music-fill' },
-      { id: 'vis-dog', name: 'Perreo', price: 5000, file: 'images/gifs/dog.gif', icon: 'ri-disc-fill' }
-    ]
+      {
+        id: "vis-cat",
+        name: "Gato Vibes",
+        price: 10000,
+        file: "images/gifs/cat.gif",
+        icon: "ri-music-fill",
+      },
+      {
+        id: "vis-rat",
+        name: "Rata Bailando",
+        price: 7500,
+        file: "images/gifs/rat.gif",
+        icon: "ri-disc-fill",
+      },
+      {
+        id: "vis-seal",
+        name: "Foca con Saxofon",
+        price: 5000,
+        file: "images/gifs/seal.gif",
+        icon: "ri-music-fill",
+      },
+      {
+        id: "vis-pepo",
+        name: "Pepo DJ",
+        price: 2500,
+        file: "images/gifs/pepo.gif",
+        icon: "ri-disc-fill",
+      },
+      {
+        id: "vis-top",
+        name: "Indescriptible",
+        price: 15000,
+        file: "images/gifs/top.gif",
+        icon: "ri-music-fill",
+      },
+      {
+        id: "vis-homer",
+        name: "Homer Shakira",
+        price: 12500,
+        file: "images/gifs/homer.gif",
+        icon: "ri-disc-fill",
+      },
+      {
+        id: "vis-racoon",
+        name: "Mapache de Fiesta",
+        price: 2500,
+        file: "images/gifs/racoon.gif",
+        icon: "ri-music-fill",
+      },
+      {
+        id: "vis-dog",
+        name: "Perreo",
+        price: 5000,
+        file: "images/gifs/dog.gif",
+        icon: "ri-disc-fill",
+      },
+    ],
   };
   return shopItemsCache;
 }
@@ -350,10 +647,17 @@ if (savedColor) applyAccentColor(savedColor);
 
 async function getGPSLocationName(lat, lon) {
   try {
-    const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=es`);
+    const res = await fetch(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=es`,
+    );
     const data = await res.json();
 
-    return data.locality || data.city || data.principalSubdivision || "Zona desconocida";
+    return (
+      data.locality ||
+      data.city ||
+      data.principalSubdivision ||
+      "Zona desconocida"
+    );
   } catch (e) {
     console.error("Error en geocodificación inversa:", e);
     return "Granada";
@@ -434,7 +738,7 @@ const FARE_DATA = {
       price: "Gratis",
       desc: "Permitido entre distintas líneas durante 60 min con cualquier bono.",
       color: "#475569",
-    }
+    },
   ],
   metro: [
     {
@@ -751,40 +1055,49 @@ document.addEventListener("DOMContentLoaded", () => {
   if (homeBtn) homeBtn.classList.add("active");
 
   const urlParams = new URLSearchParams(window.location.search);
-  const sharedRoute = urlParams.get('route');
+  const sharedRoute = urlParams.get("route");
   if (sharedRoute) {
     setTimeout(() => initSharedRoute(sharedRoute), 800);
   }
 
-  if (!localStorage.getItem('granaGo_optimized_v2')) {
-    const oldFavs = JSON.parse(localStorage.getItem('granaGo_favs') || '[]');
+  if (!localStorage.getItem("granaGo_optimized_v2")) {
+    const oldFavs = JSON.parse(localStorage.getItem("granaGo_favs") || "[]");
     if (oldFavs.length > 0 && oldFavs[0].id) {
-      const newFavs = oldFavs.map(f => ({ i: f.id, t: f.type[0], n: f.name, l: f.lines }));
-      localStorage.setItem('granaGo_favs', JSON.stringify(newFavs));
+      const newFavs = oldFavs.map((f) => ({
+        i: f.id,
+        t: f.type[0],
+        n: f.name,
+        l: f.lines,
+      }));
+      localStorage.setItem("granaGo_favs", JSON.stringify(newFavs));
     }
 
-    const oldAch = JSON.parse(localStorage.getItem('granaGo_achievements') || '{}');
-    Object.keys(oldAch).forEach(k => {
+    const oldAch = JSON.parse(
+      localStorage.getItem("granaGo_achievements") || "{}",
+    );
+    Object.keys(oldAch).forEach((k) => {
       if (oldAch[k].progress !== undefined) {
         oldAch[k] = { p: oldAch[k].progress, c: oldAch[k].completed ? 1 : 0 };
       }
     });
-    localStorage.setItem('granaGo_achievements', JSON.stringify(oldAch));
+    localStorage.setItem("granaGo_achievements", JSON.stringify(oldAch));
 
-    const oldHistory = JSON.parse(localStorage.getItem('granaGo_run_history') || '[]');
+    const oldHistory = JSON.parse(
+      localStorage.getItem("granaGo_run_history") || "[]",
+    );
     if (oldHistory.length > 0 && oldHistory[0].distance) {
-      const newHistory = oldHistory.map(r => ({
+      const newHistory = oldHistory.map((r) => ({
         ts: r.ts || Date.now(),
-        m: r.m || (r.mode ? r.mode[0] : 'w'),
+        m: r.m || (r.mode ? r.mode[0] : "w"),
         d: r.d || r.distance,
         t: r.t || r.time,
         s: r.s || r.avgSpeed,
-        p: r.p || r.path
+        p: r.p || r.path,
       }));
-      localStorage.setItem('granaGo_run_history', JSON.stringify(newHistory));
+      localStorage.setItem("granaGo_run_history", JSON.stringify(newHistory));
     }
 
-    localStorage.setItem('granaGo_optimized_v2', 'true');
+    localStorage.setItem("granaGo_optimized_v2", "true");
     console.log("LocalStorage optimizado al nuevo estándar v2");
   }
 });
@@ -806,7 +1119,7 @@ function ensureMapContainerIsClean(elementId) {
 }
 
 window.navigateTo = async function (viewId, addToHistory = true) {
-  if (viewId !== 'radio') {
+  if (viewId !== "radio") {
     const radioInput = document.getElementById("radio-search-input");
     if (radioInput && radioInput.value !== "") {
       radioInput.value = "";
@@ -845,7 +1158,7 @@ window.navigateTo = async function (viewId, addToHistory = true) {
     "zbe",
     "taxi-vtc",
     "movilidad-sostenible",
-    "weather"
+    "weather",
   ];
   if (fullScreenMapViews.includes(viewId)) {
     document.body.classList.add("noscroll");
@@ -883,18 +1196,7 @@ window.navigateTo = async function (viewId, addToHistory = true) {
       if (["paradas", "lugares", "camaras", "repostar-map"].includes(viewId)) {
         extraScripts.push(loadScript("js/leaflet.markercluster.js"));
       }
-      if (
-        [
-          "camaras",
-          "ora",
-          "zonas-restringidas",
-          "taxi-vtc",
-          "parkings",
-          "movilidad-sostenible",
-        ].includes(viewId)
-      ) {
-        extraScripts.push(loadScript("js/leaflet-omnivore.min.js"));
-      }
+
       await Promise.all(extraScripts);
     }
   } catch (error) {
@@ -913,21 +1215,37 @@ window.navigateTo = async function (viewId, addToHistory = true) {
       const locations = [];
       const savedLat = localStorage.getItem("granaGo_last_lat");
       const savedLng = localStorage.getItem("granaGo_last_lng");
-      const gpsName = localStorage.getItem("granaGo_gps_name") || "Tu Ubicación";
+      const gpsName =
+        localStorage.getItem("granaGo_gps_name") || "Tu Ubicación";
 
       if (savedLat && savedLng) {
-        locations.push({ lat: savedLat, lon: savedLng, name: gpsName, isGPS: true });
+        locations.push({
+          lat: savedLat,
+          lon: savedLng,
+          name: gpsName,
+          isGPS: true,
+        });
       }
-      locations.push({ lat: GRANADA_COORDS.lat, lon: GRANADA_COORDS.lon, name: "Granada" });
-      favs.forEach(f => {
+      locations.push({
+        lat: GRANADA_COORDS.lat,
+        lon: GRANADA_COORDS.lon,
+        name: "Granada",
+      });
+      favs.forEach((f) => {
         if (f.name !== "Granada" && f.name !== gpsName) locations.push(f);
       });
 
-      const savedIdx = parseInt(localStorage.getItem("granaGo_weather_active_idx") || "0");
+      const savedIdx = parseInt(
+        localStorage.getItem("granaGo_weather_active_idx") || "0",
+      );
       weatherLocationActive = locations[savedIdx] || locations[0];
     }
 
-    initWeatherView(weatherLocationActive.lat, weatherLocationActive.lon, weatherLocationActive.name);
+    initWeatherView(
+      weatherLocationActive.lat,
+      weatherLocationActive.lon,
+      weatherLocationActive.name,
+    );
   } else if (viewId === "paradas") {
     showLoader(true);
     setTimeout(() => initMapParadas(), 400);
@@ -963,7 +1281,7 @@ window.navigateTo = async function (viewId, addToHistory = true) {
     checkDailyReward();
   } else if (viewId === "movilidad-sostenible") {
     setTimeout(() => initSostenibleMap(), 200);
-    logAutomatedEcoTrip('bike');
+    logAutomatedEcoTrip("bike");
   } else if (viewId === "tienda") {
     hideAllGameContainers();
     updateGamesMenuBalance();
@@ -1022,14 +1340,23 @@ function showPlacesLoader(visible) {
   }
 }
 
-window.showNotification = function (title, message, type = "info", duration = 2500) {
+window.showNotification = function (
+  title,
+  message,
+  type = "info",
+  duration = 2500,
+) {
   const container = document.getElementById("notification-container");
   if (!container) return;
 
   const lastToast = container.lastElementChild;
   if (lastToast) {
-    const lastTitle = lastToast.querySelector(".notification-title")?.textContent;
-    const lastMessage = lastToast.querySelector(".notification-message")?.textContent;
+    const lastTitle = lastToast.querySelector(
+      ".notification-title",
+    )?.textContent;
+    const lastMessage = lastToast.querySelector(
+      ".notification-message",
+    )?.textContent;
 
     if (lastTitle === title && lastMessage === message) {
       return;
@@ -1063,10 +1390,10 @@ window.showNotification = function (title, message, type = "info", duration = 25
 
 function initTheme() {
   const today = new Date().toDateString();
-  const lastVisit = localStorage.getItem('last_visit_achievement');
+  const lastVisit = localStorage.getItem("last_visit_achievement");
   if (lastVisit !== today) {
-    updateAchievement('loyal', 1);
-    localStorage.setItem('last_visit_achievement', today);
+    updateAchievement("loyal", 1);
+    localStorage.setItem("last_visit_achievement", today);
   }
   const toggle =
     document.getElementById("theme-toggle-view") ||
@@ -1109,12 +1436,16 @@ window.toggleWeatherFavorite = function () {
   if (!weatherLocationActive) return;
 
   if (weatherLocationActive.name === "Granada") {
-    showNotification("Información", "Granada es una ubicación fija de la app", "info");
+    showNotification(
+      "Información",
+      "Granada es una ubicación fija de la app",
+      "info",
+    );
     return;
   }
 
   let favs = getWeatherFavorites();
-  const index = favs.findIndex(f => f.name === weatherLocationActive.name);
+  const index = favs.findIndex((f) => f.name === weatherLocationActive.name);
 
   if (index > -1) {
     favs.splice(index, 1);
@@ -1130,7 +1461,7 @@ window.toggleWeatherFavorite = function () {
 };
 
 function updateWeatherFavIcon() {
-  const btn = document.getElementById('btn-fav-weather');
+  const btn = document.getElementById("btn-fav-weather");
   if (!btn || !weatherLocationActive) return;
 
   if (weatherLocationActive.name === "Tu Ubicación") {
@@ -1141,17 +1472,19 @@ function updateWeatherFavIcon() {
   }
 
   const favs = getWeatherFavorites();
-  const isFav = favs.some(f => f.name === weatherLocationActive.name) || weatherLocationActive.name === "Granada";
+  const isFav =
+    favs.some((f) => f.name === weatherLocationActive.name) ||
+    weatherLocationActive.name === "Granada";
 
-  const icon = btn.querySelector('i');
+  const icon = btn.querySelector("i");
   if (icon) {
-    icon.className = isFav ? 'ri-star-fill' : 'ri-star-line';
-    btn.style.color = isFav ? '#fbbf24' : 'inherit';
+    icon.className = isFav ? "ri-star-fill" : "ri-star-line";
+    btn.style.color = isFav ? "#fbbf24" : "inherit";
   }
 }
 
 async function initWeather() {
-  const container = document.getElementById('weather-widget-carousel');
+  const container = document.getElementById("weather-widget-carousel");
   if (!container) return;
 
   const favs = getWeatherFavorites();
@@ -1162,33 +1495,48 @@ async function initWeather() {
   const gpsName = localStorage.getItem("granaGo_gps_name") || "Tu Ubicación";
 
   if (savedLat && savedLng) {
-    locations.push({ lat: savedLat, lon: savedLng, name: gpsName, isGPS: true });
+    locations.push({
+      lat: savedLat,
+      lon: savedLng,
+      name: gpsName,
+      isGPS: true,
+    });
   }
 
-  locations.push({ lat: GRANADA_COORDS.lat, lon: GRANADA_COORDS.lon, name: "Granada" });
+  locations.push({
+    lat: GRANADA_COORDS.lat,
+    lon: GRANADA_COORDS.lon,
+    name: "Granada",
+  });
 
-  favs.forEach(f => {
+  favs.forEach((f) => {
     if (f.name !== "Granada" && f.name !== gpsName) locations.push(f);
   });
 
   container.innerHTML = "";
 
   locations.forEach((loc, index) => {
-    const card = document.createElement('div');
+    const card = document.createElement("div");
     card.className = "weather-card-snap notranslate";
     card.onclick = () => {
       weatherLocationActive = loc;
-      navigateTo('weather');
+      navigateTo("weather");
     };
     card.innerHTML = `<div class="skeleton-text" style="height:80px; width:100%"></div>`;
     container.appendChild(card);
     fetchWidgetData(loc, card);
   });
 
-  const savedIndex = parseInt(localStorage.getItem("granaGo_weather_active_idx") || "0");
+  const savedIndex = parseInt(
+    localStorage.getItem("granaGo_weather_active_idx") || "0",
+  );
   setTimeout(() => {
-    const cardWidth = container.querySelector('.weather-card-snap')?.offsetWidth || 0;
-    container.scrollTo({ left: savedIndex * (cardWidth + 10), behavior: 'auto' });
+    const cardWidth =
+      container.querySelector(".weather-card-snap")?.offsetWidth || 0;
+    container.scrollTo({
+      left: savedIndex * (cardWidth + 10),
+      behavior: "auto",
+    });
   }, 100);
 
   container.onscroll = debounce(() => {
@@ -1200,8 +1548,12 @@ async function initWeather() {
 async function fetchWidgetData(loc, cardElement) {
   try {
     const [weatherRes, aqiRes] = await Promise.all([
-      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto`),
-      fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${loc.lat}&longitude=${loc.lon}&current=european_aqi`)
+      fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto`,
+      ),
+      fetch(
+        `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${loc.lat}&longitude=${loc.lon}&current=european_aqi`,
+      ),
     ]);
 
     if (!weatherRes.ok || !aqiRes.ok) throw new Error("Error API");
@@ -1215,17 +1567,27 @@ async function fetchWidgetData(loc, cardElement) {
     const weatherIconName = getWeatherIconName(code);
     const weatherDesc = getWeatherDesc(code);
 
-    let aqiText = "Excelente", aqiColor = "#10b981";
-    if (aqi > 20) { aqiText = "Bueno"; aqiColor = "#84cc16"; }
-    else if (aqi > 40) { aqiText = "Regular"; aqiColor = "#f59e0b"; }
-    else if (aqi > 60) { aqiText = "Pobre"; aqiColor = "#ef4444"; }
-    else if (aqi > 80) { aqiText = "Muy Pobre"; aqiColor = "#991b1b"; }
+    let aqiText = "Excelente",
+      aqiColor = "#10b981";
+    if (aqi > 20) {
+      aqiText = "Bueno";
+      aqiColor = "#84cc16";
+    } else if (aqi > 40) {
+      aqiText = "Regular";
+      aqiColor = "#f59e0b";
+    } else if (aqi > 60) {
+      aqiText = "Pobre";
+      aqiColor = "#ef4444";
+    } else if (aqi > 80) {
+      aqiText = "Muy Pobre";
+      aqiColor = "#991b1b";
+    }
 
     cardElement.innerHTML = `
             <div class="weather-card-premium">
                 <div class="weather-left">
                     <div class="location-badge notranslate">
-                        <i class="icon ${loc.isGPS ? 'ri-map-pin-user-fill' : 'ri-map-pin-2-fill'}"></i> ${loc.name}
+                        <i class="icon ${loc.isGPS ? "ri-map-pin-user-fill" : "ri-map-pin-2-fill"}"></i> ${loc.name}
                     </div>
                     <div class="weather-temp notranslate">${temp}°</div>
                     <div class="weather-desc">${weatherDesc}</div>
@@ -1243,7 +1605,6 @@ async function fetchWidgetData(loc, cardElement) {
                     </div>
                 </div>
             </div>`;
-
   } catch (e) {
     console.error("Error cargando tarjeta de carrusel:", e);
     cardElement.innerHTML = `
@@ -1888,7 +2249,11 @@ function processStops(
     const marker = L.marker([stop.lat, stop.lon], { icon: customIcon });
     let buttonHTML = "";
 
-    if (layerKey === "urbano" || layerKey === "metro" || layerKey === "interurbano") {
+    if (
+      layerKey === "urbano" ||
+      layerKey === "metro" ||
+      layerKey === "interurbano"
+    ) {
       let apiId = "";
       if (layerKey === "urbano") apiId = stop.stop_code;
       else if (layerKey === "metro") apiId = stop.stop_id;
@@ -2221,10 +2586,11 @@ window.filterLines = async function (type, btn) {
 
     row.innerHTML = `
             <div class="line-icon-box" style="--line-color: ${color}">
-                ${type === "metro"
-        ? '<i class="ri-train-fill" style="font-size:1.2rem"></i>'
-        : id
-      }
+                ${
+                  type === "metro"
+                    ? '<i class="ri-train-fill" style="font-size:1.2rem"></i>'
+                    : id
+                }
             </div>
             <div class="line-info-col">
                 <span class="line-info-title notranslate">${nombreLinea}</span>
@@ -2257,11 +2623,16 @@ window.openLineDetail = function (lineId, type, color, lineName) {
 };
 
 window.switchLineTab = function (tabName) {
-  document.querySelectorAll(".detail-tab").forEach(b => b.classList.remove("active"));
-  document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+  document
+    .querySelectorAll(".detail-tab")
+    .forEach((b) => b.classList.remove("active"));
+  document
+    .querySelectorAll(".tab-content")
+    .forEach((c) => c.classList.remove("active"));
 
-  const targetBtn = Array.from(document.querySelectorAll(".detail-tab"))
-    .find(btn => btn.getAttribute('onclick').includes(`'${tabName}'`));
+  const targetBtn = Array.from(document.querySelectorAll(".detail-tab")).find(
+    (btn) => btn.getAttribute("onclick").includes(`'${tabName}'`),
+  );
   if (targetBtn) targetBtn.classList.add("active");
 
   const content = document.getElementById(`tab-content-${tabName}`);
@@ -2589,8 +2960,8 @@ window.openRealTimeModal = function (apiId, type, stopName) {
       name: stopName,
     });
   }
-  updateAchievement('bus_fan', 1);
-  logAutomatedEcoTrip('pt');
+  updateAchievement("bus_fan", 1);
+  logAutomatedEcoTrip("pt");
   fetchRealTimeData(apiId, type);
 };
 
@@ -2614,7 +2985,6 @@ document.addEventListener("click", (e) => {
 });
 
 async function fetchRealTimeData(id, type) {
-
   if (currentRTController) currentRTController.abort();
   currentRTController = new AbortController();
 
@@ -2636,7 +3006,9 @@ async function fetchRealTimeData(id, type) {
       try {
         const url = `${API_BASE}/bus/llegadas/${id}`;
         const res = await fetch(PROXY_URL + encodeURIComponent(url), {
-          priority: 'high', signal: currentRTController.signal, cache: 'no-cache'
+          priority: "high",
+          signal: currentRTController.signal,
+          cache: "no-cache",
         });
 
         if (res.ok) {
@@ -2648,33 +3020,54 @@ async function fetchRealTimeData(id, type) {
           }
         }
       } catch (apiErr) {
-        if (apiErr.name === 'AbortError') return;
+        if (apiErr.name === "AbortError") return;
         console.warn("API de bus fallida, usando respaldo estático");
       }
 
       if (!apiSuccess) {
         try {
           const [resTiempos, resParadas] = await Promise.all([
-            fetch("data/urbano/tiempos_proximos.json").then(r => r.json()),
-            fetch("data/urbano/paradas.json").then(r => r.json())
+            fetch("data/urbano/tiempos_proximos.json").then((r) => r.json()),
+            fetch("data/urbano/paradas.json").then((r) => r.json()),
           ]);
 
           const stopData = resTiempos[id];
           if (stopData) {
             const nowDate = new Date();
-            const currentTime = nowDate.getHours().toString().padStart(2, '0') + ":" + nowDate.getMinutes().toString().padStart(2, '0');
-            const dayKey = (nowDate.getDay() === 5) ? "V" : (nowDate.getDay() === 6) ? "S" : (nowDate.getDay() === 0) ? "D" : "L-J";
+            const currentTime =
+              nowDate.getHours().toString().padStart(2, "0") +
+              ":" +
+              nowDate.getMinutes().toString().padStart(2, "0");
+            const dayKey =
+              nowDate.getDay() === 5
+                ? "V"
+                : nowDate.getDay() === 6
+                  ? "S"
+                  : nowDate.getDay() === 0
+                    ? "D"
+                    : "L-J";
 
-            Object.keys(stopData).forEach(lineId => {
-              const nextTime = (stopData[lineId][dayKey] || []).find(t => t > currentTime);
+            Object.keys(stopData).forEach((lineId) => {
+              const nextTime = (stopData[lineId][dayKey] || []).find(
+                (t) => t > currentTime,
+              );
               if (nextTime) {
                 const [h, m] = nextTime.split(":").map(Number);
                 const diffMin = calcularMinutos(h, m);
 
                 if (diffMin >= 0) {
                   const lineInfo = resParadas[lineId];
-                  const longName = lineInfo?.ida?.[0]?.nombre_linea || lineInfo?.vuelta?.[0]?.nombre_linea || `Línea ${lineId}`;
-                  data.proximos.push({ linea: lineId, destino: longName, minutos: diffMin, horaExacta: nextTime, isStatic: true });
+                  const longName =
+                    lineInfo?.ida?.[0]?.nombre_linea ||
+                    lineInfo?.vuelta?.[0]?.nombre_linea ||
+                    `Línea ${lineId}`;
+                  data.proximos.push({
+                    linea: lineId,
+                    destino: longName,
+                    minutos: diffMin,
+                    horaExacta: nextTime,
+                    isStatic: true,
+                  });
                 }
               }
             });
@@ -2683,44 +3076,74 @@ async function fetchRealTimeData(id, type) {
           console.error("Error en fallback urbano:", e);
         }
       }
-
     } else if (type === "metro") {
       const url = `${API_BASE}/metro/llegadas/${parseInt(id)}`;
       try {
-        const res = await fetch(PROXY_URL + encodeURIComponent(url), { priority: 'high', signal: currentRTController.signal, cache: 'no-cache' });
+        const res = await fetch(PROXY_URL + encodeURIComponent(url), {
+          priority: "high",
+          signal: currentRTController.signal,
+          cache: "no-cache",
+        });
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
         const metroData = await res.json();
         const apiArrivals = metroData.proximos || metroData.llegadas;
-        if (!apiArrivals || apiArrivals.length === 0) throw new Error("No hay llegadas en la API");
+        if (!apiArrivals || apiArrivals.length === 0)
+          throw new Error("No hay llegadas en la API");
 
-        data.proximos = apiArrivals.map(p => {
+        data.proximos = apiArrivals.map((p) => {
           let direccionLimpia = (p.direccion || p.destino || "Metro").trim();
-          if (direccionLimpia.toLowerCase().includes("armilla")) direccionLimpia = "Armilla";
-          if (direccionLimpia.toLowerCase().includes("albolote")) direccionLimpia = "Albolote";
+          if (direccionLimpia.toLowerCase().includes("armilla"))
+            direccionLimpia = "Armilla";
+          if (direccionLimpia.toLowerCase().includes("albolote"))
+            direccionLimpia = "Albolote";
           return { ...p, direccion: direccionLimpia };
         });
-
       } catch (e) {
-        if (e.name === 'AbortError') return;
+        if (e.name === "AbortError") return;
         console.warn("⚠️ Error en API Metro. Usando estático:", e.message);
 
         try {
-          const resTiempos = await fetch("data/metro/tiempos_proximos.json").then(r => r.json());
+          const resTiempos = await fetch(
+            "data/metro/tiempos_proximos.json",
+          ).then((r) => r.json());
           const stopData = resTiempos[id];
 
           if (stopData) {
             const nowDate = new Date();
-            const currentTime = nowDate.getHours().toString().padStart(2, '0') + ":" + nowDate.getMinutes().toString().padStart(2, '0');
-            const dayKey = (nowDate.getDay() === 5) ? "V" : (nowDate.getDay() === 6) ? "S" : (nowDate.getDay() === 0) ? "D" : "L-J";
+            const currentTime =
+              nowDate.getHours().toString().padStart(2, "0") +
+              ":" +
+              nowDate.getMinutes().toString().padStart(2, "0");
+            const dayKey =
+              nowDate.getDay() === 5
+                ? "V"
+                : nowDate.getDay() === 6
+                  ? "S"
+                  : nowDate.getDay() === 0
+                    ? "D"
+                    : "L-J";
 
             for (const [dirKey, schedule] of Object.entries(stopData)) {
-              const nextTimes = (schedule[dayKey] || []).filter(t => t > currentTime).slice(0, 2);
-              let destName = (dirKey === "2" || dirKey === "0" || dirKey.toLowerCase().includes("armilla")) ? "Armilla" : "Albolote";
+              const nextTimes = (schedule[dayKey] || [])
+                .filter((t) => t > currentTime)
+                .slice(0, 2);
+              let destName =
+                dirKey === "2" ||
+                dirKey === "0" ||
+                dirKey.toLowerCase().includes("armilla")
+                  ? "Armilla"
+                  : "Albolote";
 
-              nextTimes.forEach(t => {
+              nextTimes.forEach((t) => {
                 const [h, m] = t.split(":").map(Number);
-                data.proximos.push({ linea: "1", direccion: destName, minutos: calcularMinutos(h, m), horaExacta: t, isStatic: true });
+                data.proximos.push({
+                  linea: "1",
+                  direccion: destName,
+                  minutos: calcularMinutos(h, m),
+                  horaExacta: t,
+                  isStatic: true,
+                });
               });
             }
           }
@@ -2728,30 +3151,50 @@ async function fetchRealTimeData(id, type) {
           console.error("Error en fallback de metro:", err);
         }
       }
-
     } else if (type === "interurbano") {
       try {
         const [resTiempos, resParadas] = await Promise.all([
-          fetch("data/interurbano/tiempos_proximos.json").then(r => r.json()),
-          fetch("data/interurbano/paradas.json").then(r => r.json())
+          fetch("data/interurbano/tiempos_proximos.json").then((r) => r.json()),
+          fetch("data/interurbano/paradas.json").then((r) => r.json()),
         ]);
 
         const stopData = resTiempos[id];
         if (stopData) {
           const nowDate = new Date();
-          const currentTime = nowDate.getHours().toString().padStart(2, '0') + ":" + nowDate.getMinutes().toString().padStart(2, '0');
-          const dayKey = (nowDate.getDay() === 5) ? "V" : (nowDate.getDay() === 6) ? "S" : (nowDate.getDay() === 0) ? "D" : "L-J";
+          const currentTime =
+            nowDate.getHours().toString().padStart(2, "0") +
+            ":" +
+            nowDate.getMinutes().toString().padStart(2, "0");
+          const dayKey =
+            nowDate.getDay() === 5
+              ? "V"
+              : nowDate.getDay() === 6
+                ? "S"
+                : nowDate.getDay() === 0
+                  ? "D"
+                  : "L-J";
 
           for (const [lineaId, schedule] of Object.entries(stopData)) {
-            const nextTimes = (schedule[dayKey] || []).filter(t => t > currentTime).slice(0, 2);
-            const cleanId = lineaId.trim().replace(/^0+/, '');
+            const nextTimes = (schedule[dayKey] || [])
+              .filter((t) => t > currentTime)
+              .slice(0, 2);
+            const cleanId = lineaId.trim().replace(/^0+/, "");
             const lineInfo = resParadas[cleanId] || resParadas[lineaId];
 
-            const longName = lineInfo?.ida?.[0]?.nombre_linea || lineInfo?.vuelta?.[0]?.nombre_linea || `Línea ${lineaId}`;
+            const longName =
+              lineInfo?.ida?.[0]?.nombre_linea ||
+              lineInfo?.vuelta?.[0]?.nombre_linea ||
+              `Línea ${lineaId}`;
 
-            nextTimes.forEach(t => {
+            nextTimes.forEach((t) => {
               const [h, m] = t.split(":").map(Number);
-              data.proximos.push({ linea: lineaId, destino: longName, minutos: calcularMinutos(h, m), horaExacta: t, isStatic: true });
+              data.proximos.push({
+                linea: lineaId,
+                destino: longName,
+                minutos: calcularMinutos(h, m),
+                horaExacta: t,
+                isStatic: true,
+              });
             });
           }
         }
@@ -2762,9 +3205,8 @@ async function fetchRealTimeData(id, type) {
 
     data.proximos.sort((a, b) => a.minutos - b.minutos);
     renderRealTimeResults(data, type);
-
   } catch (e) {
-    if (e.name === 'AbortError') return;
+    if (e.name === "AbortError") return;
     console.error("Error general:", e);
     renderRealTimeResults({ proximos: [] }, type);
   }
@@ -2817,7 +3259,7 @@ function renderRealTimeResults(data, type) {
         let timeObj;
 
         if (p.isStatic) {
-          let timeText = (p.minutos > 30) ? p.horaExacta : `${p.minutos} min`;
+          let timeText = p.minutos > 30 ? p.horaExacta : `${p.minutos} min`;
           let timeClass = "time-scheduled";
 
           if (p.minutos === 0) {
@@ -2829,7 +3271,13 @@ function renderRealTimeResults(data, type) {
           timeObj = formatTime(p.minutos, "metro");
         }
 
-        html += createRowHTML(timeObj, "M", "#009a44", "ri-train-fill", "Metro");
+        html += createRowHTML(
+          timeObj,
+          "M",
+          "#009a44",
+          "ri-train-fill",
+          "Metro",
+        );
       });
       html += `</div>`;
     });
@@ -2838,13 +3286,18 @@ function renderRealTimeResults(data, type) {
 
     arrivals.forEach((p) => {
       const lineId = (p.linea?.id || p.linea || "?").toString();
-      const regexRedundancy = new RegExp(`^(L[íi]nea\\s+)?${lineId}\\s*[-]?\\s*`, "i");
-      let destinoDisplay = (p.destino || "Desconocido").replace(regexRedundancy, "").trim();
+      const regexRedundancy = new RegExp(
+        `^(L[íi]nea\\s+)?${lineId}\\s*[-]?\\s*`,
+        "i",
+      );
+      let destinoDisplay = (p.destino || "Desconocido")
+        .replace(regexRedundancy, "")
+        .trim();
 
       let timeObj;
 
       if (p.isStatic) {
-        let timeText = (p.minutos > 30) ? p.horaExacta : `${p.minutos} min`;
+        let timeText = p.minutos > 30 ? p.horaExacta : `${p.minutos} min`;
         let timeClass = "time-scheduled";
 
         if (p.minutos === 0) {
@@ -2858,7 +3311,9 @@ function renderRealTimeResults(data, type) {
         timeObj = formatTime(p.minutos, "urbano");
       }
 
-      const realColor = window.appColors?.[type]?.[lineId] || (type === "interurbano" ? "#2757f5" : "#D9281C");
+      const realColor =
+        window.appColors?.[type]?.[lineId] ||
+        (type === "interurbano" ? "#2757f5" : "#D9281C");
 
       html += createRowHTML(timeObj, lineId, realColor, null, destinoDisplay);
     });
@@ -2929,18 +3384,26 @@ window.toggleFavorite = function (id, type, name, linesStr, btnElement) {
     }
   }
   localStorage.setItem("granaGo_favs", JSON.stringify(favs));
-  if (document.getElementById("favoritos-view").classList.contains("active")) renderFavoritesList();
+  if (document.getElementById("favoritos-view").classList.contains("active"))
+    renderFavoritesList();
 };
 
 window.toggleCurrentLineFav = function () {
   let favs = getFavoriteLines();
-  const index = favs.findIndex((f) => f.i === currentLineId && f.t === currentTransportType[0]);
+  const index = favs.findIndex(
+    (f) => f.i === currentLineId && f.t === currentTransportType[0],
+  );
 
   if (index !== -1) {
     favs.splice(index, 1);
     showNotification("Eliminada", "Línea quitada de favoritos", "info");
   } else {
-    favs.push({ i: currentLineId, t: currentTransportType[0], c: currentLineColor, n: currentLineName });
+    favs.push({
+      i: currentLineId,
+      t: currentTransportType[0],
+      c: currentLineColor,
+      n: currentLineName,
+    });
     showNotification("Guardada", "Línea añadida a favoritos", "success");
   }
   localStorage.setItem("granaGo_fav_lines", JSON.stringify(favs));
@@ -2962,8 +3425,12 @@ function updateLineFavIcon() {
   const btn = document.getElementById("btn-fav-line");
   if (!btn) return;
   const favs = getFavoriteLines();
-  const isFav = favs.some((f) => f.i === currentLineId && f.t === currentTransportType[0]);
-  btn.innerHTML = isFav ? '<i class="icon ri-star-fill" style="color:#fbbf24"></i>' : '<i class="icon ri-star-line"></i>';
+  const isFav = favs.some(
+    (f) => f.i === currentLineId && f.t === currentTransportType[0],
+  );
+  btn.innerHTML = isFav
+    ? '<i class="icon ri-star-fill" style="color:#fbbf24"></i>'
+    : '<i class="icon ri-star-line"></i>';
 }
 
 function renderFavoritesList() {
@@ -2981,11 +3448,12 @@ function renderFavoritesList() {
   if (favLines.length > 0) {
     const header = document.createElement("h3");
     header.innerText = "Líneas Guardadas";
-    header.style.cssText = "margin: 10px 0 10px 5px; font-size: 0.95rem; opacity: 0.7;";
+    header.style.cssText =
+      "margin: 10px 0 10px 5px; font-size: 0.95rem; opacity: 0.7;";
     fragment.appendChild(header);
 
     favLines.forEach((l) => {
-      const typeLabel = l.t === 'm' ? 'metro' : 'urbano';
+      const typeLabel = l.t === "m" ? "metro" : "urbano";
       const card = document.createElement("div");
       card.className = "fav-card";
       card.innerHTML = `
@@ -3003,13 +3471,21 @@ function renderFavoritesList() {
   if (favStops.length > 0) {
     const header = document.createElement("h3");
     header.innerText = "Paradas Guardadas";
-    header.style.cssText = "margin: 20px 0 10px 5px; font-size: 0.95rem; opacity: 0.7;";
+    header.style.cssText =
+      "margin: 20px 0 10px 5px; font-size: 0.95rem; opacity: 0.7;";
     fragment.appendChild(header);
 
     favStops.forEach((f) => {
-      const typeLabel = f.t === 'm' ? 'metro' : (f.t === 'i' ? 'interurbano' : 'urbano');
-      const iconClass = f.t === "m" ? "ri-train-fill" : (f.t === "i" ? "ri-bus-2-fill" : "ri-bus-fill");
-      const color = f.t === "m" ? "#009a44" : (f.t === "i" ? "#2757f5" : "#D9281C");
+      const typeLabel =
+        f.t === "m" ? "metro" : f.t === "i" ? "interurbano" : "urbano";
+      const iconClass =
+        f.t === "m"
+          ? "ri-train-fill"
+          : f.t === "i"
+            ? "ri-bus-2-fill"
+            : "ri-bus-fill";
+      const color =
+        f.t === "m" ? "#009a44" : f.t === "i" ? "#2757f5" : "#D9281C";
       const safeName = f.n.replace(/'/g, "\\'");
 
       const card = document.createElement("div");
@@ -3127,7 +3603,7 @@ async function initLugaresMap() {
         });
         L.marker(latlng, { icon: gpsIcon }).addTo(placesMapInstance);
       },
-      () => { },
+      () => {},
       { enableHighAccuracy: true, timeout: 3000 },
     );
   }
@@ -3837,7 +4313,7 @@ function initRepostarMap() {
           repostarUserMarker.setLatLng(latlng);
         }
       },
-      () => { },
+      () => {},
       { enableHighAccuracy: true, timeout: 3000 },
     );
   } else {
@@ -3934,8 +4410,9 @@ function renderFuelMarkers(list, isRanking) {
 
     const icon = L.divIcon({
       className: "",
-      html: `<div class="${markerClass}" style="background-color: ${bgColor}; border: 2px solid white; width: ${isRanking ? 40 : 32
-        }px; height: ${isRanking ? 40 : 32}px; font-weight:800;">
+      html: `<div class="${markerClass}" style="background-color: ${bgColor}; border: 2px solid white; width: ${
+        isRanking ? 40 : 32
+      }px; height: ${isRanking ? 40 : 32}px; font-weight:800;">
                      ${iconHtml}
                    </div>`,
       iconSize: [isRanking ? 40 : 32, isRanking ? 40 : 32],
@@ -4164,13 +4641,16 @@ function renderEVMarkers(list) {
     marker.bindPopup(
       `
              <div style="text-align:center;">
-                <strong style="color:${color}">${isFree ? "GRATIS" : "DE PAGO"
-      }</strong>
-                <p style="margin:5px 0;">${el.tags.operator || "Cargador Público"
-      }</p>
+                <strong style="color:${color}">${
+                  isFree ? "GRATIS" : "DE PAGO"
+                }</strong>
+                <p style="margin:5px 0;">${
+                  el.tags.operator || "Cargador Público"
+                }</p>
                 <small>${details}</small>
-                <button class="btn-navigate-popup" onclick="openMapsApp(${el.lat
-      }, ${el.lon})">
+                <button class="btn-navigate-popup" onclick="openMapsApp(${
+                  el.lat
+                }, ${el.lon})">
                     <i class="ri-direction-fill"></i> Ir
                 </button>
              </div>
@@ -4293,7 +4773,7 @@ async function initCamarasMap() {
           }),
         }).addTo(camarasMapInstance);
       },
-      () => { },
+      () => {},
       { enableHighAccuracy: true, timeout: 3000 },
     );
   } else {
@@ -4319,35 +4799,35 @@ async function initCamarasMap() {
 }
 
 function loadLocalKMLCameras() {
-  return new Promise((resolve) => {
-    const customLayer = L.geoJson(null, {
-      pointToLayer: function (feature, latlng) {
-        return createCameraMarker(latlng, "urbano");
-      },
-      onEachFeature: function (feature, layer) {
-        const name = feature.properties.name || "Cámara Tráfico";
-        const content = `
+  return new Promise(async (resolve) => {
+    try {
+      const response = await fetch("data/camaras_granada.geojson");
+      const data = await response.json();
+
+      const customLayer = L.geoJSON(data, {
+        pointToLayer: function (feature, latlng) {
+          return createCameraMarker(latlng, "urbano");
+        },
+        onEachFeature: function (feature, layer) {
+          const name = feature.properties.name || "Cámara Tráfico";
+          const content = `
             <div style="text-align:center; min-width:150px;">
                 <strong class="notranslate" style="color:var(--color-purple); font-size:1rem; display:block; margin-bottom:5px;">${name}</strong>
                 <span style="font-size:0.8rem; color:var(--text-secondary); background:var(--bg-app); padding:4px 8px; border-radius:10px; border:1px solid var(--border-subtle);">
                     Ayto. Granada
                 </span>
             </div>
-        `;
-        layer.bindPopup(content, { closeButton: false });
-      },
-    });
-
-    omnivore
-      .kml("data/camaras_granada.kml", null, customLayer)
-      .on("ready", function () {
-        camarasClusterGroup.addLayer(this);
-        resolve();
-      })
-      .on("error", function (e) {
-        console.warn("Error KML local:", e);
-        resolve();
+          `;
+          layer.bindPopup(content, { closeButton: false });
+        },
       });
+
+      camarasClusterGroup.addLayer(customLayer);
+      resolve();
+    } catch (e) {
+      console.warn("Error GeoJSON local:", e);
+      resolve();
+    }
   });
 }
 
@@ -4409,7 +4889,7 @@ async function loadDGTXMLCameras() {
       if (!isGranada) {
         const dist = Math.sqrt(
           Math.pow(lat - GRANADA_COORDS.lat, 2) +
-          Math.pow(lon - GRANADA_COORDS.lon, 2),
+            Math.pow(lon - GRANADA_COORDS.lon, 2),
         );
         if (dist < 0.5) isGranada = true;
       }
@@ -4834,50 +5314,49 @@ async function loadStaticParkingsCSV() {
 async function loadMotoParkingsKML() {
   if (!parkingsMapInstance) return;
 
-  const kmlPath = "data/parkingmotos.kml";
-  const motoIcon = L.divIcon({
-    className: "",
-    html: `
-      <div class="transport-marker-container" style="background-color: #6366f1; border: 2px solid white;">
-        <i class="ri-motorbike-fill" style="font-size: 16px; color: white;"></i>
-      </div>`,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-    popupAnchor: [0, -10],
-  });
+  try {
+    const response = await fetch("data/parkingmotos.geojson");
+    const data = await response.json();
 
-  const customLayer = L.geoJson(null, {
-    pointToLayer: function (feature, latlng) {
-      return L.marker(latlng, { icon: motoIcon });
-    },
-    onEachFeature: function (feature, layer) {
-      const name = feature.properties.name || "Parking de Motos";
-      let desc = feature.properties.description || "";
+    const motoIcon = L.divIcon({
+      className: "",
+      html: `
+        <div class="transport-marker-container" style="background-color: #6366f1; border: 2px solid white;">
+          <i class="ri-motorbike-fill" style="font-size: 16px; color: white;"></i>
+        </div>`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+      popupAnchor: [0, -10],
+    });
 
-      const content = `
-        <div style="text-align:center; min-width:150px;">
-            <strong class="notranslate" style="color:#6366f1; font-size:0.95rem; display:block; margin-bottom:5px;">
-                ${name}
-            </strong>
-            <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:8px;">
-                Reserva para motocicletas
-            </div>
-            <button class="btn-navigate-popup" onclick="openMapsApp(${layer.getLatLng().lat
-        }, ${layer.getLatLng().lng})">
-                <i class="ri-direction-fill"></i> Ir ahora
-            </button>
-        </div>
-      `;
-      layer.bindPopup(content, { closeButton: false });
-    },
-  });
+    motoParkingsLayerGroup = L.geoJSON(data, {
+      pointToLayer: function (feature, latlng) {
+        return L.marker(latlng, { icon: motoIcon });
+      },
+      onEachFeature: function (feature, layer) {
+        const name = feature.properties.name || "Parking de Motos";
 
-  motoParkingsLayerGroup = omnivore
-    .kml(kmlPath, null, customLayer)
-    .on("ready", function () {
-      console.log("Capa de motos cargada");
-    })
-    .addTo(parkingsMapInstance);
+        const content = `
+          <div style="text-align:center; min-width:150px;">
+              <strong class="notranslate" style="color:#6366f1; font-size:0.95rem; display:block; margin-bottom:5px;">
+                  ${name}
+              </strong>
+              <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:8px;">
+                  Reserva para motocicletas
+              </div>
+              <button class="btn-navigate-popup" onclick="openMapsApp(${layer.getLatLng().lat}, ${layer.getLatLng().lng})">
+                  <i class="ri-direction-fill"></i> Ir ahora
+              </button>
+          </div>
+        `;
+        layer.bindPopup(content, { closeButton: false });
+      },
+    }).addTo(parkingsMapInstance);
+
+    console.log("Capa de motos cargada");
+  } catch (e) {
+    console.error("Error cargando parkingmotos:", e);
+  }
 }
 
 window.toggleParkingLayer = function (type, btnElement) {
@@ -4935,55 +5414,58 @@ async function initORAMap() {
   }
 }
 
-function loadORAKML() {
-  const customLayer = L.geoJson(null, {
-    style: function (feature) {
-      let color = "#2563eb";
-      const desc = feature.properties.description || "";
+async function loadORAKML() {
+  try {
+    const response = await fetch("data/aparcamiento_limitado_granada.geojson");
+    const data = await response.json();
 
-      if (desc.includes("ROJA")) color = "#ef4444";
-      else if (desc.includes("VERDE")) color = "#10b981";
-      else if (desc.includes("AZUL")) color = "#2563eb";
+    L.geoJSON(data, {
+      style: function (feature) {
+        let color = "#2563eb";
+        const desc = feature.properties.description || "";
 
-      return {
-        color: color,
-        weight: 4,
-        opacity: 0.8,
-      };
-    },
-    onEachFeature: function (feature, layer) {
-      const desc = feature.properties.description || "";
+        if (desc.includes("ROJA")) color = "#ef4444";
+        else if (desc.includes("VERDE")) color = "#10b981";
+        else if (desc.includes("AZUL")) color = "#2563eb";
 
-      let tipo = "Zona Azul";
-      let colorHex = "#2563eb";
-      if (desc.includes("ROJA")) {
-        tipo = "Zona Roja";
-        colorHex = "#ef4444";
-      }
-      if (desc.includes("VERDE")) {
-        tipo = "Zona Verde";
-        colorHex = "#10b981";
-      }
+        return {
+          color: color,
+          weight: 4,
+          opacity: 0.8,
+        };
+      },
+      onEachFeature: function (feature, layer) {
+        const desc = feature.properties.description || "";
 
-      const tiempoMatch = desc.match(/Máximo\s+([\w\s]+)/i);
-      const tiempo = tiempoMatch ? tiempoMatch[1] : "Consultar parquímetro";
+        let tipo = "Zona Azul";
+        let colorHex = "#2563eb";
+        if (desc.includes("ROJA")) {
+          tipo = "Zona Roja";
+          colorHex = "#ef4444";
+        }
+        if (desc.includes("VERDE")) {
+          tipo = "Zona Verde";
+          colorHex = "#10b981";
+        }
 
-      const content = `
-                <div style="text-align:center; min-width:180px;">
-                    <strong style="font-size:1rem; color:${colorHex}; display:block; margin-bottom:4px;">${tipo}</strong>
-                    <div style="font-size:0.9rem; font-weight:700; margin-bottom:8px;">${feature.properties.name}</div>
-                    <div style="background:var(--bg-app); padding:6px; border-radius:8px; border:1px solid var(--border-subtle); font-size:0.8rem; color:var(--text-secondary);">
-                        <i class="ri-time-line"></i> Máx: ${tiempo}
-                    </div>
-                </div>
-            `;
-      layer.bindPopup(content, { closeButton: false });
-    },
-  });
+        const tiempoMatch = desc.match(/Máximo\s+([\w\s]+)/i);
+        const tiempo = tiempoMatch ? tiempoMatch[1] : "Consultar parquímetro";
 
-  omnivore
-    .kml("data/aparcamiento_limitado_granada.kml", null, customLayer)
-    .addTo(oraMapInstance);
+        const content = `
+                  <div style="text-align:center; min-width:180px;">
+                      <strong style="font-size:1rem; color:${colorHex}; display:block; margin-bottom:4px;">${tipo}</strong>
+                      <div style="font-size:0.9rem; font-weight:700; margin-bottom:8px;">${feature.properties.name}</div>
+                      <div style="background:var(--bg-app); padding:6px; border-radius:8px; border:1px solid var(--border-subtle); font-size:0.8rem; color:var(--text-secondary);">
+                          <i class="ri-time-line"></i> Máx: ${tiempo}
+                      </div>
+                  </div>
+              `;
+        layer.bindPopup(content, { closeButton: false });
+      },
+    }).addTo(oraMapInstance);
+  } catch (e) {
+    console.error("Error cargando ORA:", e);
+  }
 }
 
 window.scrollToParkingsList = function () {
@@ -5026,75 +5508,75 @@ async function initRestriccionesMap() {
   }
 }
 
-function loadKMLData() {
-  const kmlPath = "data/zonas_restringidas.kml";
+async function loadKMLData() {
+  try {
+    const response = await fetch("data/zonas_restringidas.geojson");
+    const data = await response.json();
 
-  const customLayer = L.geoJson(null, {
-    style: function (feature) {
-      if (feature.geometry.type === "Polygon") {
-        return {
-          color: "#ef4444",
-          fillColor: "#ef4444",
-          weight: 2,
-          opacity: 1,
-          fillOpacity: 0.15,
-        };
-      }
-      return {};
-    },
-    pointToLayer: function (feature, latlng) {
-      return L.marker(latlng, {
-        icon: L.divIcon({
-          className: "transport-marker-container",
-          html: `<i class="icon ri-camera-lens-fill" style="font-size:16px;"></i>`,
-          iconSize: [28, 28],
-          iconAnchor: [14, 14],
-          bgPos: [0, 0],
-        }),
-      });
-    },
-    onEachFeature: function (feature, layer) {
-      if (feature.properties) {
-        let content = `<div style="text-align:center; min-width:200px;">`;
-        if (feature.properties.name)
-          content += `<h4 style="margin:0 0 5px 0; color:var(--text-primary);">${feature.properties.name}</h4>`;
-
-        if (feature.properties.description) {
-          let desc = feature.properties.description;
-          content += `<div style="font-size:0.85rem; color:var(--text-secondary); text-align:left;">${desc}</div>`;
+    const customLayer = L.geoJSON(data, {
+      style: function (feature) {
+        if (feature.geometry && feature.geometry.type === "Polygon") {
+          return {
+            color: "#ef4444",
+            fillColor: "#ef4444",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.15,
+          };
         }
-        content += `</div>`;
-        layer.bindPopup(content, { closeButton: false });
-      }
-    },
-  });
+        return {};
+      },
+      pointToLayer: function (feature, latlng) {
+        return L.marker(latlng, {
+          icon: L.divIcon({
+            className: "transport-marker-container",
+            html: `<i class="icon ri-camera-lens-fill" style="font-size:16px;"></i>`,
+            iconSize: [28, 28],
+            iconAnchor: [14, 14],
+          }),
+        });
+      },
+      onEachFeature: function (feature, layer) {
+        if (feature.properties) {
+          let content = `<div style="text-align:center; min-width:200px;">`;
+          if (feature.properties.name)
+            content += `<h4 style="margin:0 0 5px 0; color:var(--text-primary);">${feature.properties.name}</h4>`;
 
-  const runLayer = omnivore
-    .kml(kmlPath, null, customLayer)
-    .on("ready", function () {
-      restriccionesLayer = runLayer;
-      runLayer.addTo(restriccionesMap);
-      restriccionesMap.fitBounds(runLayer.getBounds(), { padding: [20, 20] });
-    })
-    .on("error", function (e) {
-      console.error("Error cargando KML local:", e);
-      showNotification(
-        "Error",
-        "No se pudo cargar el archivo KML local",
-        "error",
-      );
+          if (feature.properties.description) {
+            let desc = feature.properties.description;
+            content += `<div style="font-size:0.85rem; color:var(--text-secondary); text-align:left;">${desc}</div>`;
+          }
+          content += `</div>`;
+          layer.bindPopup(content, { closeButton: false });
+        }
+      },
     });
+
+    restriccionesLayer = customLayer;
+    customLayer.addTo(restriccionesMap);
+    restriccionesMap.fitBounds(customLayer.getBounds(), { padding: [20, 20] });
+  } catch (e) {
+    console.error("Error cargando KML local (ahora GeoJSON):", e);
+    showNotification(
+      "Error",
+      "No se pudo cargar el archivo local de zonas restringidas",
+      "error",
+    );
+  }
 }
 
 function logAutomatedEcoTrip(type) {
   const now = Date.now();
-  const lastLog = parseInt(localStorage.getItem(`granaGo_eco_last_${type}`) || "0");
+  const lastLog = parseInt(
+    localStorage.getItem(`granaGo_eco_last_${type}`) || "0",
+  );
   const COOLDOWN = 5 * 60 * 1000;
 
   let totalKm = parseFloat(localStorage.getItem("granaGo_eco_km") || "0");
 
   if (now - lastLog > COOLDOWN) {
-    const kmToAdd = (type === 'pt') ? ECO_CONFIG.PT_AVG_KM : ECO_CONFIG.BIKE_AVG_KM;
+    const kmToAdd =
+      type === "pt" ? ECO_CONFIG.PT_AVG_KM : ECO_CONFIG.BIKE_AVG_KM;
 
     totalKm += kmToAdd;
 
@@ -5108,72 +5590,162 @@ function logAutomatedEcoTrip(type) {
     addGranaSaldo(Math.floor(kmToAdd * 50), "movilidad sostenible");
   }
 
-  updateAchievement('eco_start', totalKm * ECO_CONFIG.CO2_SAVED_PER_KM, true);
+  updateAchievement("eco_start", totalKm * ECO_CONFIG.CO2_SAVED_PER_KM, true);
 }
 
 const ALL_WIDGETS = {
-  event: { id: 'event', title: 'Eventos Hoy', icon: 'ri-calendar-event-fill', class: 'widget-event', action: "navigateTo('cortes')", render: updateHomeEventsWidget },
-  eco: { id: 'eco', title: 'Impacto Ecológico', icon: 'ri-leaf-fill', class: 'widget-eco', action: "openEcoCalculator()", render: updateHomeEcoWidget },
-  parking: { id: 'parking', title: 'Parkings', icon: 'ri-parking-box-fill', class: 'widget-parking', action: "navigateTo('parkings')", render: updateHomeParking },
-  bus: { id: 'bus', title: 'Estado del Bus Urbano', icon: 'ri-bus-fill', class: 'widget-bus', action: "navigateTo('paradas')", render: updateHomeBusWidget },
-  metro: { id: 'metro', title: 'Estado del Metro', icon: 'ri-train-fill', class: 'widget-metro', render: updateMetroXWidget },
-  fuel: { id: 'fuel', title: 'Combustible', icon: 'ri-gas-station-fill', class: 'widget-fuel', action: "navigateTo('repostar')", render: updateHomeFuel },
-  achievements: { id: 'achievements', title: 'Próximos Logros', icon: 'ri-medal-line', class: 'widget-achievements', render: updateHomeAchievementsWidget },
-  stops: { id: 'stops', title: 'Paradas Recientes', icon: 'ri-history-line', class: 'widget-recent-stops', action: "navigateTo('paradas')", render: updateHomeRecentWidgets },
-  games: { id: 'games', title: 'Últimos Juegos', icon: 'ri-play-list-add-line', class: 'widget-recent-games', action: "navigateTo('juegos')", render: updateHomeRecentWidgets },
-  driving: { id: 'driving', title: 'Modo Conducción', icon: 'ri-steering-2-fill', class: 'widget-driving', action: "toggleDrivingMode()", render: updateHomeDrivingWidget },
-  running: { id: 'running', title: 'Modo Actividad', icon: 'ri-run-fill', class: 'widget-running', action: "openRunningSetup()", render: updateHomeRunning },
-  radio: { id: 'radio', title: 'Radio Graná', icon: 'ri-radio-2-fill', class: 'widget-radio', action: "navigateTo('radio')", render: updateHomeRadioWidget }
+  event: {
+    id: "event",
+    title: "Eventos Hoy",
+    icon: "ri-calendar-event-fill",
+    class: "widget-event",
+    action: "navigateTo('cortes')",
+    render: updateHomeEventsWidget,
+  },
+  eco: {
+    id: "eco",
+    title: "Impacto Ecológico",
+    icon: "ri-leaf-fill",
+    class: "widget-eco",
+    action: "openEcoCalculator()",
+    render: updateHomeEcoWidget,
+  },
+  parking: {
+    id: "parking",
+    title: "Parkings",
+    icon: "ri-parking-box-fill",
+    class: "widget-parking",
+    action: "navigateTo('parkings')",
+    render: updateHomeParking,
+  },
+  bus: {
+    id: "bus",
+    title: "Estado del Bus Urbano",
+    icon: "ri-bus-fill",
+    class: "widget-bus",
+    action: "navigateTo('paradas')",
+    render: updateHomeBusWidget,
+  },
+  metro: {
+    id: "metro",
+    title: "Estado del Metro",
+    icon: "ri-train-fill",
+    class: "widget-metro",
+    render: updateMetroXWidget,
+  },
+  fuel: {
+    id: "fuel",
+    title: "Combustible",
+    icon: "ri-gas-station-fill",
+    class: "widget-fuel",
+    action: "navigateTo('repostar')",
+    render: updateHomeFuel,
+  },
+  achievements: {
+    id: "achievements",
+    title: "Próximos Logros",
+    icon: "ri-medal-line",
+    class: "widget-achievements",
+    render: updateHomeAchievementsWidget,
+  },
+  stops: {
+    id: "stops",
+    title: "Paradas Recientes",
+    icon: "ri-history-line",
+    class: "widget-recent-stops",
+    action: "navigateTo('paradas')",
+    render: updateHomeRecentWidgets,
+  },
+  games: {
+    id: "games",
+    title: "Últimos Juegos",
+    icon: "ri-play-list-add-line",
+    class: "widget-recent-games",
+    action: "navigateTo('juegos')",
+    render: updateHomeRecentWidgets,
+  },
+  driving: {
+    id: "driving",
+    title: "Modo Conducción",
+    icon: "ri-steering-2-fill",
+    class: "widget-driving",
+    action: "toggleDrivingMode()",
+    render: updateHomeDrivingWidget,
+  },
+  running: {
+    id: "running",
+    title: "Modo Actividad",
+    icon: "ri-run-fill",
+    class: "widget-running",
+    action: "openRunningSetup()",
+    render: updateHomeRunning,
+  },
+  radio: {
+    id: "radio",
+    title: "Radio Graná",
+    icon: "ri-radio-2-fill",
+    class: "widget-radio",
+    action: "navigateTo('radio')",
+    render: updateHomeRadioWidget,
+  },
 };
 
 const DEFAULT_LAYOUT = [
-  { id: 'driving', active: true },
-  { id: 'radio', active: true },
-  { id: 'event', active: true },
-  { id: 'eco', active: true },
-  { id: 'parking', active: true },
-  { id: 'bus', active: true },
-  { id: 'metro', active: true },
-  { id: 'fuel', active: true },
-  { id: 'achievements', active: true },
-  { id: 'stops', active: true },
-  { id: 'running', active: true },
-  { id: 'games', active: true }
+  { id: "driving", active: true },
+  { id: "radio", active: true },
+  { id: "event", active: true },
+  { id: "eco", active: true },
+  { id: "parking", active: true },
+  { id: "bus", active: true },
+  { id: "metro", active: true },
+  { id: "fuel", active: true },
+  { id: "achievements", active: true },
+  { id: "stops", active: true },
+  { id: "running", active: true },
+  { id: "games", active: true },
 ];
 
 let homeLayout = [];
-const savedLayoutRaw = localStorage.getItem('granaGo_home_layout');
+const savedLayoutRaw = localStorage.getItem("granaGo_home_layout");
 
 if (savedLayoutRaw) {
-  if (savedLayoutRaw.startsWith('[')) {
-    try { homeLayout = JSON.parse(savedLayoutRaw); } catch (e) { homeLayout = DEFAULT_LAYOUT.map(item => ({ ...item })); }
+  if (savedLayoutRaw.startsWith("[")) {
+    try {
+      homeLayout = JSON.parse(savedLayoutRaw);
+    } catch (e) {
+      homeLayout = DEFAULT_LAYOUT.map((item) => ({ ...item }));
+    }
   } else {
-    homeLayout = savedLayoutRaw.split(',').map(str => {
-      const active = !str.startsWith('!');
-      const id = active ? str : str.substring(1);
-      return { id, active };
-    }).filter(item => ALL_WIDGETS[item.id]);
+    homeLayout = savedLayoutRaw
+      .split(",")
+      .map((str) => {
+        const active = !str.startsWith("!");
+        const id = active ? str : str.substring(1);
+        return { id, active };
+      })
+      .filter((item) => ALL_WIDGETS[item.id]);
   }
-  DEFAULT_LAYOUT.forEach(def => {
-    if (!homeLayout.find(item => item.id === def.id)) homeLayout.push({ ...def });
+  DEFAULT_LAYOUT.forEach((def) => {
+    if (!homeLayout.find((item) => item.id === def.id))
+      homeLayout.push({ ...def });
   });
 } else {
-  homeLayout = DEFAULT_LAYOUT.map(item => ({ ...item }));
+  homeLayout = DEFAULT_LAYOUT.map((item) => ({ ...item }));
 }
 
 async function renderHomeDashboard() {
-  const container = document.getElementById('home-dashboard-grid');
+  const container = document.getElementById("home-dashboard-grid");
   if (!container) return;
 
-  container.innerHTML = '';
+  container.innerHTML = "";
 
-  homeLayout.forEach(config => {
+  homeLayout.forEach((config) => {
     if (!config.active) return;
 
     const w = ALL_WIDGETS[config.id];
     if (!w) return;
 
-    const card = document.createElement('div');
+    const card = document.createElement("div");
     card.className = `summary-card ${w.class}`;
     card.dataset.widgetId = config.id;
     card.onclick = () => {
@@ -5192,73 +5764,77 @@ async function renderHomeDashboard() {
     container.appendChild(card);
   });
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const widgetId = entry.target.dataset.widgetId;
-        const widget = ALL_WIDGETS[widgetId];
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const widgetId = entry.target.dataset.widgetId;
+          const widget = ALL_WIDGETS[widgetId];
 
-        entry.target.classList.add('fade-in-up');
+          entry.target.classList.add("fade-in-up");
 
-        if (widget && widget.render) {
-          widget.render();
-          observer.unobserve(entry.target);
+          if (widget && widget.render) {
+            widget.render();
+            observer.unobserve(entry.target);
+          }
         }
-      }
-    });
-  }, { rootMargin: '50px' });
+      });
+    },
+    { rootMargin: "50px" },
+  );
 
-  document.querySelectorAll('.summary-card').forEach(card => {
+  document.querySelectorAll(".summary-card").forEach((card) => {
     observer.observe(card);
   });
 }
 
 window.openHomeEditor = function () {
   tempHomeLayout = JSON.parse(JSON.stringify(homeLayout));
-  document.getElementById('home-editor-modal').classList.add('visible');
+  document.getElementById("home-editor-modal").classList.add("visible");
   renderEditorList();
 };
 
 function renderEditorList() {
-  const list = document.getElementById('home-editor-list');
+  const list = document.getElementById("home-editor-list");
   if (!list) return;
-  list.innerHTML = '';
+  list.innerHTML = "";
 
   tempHomeLayout.forEach((item, index) => {
     const w = ALL_WIDGETS[item.id];
     if (!w) return;
 
-    const row = document.createElement('div');
-    row.className = 'transport-card editor-row';
-    row.style.cssText = 'padding: 10px 15px; justify-content: space-between; margin: 0; cursor: grab;';
-    row.setAttribute('draggable', true);
+    const row = document.createElement("div");
+    row.className = "transport-card editor-row";
+    row.style.cssText =
+      "padding: 10px 15px; justify-content: space-between; margin: 0; cursor: grab;";
+    row.setAttribute("draggable", true);
     row.dataset.index = index;
 
-    row.addEventListener('dragstart', (e) => {
+    row.addEventListener("dragstart", (e) => {
       dragStartIndex = index;
-      row.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
+      row.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
     });
 
-    row.addEventListener('dragover', (e) => {
+    row.addEventListener("dragover", (e) => {
       e.preventDefault();
-      row.classList.add('drag-over');
+      row.classList.add("drag-over");
     });
 
-    row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+    row.addEventListener("dragleave", () => row.classList.remove("drag-over"));
 
-    row.addEventListener('drop', (e) => {
+    row.addEventListener("drop", (e) => {
       e.preventDefault();
       const dragEndIndex = index;
       swapWidgets(dragStartIndex, dragEndIndex);
       renderEditorList();
     });
 
-    row.addEventListener('dragend', () => row.classList.remove('dragging'));
+    row.addEventListener("dragend", () => row.classList.remove("dragging"));
 
     const isActive = item.active;
-    const switchBg = isActive ? 'var(--text-accent)' : '#cbd5e1';
-    const handleTransform = isActive ? 'translateX(20px)' : 'translateX(0px)';
+    const switchBg = isActive ? "var(--text-accent)" : "#cbd5e1";
+    const handleTransform = isActive ? "translateX(20px)" : "translateX(0px)";
 
     row.innerHTML = `
       <div style="display:flex; align-items:center; gap:12px; pointer-events:none;">
@@ -5269,7 +5845,7 @@ function renderEditorList() {
         <button onclick="moveWidget(${index}, -1)" class="icon-btn-small"><i class="ri-arrow-up-s-line"></i></button>
         <button onclick="moveWidget(${index}, 1)" class="icon-btn-small"><i class="ri-arrow-down-s-line"></i></button>
         <div role="switch" onclick="toggleWidget(${index}, this)" 
-             class="theme-switch ${isActive ? 'active' : ''}" 
+             class="theme-switch ${isActive ? "active" : ""}" 
              style="background: ${switchBg};">
           <div class="switch-handle" style="transform: ${handleTransform};"></div>
         </div>
@@ -5287,7 +5863,10 @@ function swapWidgets(from, to) {
 window.moveWidget = function (idx, dir) {
   const newIdx = idx + dir;
   if (newIdx < 0 || newIdx >= tempHomeLayout.length) return;
-  [tempHomeLayout[idx], tempHomeLayout[newIdx]] = [tempHomeLayout[newIdx], tempHomeLayout[idx]];
+  [tempHomeLayout[idx], tempHomeLayout[newIdx]] = [
+    tempHomeLayout[newIdx],
+    tempHomeLayout[idx],
+  ];
   renderEditorList();
 };
 
@@ -5297,26 +5876,28 @@ window.toggleWidget = function (idx, el) {
   tempHomeLayout[idx].active = !tempHomeLayout[idx].active;
   const isActive = tempHomeLayout[idx].active;
 
-  el.classList.toggle('active', isActive);
-  el.style.background = isActive ? 'var(--text-accent)' : '#cbd5e1';
+  el.classList.toggle("active", isActive);
+  el.style.background = isActive ? "var(--text-accent)" : "#cbd5e1";
 
-  const handle = el.querySelector('.switch-handle');
+  const handle = el.querySelector(".switch-handle");
   if (handle) {
-    handle.style.transform = isActive ? 'translateX(20px)' : 'translateX(0px)';
+    handle.style.transform = isActive ? "translateX(20px)" : "translateX(0px)";
   }
 };
 
 window.saveHomeConfig = function () {
   homeLayout = JSON.parse(JSON.stringify(tempHomeLayout));
-  const layoutStr = homeLayout.map(item => (item.active ? '' : '!') + item.id).join(',');
-  localStorage.setItem('granaGo_home_layout', layoutStr);
+  const layoutStr = homeLayout
+    .map((item) => (item.active ? "" : "!") + item.id)
+    .join(",");
+  localStorage.setItem("granaGo_home_layout", layoutStr);
   closeHomeEditor();
   renderHomeDashboard();
   showNotification("Éxito", "Diseño de inicio actualizado", "success");
 };
 
 window.closeHomeEditor = function () {
-  document.getElementById('home-editor-modal').classList.remove('visible');
+  document.getElementById("home-editor-modal").classList.remove("visible");
 };
 
 async function initHomeDashboard() {
@@ -5341,7 +5922,7 @@ async function initHomeDashboard() {
         localStorage.setItem("granaGo_last_lat", lat);
         localStorage.setItem("granaGo_last_lng", lng);
 
-        getGPSLocationName(lat, lng).then(name => {
+        getGPSLocationName(lat, lng).then((name) => {
           localStorage.setItem("granaGo_gps_name", name);
           initWeather();
 
@@ -5352,16 +5933,15 @@ async function initHomeDashboard() {
         });
       },
       null,
-      { timeout: 10000, maximumAge: 60000 }
+      { timeout: 10000, maximumAge: 60000 },
     );
   }
 }
 
-
 const URLS = {
   rss:
     PROXY_URL +
-    encodeURIComponent("http://www.movilidadgranada.com/app/noticias/rss.php")
+    encodeURIComponent("http://www.movilidadgranada.com/app/noticias/rss.php"),
 };
 
 const VALID_LINES = new Set([
@@ -5700,20 +6280,24 @@ async function updateHomeRecentWidgets() {
   if (!stopsContainer && !gamesContainer) return;
 
   if (stopsContainer) {
-    const recentStops = JSON.parse(localStorage.getItem("granaGo_recent_stops") || "[]");
+    const recentStops = JSON.parse(
+      localStorage.getItem("granaGo_recent_stops") || "[]",
+    );
 
     if (recentStops.length === 0) {
       stopsContainer.innerHTML = `<div class="summary-sub">No has consultado paradas todavía.</div>`;
     } else {
       if (!window.appColors || !window.appColors.urbano) {
         try {
-          const uCol = await fetch("data/urbano/colores.json").then(r => r.json());
+          const uCol = await fetch("data/urbano/colores.json").then((r) =>
+            r.json(),
+          );
 
           window.appColors = {
             ...window.appColors,
             urbano: uCol,
             metro: {},
-            interurbano: {}
+            interurbano: {},
           };
         } catch (e) {
           console.warn("Error cargando colores urbanos");
@@ -5724,7 +6308,8 @@ async function updateHomeRecentWidgets() {
       recentStops.forEach((s) => {
         const btn = document.createElement("button");
         btn.className = "transport-card";
-        btn.style.cssText = "width: 100%; padding: 10px; margin: 0; border-radius: 12px; border: 1px solid var(--border-subtle); justify-content: flex-start; gap: 10px; background: var(--bg-app); color: var(--text-primary); display: flex; align-items: center;";
+        btn.style.cssText =
+          "width: 100%; padding: 10px; margin: 0; border-radius: 12px; border: 1px solid var(--border-subtle); justify-content: flex-start; gap: 10px; background: var(--bg-app); color: var(--text-primary); display: flex; align-items: center;";
 
         let icon = "ri-bus-fill";
         let brandColor = "#D9281C";
@@ -5739,21 +6324,25 @@ async function updateHomeRecentWidgets() {
 
         let linesHtml = "";
         if (s.lines) {
-          const linesArr = s.lines.split(",").map(l => l.trim());
+          const linesArr = s.lines.split(",").map((l) => l.trim());
           linesHtml = `<div style="display:flex; gap:3px; margin-top:4px; flex-wrap:wrap;">`;
-          linesArr.slice(0, 5).forEach(l => {
-            const color = (s.type === "urbano")
-              ? (window.appColors.urbano[l] || "#64748b")
-              : (s.type === "metro" ? "#009a44" : "#2757f5");
+          linesArr.slice(0, 5).forEach((l) => {
+            const color =
+              s.type === "urbano"
+                ? window.appColors.urbano[l] || "#64748b"
+                : s.type === "metro"
+                  ? "#009a44"
+                  : "#2757f5";
             linesHtml += `<span style="background:${color}; color:white; font-size:9px; padding:1px 4px; border-radius:3px; font-weight:800;">${l}</span>`;
           });
-          if (linesArr.length > 5) linesHtml += `<span style="font-size:9px; opacity:0.6;">+${linesArr.length - 5}</span>`;
+          if (linesArr.length > 5)
+            linesHtml += `<span style="font-size:9px; opacity:0.6;">+${linesArr.length - 5}</span>`;
           linesHtml += `</div>`;
         }
 
         btn.onclick = (e) => {
           e.stopPropagation();
-          openRealTimeModal(s.id, s.type, safeName, s.lines || '');
+          openRealTimeModal(s.id, s.type, safeName, s.lines || "");
         };
 
         btn.innerHTML = `
@@ -5775,7 +6364,9 @@ async function updateHomeRecentWidgets() {
   }
 
   if (gamesContainer) {
-    const recentGames = JSON.parse(localStorage.getItem("granaGo_recent_games") || "[]");
+    const recentGames = JSON.parse(
+      localStorage.getItem("granaGo_recent_games") || "[]",
+    );
 
     if (recentGames.length === 0) {
       gamesContainer.innerHTML = `<div class="summary-sub">Prueba algún juego para que aparezca aquí.</div>`;
@@ -5793,13 +6384,14 @@ async function updateHomeRecentWidgets() {
       GranáJack: "navigateTo('juegos'); openBlackjackMenu();",
       GranáSlots: "navigateTo('juegos'); openSlotsMenu();",
       GeoGraná: "navigateTo('juegos'); openGeoMenu();",
-      BuscaGraná: "navigateTo('juegos'); openMinesweeperMenu();"
+      BuscaGraná: "navigateTo('juegos'); openMinesweeperMenu();",
     };
 
     recentGames.forEach((game) => {
       const btn = document.createElement("button");
       btn.className = "transport-card";
-      btn.style.cssText = "width: 100%; padding: 10px; margin: 0; border-radius: 12px; border: 1px solid var(--border-subtle); justify-content: flex-start; gap: 10px; background: var(--bg-app); color: var(--text-primary); display: flex; align-items: center;";
+      btn.style.cssText =
+        "width: 100%; padding: 10px; margin: 0; border-radius: 12px; border: 1px solid var(--border-subtle); justify-content: flex-start; gap: 10px; background: var(--bg-app); color: var(--text-primary); display: flex; align-items: center;";
 
       const action = gameActions[game] || "navigateTo('juegos')";
       btn.onclick = (e) => {
@@ -5829,13 +6421,20 @@ function renderEventsUI(events) {
     return;
   }
 
-  const html = events.slice(0, 4).map(evt => `
+  const html = events
+    .slice(0, 4)
+    .map(
+      (evt) => `
     <div class="mini-event-title">
-      ${evt.isEndingToday
-      ? `${evt.title} <span style="color: var(--color-error); font-weight: 700; font-size: 0.8em;">(FIN HOY)</span>`
-      : evt.title}
+      ${
+        evt.isEndingToday
+          ? `${evt.title} <span style="color: var(--color-error); font-weight: 700; font-size: 0.8em;">(FIN HOY)</span>`
+          : evt.title
+      }
     </div>
-  `).join('');
+  `,
+    )
+    .join("");
 
   eventsList.innerHTML = html;
 }
@@ -5848,18 +6447,22 @@ async function updateHomeEventsWidget() {
   const cacheTime = localStorage.getItem("granaGo_events_cache_time");
   const now = Date.now();
 
-  if (cachedData && cacheTime && (now - cacheTime < 600000)) {
+  if (cachedData && cacheTime && now - cacheTime < 600000) {
     try {
       renderEventsUI(JSON.parse(cachedData));
       return;
-    } catch (e) { localStorage.removeItem("granaGo_events_cache"); }
+    } catch (e) {
+      localStorage.removeItem("granaGo_events_cache");
+    }
   }
 
   try {
-    const rssRes = await fetch(URLS.rss, { priority: 'low' });
+    const rssRes = await fetch(URLS.rss, { priority: "low" });
     const rssText = await rssRes.text();
     const parser = new DOMParser();
-    const items = parser.parseFromString(rssText, "text/xml").querySelectorAll("item");
+    const items = parser
+      .parseFromString(rssText, "text/xml")
+      .querySelectorAll("item");
 
     let eventsFound = [];
     const processedTitles = new Set();
@@ -5870,13 +6473,22 @@ async function updateHomeEventsWidget() {
       if (processedTitles.has(title)) continue;
 
       const descriptionHTML = item.querySelector("description").textContent;
-      const fullSearchText = (title + " " + descriptionHTML.replace(/<[^>]*>?/gm, " ")).trim();
+      const fullSearchText = (
+        title +
+        " " +
+        descriptionHTML.replace(/<[^>]*>?/gm, " ")
+      ).trim();
 
       let isEndingToday = false;
-      const finPubMatch = descriptionHTML.match(/Fin de la publicación:\s*(\d{4}-\d{2}-\d{2})/i);
+      const finPubMatch = descriptionHTML.match(
+        /Fin de la publicación:\s*(\d{4}-\d{2}-\d{2})/i,
+      );
       if (finPubMatch && finPubMatch[1] === todayStr) isEndingToday = true;
 
-      if (isEndingToday || (isDateActive(fullSearchText) && isDayTimeActive(fullSearchText))) {
+      if (
+        isEndingToday ||
+        (isDateActive(fullSearchText) && isDayTimeActive(fullSearchText))
+      ) {
         processedTitles.add(title);
         eventsFound.push({ title, isEndingToday });
       }
@@ -5886,38 +6498,43 @@ async function updateHomeEventsWidget() {
     renderEventsUI(eventsFound);
     localStorage.setItem("granaGo_events_cache", JSON.stringify(eventsFound));
     localStorage.setItem("granaGo_events_cache_time", now);
-
   } catch (e) {
     console.error("Error Widget Eventos:", e);
-    if (!cachedData) eventsList.innerHTML = `<div class="summary-sub">No disponible</div>`;
+    if (!cachedData)
+      eventsList.innerHTML = `<div class="summary-sub">No disponible</div>`;
   }
 }
 
 const DIVERSION_ZONES = [
   {
-    keywords: ["reyes catolicos", "puerta real", "gran via", "isabel la catolica"],
+    keywords: [
+      "reyes catolicos",
+      "puerta real",
+      "gran via",
+      "isabel la catolica",
+    ],
     name: "Eje Central (Reyes Católicos / Gran Vía)",
     lines: ["4", "8", "11", "21", "33", "C31", "C32", "C34"],
-    info: "Desvío por Camino de Ronda o Severo Ochoa."
+    info: "Desvío por Camino de Ronda o Severo Ochoa.",
   },
   {
     keywords: ["recogidas"],
     name: "Calle Recogidas",
     lines: ["9", "11", "C5"],
-    info: "Líneas desviadas por calle Molinos o Camino de Ronda."
+    info: "Líneas desviadas por calle Molinos o Camino de Ronda.",
   },
   {
     keywords: ["san juan de dios", "gran capitan"],
     name: "San Juan de Dios",
     lines: ["25", "C32", "C33"],
-    info: "Circular por recorridos alternativos según el corte."
+    info: "Circular por recorridos alternativos según el corte.",
   },
   {
     keywords: ["avenida de la constitucion"],
     name: "Avda. Constitución",
     lines: ["4", "8", "11", "21", "33", "N1", "N3", "N5"],
-    info: "Posibles retenciones o desvíos puntuales."
-  }
+    info: "Posibles retenciones o desvíos puntuales.",
+  },
 ];
 
 async function updateHomeBusWidget() {
@@ -5928,10 +6545,12 @@ async function updateHomeBusWidget() {
   let detectedZones = [];
 
   try {
-    const rssRes = await fetch(URLS.rss, { priority: 'low' });
+    const rssRes = await fetch(URLS.rss, { priority: "low" });
     const rssText = await rssRes.text();
     const parser = new DOMParser();
-    const items = parser.parseFromString(rssText, "text/xml").querySelectorAll("item");
+    const items = parser
+      .parseFromString(rssText, "text/xml")
+      .querySelectorAll("item");
 
     items.forEach((item) => {
       const title = item.querySelector("title").textContent.toLowerCase();
@@ -5939,10 +6558,11 @@ async function updateHomeBusWidget() {
       const fullText = (title + " " + desc).replace(/<[^>]*>?/gm, " ");
 
       if (isDateActive(fullText) && isDayTimeActive(fullText)) {
-        DIVERSION_ZONES.forEach(zone => {
-          if (zone.keywords.some(k => fullText.includes(k))) {
-            zone.lines.forEach(l => affectedLines.add(l));
-            if (!detectedZones.includes(zone.name)) detectedZones.push(zone.name);
+        DIVERSION_ZONES.forEach((zone) => {
+          if (zone.keywords.some((k) => fullText.includes(k))) {
+            zone.lines.forEach((l) => affectedLines.add(l));
+            if (!detectedZones.includes(zone.name))
+              detectedZones.push(zone.name);
           }
         });
         extractLinesToSet(fullText, affectedLines);
@@ -5953,24 +6573,27 @@ async function updateHomeBusWidget() {
 
     if (affectedLines.size > 0) {
       const zoneTitle = document.createElement("div");
-      zoneTitle.style.cssText = "color:var(--color-error); font-weight:700; font-size:0.85rem; margin-bottom:5px;";
-      zoneTitle.innerHTML = detectedZones.length > 0
-        ? `<i class="ri-alert-fill"></i> Corte en: ${detectedZones.join(", ")}`
-        : `<i class="ri-alert-fill"></i> Desvíos activos:`;
+      zoneTitle.style.cssText =
+        "color:var(--color-error); font-weight:700; font-size:0.85rem; margin-bottom:5px;";
+      zoneTitle.innerHTML =
+        detectedZones.length > 0
+          ? `<i class="ri-alert-fill"></i> Corte en: ${detectedZones.join(", ")}`
+          : `<i class="ri-alert-fill"></i> Desvíos activos:`;
       fragment.appendChild(zoneTitle);
 
       const wrapperDiv = document.createElement("div");
       wrapperDiv.className = "bus-lines-wrapper";
 
       const sortedLines = Array.from(affectedLines).sort((a, b) =>
-        a.localeCompare(b, undefined, { numeric: true })
+        a.localeCompare(b, undefined, { numeric: true }),
       );
 
       sortedLines.forEach((l) => {
         const span = document.createElement("span");
         span.className = "bus-line-pill";
         span.textContent = l;
-        if (["4", "8", "9", "11", "21", "33"].includes(l)) span.style.backgroundColor = "#d9281c";
+        if (["4", "8", "9", "11", "21", "33"].includes(l))
+          span.style.backgroundColor = "#d9281c";
         else if (l.startsWith("C")) span.style.backgroundColor = "#059669";
         else span.style.backgroundColor = "#2757f5";
 
@@ -5980,7 +6603,8 @@ async function updateHomeBusWidget() {
 
       if (detectedZones.length > 0) {
         const hint = document.createElement("div");
-        hint.style.cssText = "font-size:0.7rem; opacity:0.7; margin-top:5px; font-style:italic;";
+        hint.style.cssText =
+          "font-size:0.7rem; opacity:0.7; margin-top:5px; font-style:italic;";
         hint.innerText = "Recorrido alternativo por ejes principales.";
         fragment.appendChild(hint);
       }
@@ -5995,7 +6619,6 @@ async function updateHomeBusWidget() {
 
     busContent.innerHTML = "";
     busContent.appendChild(fragment);
-
   } catch (e) {
     console.error("Error Widget Bus:", e);
     busContent.innerHTML = `<div class="summary-sub">No disponible temporalmente</div>`;
@@ -6007,14 +6630,17 @@ async function updateHomeParking() {
   if (!container) return;
   try {
     const PROXY = "https://proxy.contacto-granago.workers.dev/?url=";
-    const TABLE_URL = "http://www.movilidadgranada.com/aparcamientos/par_tabla.php";
+    const TABLE_URL =
+      "http://www.movilidadgranada.com/aparcamientos/par_tabla.php";
 
     const response = await fetch(PROXY + encodeURIComponent(TABLE_URL));
     const text = await response.text();
     const htmlDoc = new DOMParser().parseFromString(text, "text/html");
     const rows = htmlDoc.querySelectorAll("tr");
 
-    let totalOpen = 0, totalFull = 0, totalParkings = 0;
+    let totalOpen = 0,
+      totalFull = 0,
+      totalParkings = 0;
 
     rows.forEach((row) => {
       const cells = row.querySelectorAll("td");
@@ -6031,11 +6657,25 @@ async function updateHomeParking() {
       }
     });
 
-    let statusText = "", color = "", subText = "";
-    if (totalParkings === 0) { statusText = "Sin Datos"; subText = "Inténtalo más tarde"; }
-    else if (totalFull > totalOpen) { statusText = "Saturado"; color = "#ef4444"; subText = "Mayoría de parkings completos."; }
-    else if (totalFull > 0 && totalFull < totalOpen) { statusText = "Ocupado"; color = "#f59e0b"; subText = "Plazas libres moderadas."; }
-    else { statusText = "Libre"; color = "#10b981"; subText = "Buena disponibilidad general."; }
+    let statusText = "",
+      color = "",
+      subText = "";
+    if (totalParkings === 0) {
+      statusText = "Sin Datos";
+      subText = "Inténtalo más tarde";
+    } else if (totalFull > totalOpen) {
+      statusText = "Saturado";
+      color = "#ef4444";
+      subText = "Mayoría de parkings completos.";
+    } else if (totalFull > 0 && totalFull < totalOpen) {
+      statusText = "Ocupado";
+      color = "#f59e0b";
+      subText = "Plazas libres moderadas.";
+    } else {
+      statusText = "Libre";
+      color = "#10b981";
+      subText = "Buena disponibilidad general.";
+    }
 
     const fragment = document.createDocumentFragment();
     const wrapper = document.createElement("div");
@@ -6047,7 +6687,6 @@ async function updateHomeParking() {
 
     container.innerHTML = "";
     container.appendChild(fragment);
-
   } catch (e) {
     container.innerHTML = `<div class="summary-sub">Error de conexión</div>`;
   }
@@ -6060,9 +6699,11 @@ async function updateHomeFuel() {
 
   try {
     const PROXY = "https://proxy.contacto-granago.workers.dev/?url=";
-    const TARGET = encodeURIComponent("https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroProvincia/18");
+    const TARGET = encodeURIComponent(
+      "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/FiltroProvincia/18",
+    );
 
-    const res = await fetch(PROXY + TARGET, { priority: 'high' });
+    const res = await fetch(PROXY + TARGET, { priority: "high" });
     const data = await res.json();
     const rawList = data.ListaEESSPrecio;
 
@@ -6077,15 +6718,26 @@ async function updateHomeFuel() {
     let isNearestMode = false;
     let nearestStationName = "";
 
-    if (typeof window.currentLat !== "undefined" && typeof window.currentLng !== "undefined") {
+    if (
+      typeof window.currentLat !== "undefined" &&
+      typeof window.currentLng !== "undefined"
+    ) {
       let minDistance = Infinity;
       let nearestStation = null;
       rawList.forEach((s) => {
         const lat = parseFloat(s["Latitud"].replace(",", "."));
         const lng = parseFloat(s["Longitud (WGS84)"].replace(",", "."));
         if (!isNaN(lat) && !isNaN(lng)) {
-          const dist = getDistanceFromLatLonInKm(window.currentLat, window.currentLng, lat, lng);
-          if (dist < minDistance) { minDistance = dist; nearestStation = s; }
+          const dist = getDistanceFromLatLonInKm(
+            window.currentLat,
+            window.currentLng,
+            lat,
+            lng,
+          );
+          if (dist < minDistance) {
+            minDistance = dist;
+            nearestStation = s;
+          }
         }
       });
       if (nearestStation && minDistance < 10) {
@@ -6102,12 +6754,16 @@ async function updateHomeFuel() {
     if (!isNearestMode) {
       title.innerText = "Precios Medios";
       types.forEach((t) => {
-        let sum = 0, count = 0;
+        let sum = 0,
+          count = 0;
         rawList.forEach((s) => {
           const valStr = s[t.key];
           if (valStr) {
             const val = parseFloat(valStr.replace(",", "."));
-            if (!isNaN(val)) { sum += val; count++; }
+            if (!isNaN(val)) {
+              sum += val;
+              count++;
+            }
           }
         });
         pricesToShow[t.label] = count > 0 ? (sum / count).toFixed(3) : "-";
@@ -6119,7 +6775,8 @@ async function updateHomeFuel() {
     if (isNearestMode) {
       const stationDiv = document.createElement("div");
       stationDiv.className = "notranslate";
-      stationDiv.style.cssText = "font-size:0.75rem; font-weight:700; color:var(--color-primary); margin-bottom:8px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:rgba(37,99,235,0.1); padding:4px 8px; border-radius:8px;";
+      stationDiv.style.cssText =
+        "font-size:0.75rem; font-weight:700; color:var(--color-primary); margin-bottom:8px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:rgba(37,99,235,0.1); padding:4px 8px; border-radius:8px;";
       stationDiv.textContent = nearestStationName;
       fragment.appendChild(stationDiv);
     }
@@ -6144,7 +6801,6 @@ async function updateHomeFuel() {
 
     container.innerHTML = "";
     container.appendChild(fragment);
-
   } catch (e) {
     console.error("Error Fuel Widget:", e);
     container.innerHTML = `<div class="summary-sub">Datos no disponibles</div>`;
@@ -6246,11 +6902,12 @@ window.changeLanguage = async function (lang) {
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
 
-      if (lang === 'es') {
+      if (lang === "es") {
         localStorage.setItem("granaGo_selected_lang", "es");
 
         const domain = window.location.hostname;
-        document.cookie = "googtrans=; Path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+        document.cookie =
+          "googtrans=; Path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
         document.cookie = `googtrans=; Path=/; domain=${domain}; expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
         document.cookie = `googtrans=; Path=/; domain=.${domain}; expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
         location.reload();
@@ -6555,13 +7212,15 @@ function calculateNearbyStops(lat, lng) {
   if (!allSearchableStops || allSearchableStops.length === 0) return;
 
   const ROUGH_DELTA = 0.02;
-  const candidates = allSearchableStops.filter(stop =>
-    Math.abs(stop.lat - lat) < ROUGH_DELTA && Math.abs(stop.lon - lng) < ROUGH_DELTA
+  const candidates = allSearchableStops.filter(
+    (stop) =>
+      Math.abs(stop.lat - lat) < ROUGH_DELTA &&
+      Math.abs(stop.lon - lng) < ROUGH_DELTA,
   );
 
   const withDistance = candidates.map((stop) => ({
     ...stop,
-    distance: getDistanceFromLatLonInKm(lat, lng, stop.lat, stop.lon)
+    distance: getDistanceFromLatLonInKm(lat, lng, stop.lat, stop.lon),
   }));
 
   const urbanos = withDistance
@@ -6713,9 +7372,9 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
   var a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(deg2rad(lat1)) *
-    Math.cos(deg2rad(lat2)) *
-    Math.sin(dLon / 2) *
-    Math.sin(dLon / 2);
+      Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   var d = R * c;
   return d;
@@ -6843,8 +7502,9 @@ function updateWordleStatsDisplay() {
     localStorage.getItem("granaGo_wordle_stats") || '{"daily":0, "infinite":0}',
   );
   const val = wordleConfig.mode === "daily" ? stats.daily : stats.infinite;
-  document.getElementById("wordle-stats-text").innerText = `Racha ${wordleConfig.mode === "daily" ? "Diaria" : "Actual"
-    }: ${val}`;
+  document.getElementById("wordle-stats-text").innerText = `Racha ${
+    wordleConfig.mode === "daily" ? "Diaria" : "Actual"
+  }: ${val}`;
 }
 
 async function startWordleGame(retryCount = 0) {
@@ -6892,7 +7552,11 @@ async function startWordleGame(retryCount = 0) {
 
       if (savedState.g) {
         savedState.g.forEach((guess, r) => {
-          const colors = getWordleColors(guess, wordleConfig.target, wordleConfig.len);
+          const colors = getWordleColors(
+            guess,
+            wordleConfig.target,
+            wordleConfig.len,
+          );
           for (let i = 0; i < wordleConfig.len; i++) {
             const tile = tiles[r * wordleConfig.len + i];
             if (tile) {
@@ -6974,12 +7638,19 @@ function getWordleColors(guess, target, len) {
   const letterCounts = {};
   for (const char of target) letterCounts[char] = (letterCounts[char] || 0) + 1;
   for (let i = 0; i < len; i++) {
-    if (guess[i] === target[i]) { colors[i] = "correct"; letterCounts[guess[i]]--; }
+    if (guess[i] === target[i]) {
+      colors[i] = "correct";
+      letterCounts[guess[i]]--;
+    }
   }
   for (let i = 0; i < len; i++) {
     if (colors[i]) continue;
-    if (letterCounts[guess[i]] > 0) { colors[i] = "present"; letterCounts[guess[i]]--; }
-    else { colors[i] = "absent"; }
+    if (letterCounts[guess[i]] > 0) {
+      colors[i] = "present";
+      letterCounts[guess[i]]--;
+    } else {
+      colors[i] = "absent";
+    }
   }
   return colors;
 }
@@ -7066,13 +7737,21 @@ window.useWordlePowerup = function () {
   }
 
   if (useInventoryItem("pista-wordle")) {
-    const randomIdx = pendingIndices[Math.floor(Math.random() * pendingIndices.length)];
+    const randomIdx =
+      pendingIndices[Math.floor(Math.random() * pendingIndices.length)];
     const letter = wordleConfig.originalTarget[randomIdx];
 
-    showNotification("Lupa", `La letra en la posición ${randomIdx + 1} es la ${letter}`, "success", 4000);
+    showNotification(
+      "Lupa",
+      `La letra en la posición ${randomIdx + 1} es la ${letter}`,
+      "success",
+      4000,
+    );
 
     for (let r = 0; r < wordleConfig.attempts; r++) {
-      const t = document.getElementById(`tile-${r * wordleConfig.len + randomIdx}`);
+      const t = document.getElementById(
+        `tile-${r * wordleConfig.len + randomIdx}`,
+      );
       if (t) t.style.boxShadow = "0 0 15px var(--text-accent)";
     }
 
@@ -7210,7 +7889,7 @@ function endGame(win) {
   );
 
   if (win) {
-    updateAchievement('wordle_win', 1);
+    updateAchievement("wordle_win", 1);
     const start = wordleConfig.currentAttempt * wordleConfig.len;
     for (let i = 0; i < wordleConfig.len; i++) {
       setTimeout(() => {
@@ -7265,10 +7944,12 @@ function showWordleResult(win) {
        <button class="cookie-btn secondary" onclick="closeWordle()">Volver a Juegos</button>`;
 
   setup.innerHTML = `
-        <div class="info-card" style="border-left: 4px solid ${win ? "var(--color-success)" : "var(--color-error)"
-    }">
-            <h3 class="info-title" style="margin-top:0">${win ? "¡Victoria!" : "Fin del juego"
-    }</h3>
+        <div class="info-card" style="border-left: 4px solid ${
+          win ? "var(--color-success)" : "var(--color-error)"
+        }">
+            <h3 class="info-title" style="margin-top:0">${
+              win ? "¡Victoria!" : "Fin del juego"
+            }</h3>
             <p style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 5px;">
                 ${wordleConfig.originalTarget}
             </p>
@@ -7284,7 +7965,9 @@ function saveWordleState() {
   for (let r = 0; r < wordleConfig.currentAttempt; r++) {
     let word = "";
     for (let c = 0; c < wordleConfig.len; c++) {
-      word += document.getElementById(`tile-${r * wordleConfig.len + c}`).innerText;
+      word += document.getElementById(
+        `tile-${r * wordleConfig.len + c}`,
+      ).innerText;
     }
     guesses.push(word);
   }
@@ -7295,9 +7978,12 @@ function saveWordleState() {
     ca: wordleConfig.currentAttempt,
     go: wordleConfig.gameOver,
     d: new Date().toDateString(),
-    g: guesses
+    g: guesses,
   };
-  localStorage.setItem(`wordle_session_daily_${wordleConfig.len}`, JSON.stringify(state));
+  localStorage.setItem(
+    `wordle_session_daily_${wordleConfig.len}`,
+    JSON.stringify(state),
+  );
 }
 
 function loadWordleState() {
@@ -7557,9 +8243,9 @@ function initSudokuState(board, solution) {
 
 function loadSudokuState(session) {
   if (session.b) {
-    sudokuConfig.board = session.b.split('').map(Number);
-    sudokuConfig.fixed = session.f.split('').map(v => v === '1');
-    sudokuConfig.solution = session.s.split('').map(Number);
+    sudokuConfig.board = session.b.split("").map(Number);
+    sudokuConfig.fixed = session.f.split("").map((v) => v === "1");
+    sudokuConfig.solution = session.s.split("").map(Number);
     sudokuConfig.mistakes = session.m;
     sudokuConfig.timer = session.t;
   } else {
@@ -7604,7 +8290,11 @@ window.useSudokuPowerup = function () {
   }
 
   const idx = sudokuConfig.selectedCell;
-  if (sudokuConfig.fixed[idx] || sudokuConfig.board[idx] === sudokuConfig.solution[idx]) return;
+  if (
+    sudokuConfig.fixed[idx] ||
+    sudokuConfig.board[idx] === sudokuConfig.solution[idx]
+  )
+    return;
 
   if (useInventoryItem("celda-sudoku")) {
     const correctNum = sudokuConfig.solution[idx];
@@ -7749,11 +8439,11 @@ function saveSudokuProgress() {
 
   const state = {
     d: new Date().toDateString(),
-    b: sudokuConfig.board.join(''),
-    s: sudokuConfig.solution.join(''),
-    f: sudokuConfig.fixed.map(v => v ? 1 : 0).join(''),
+    b: sudokuConfig.board.join(""),
+    s: sudokuConfig.solution.join(""),
+    f: sudokuConfig.fixed.map((v) => (v ? 1 : 0)).join(""),
     m: sudokuConfig.mistakes,
-    t: sudokuConfig.timer
+    t: sudokuConfig.timer,
   };
   localStorage.setItem("sudoku_daily_session", JSON.stringify(state));
 }
@@ -7769,7 +8459,7 @@ function endSudokuGame(win) {
   const message = document.getElementById("sudoku-message");
 
   if (win) {
-    updateAchievement('sudoku_master', 1);
+    updateAchievement("sudoku_master", 1);
     showNotification("¡Excelente!", "Has completado el Sudoku", "success");
     if (sudokuConfig.mode === "daily") {
       localStorage.setItem("sudoku_last_daily_status", "completed");
@@ -7782,8 +8472,9 @@ function endSudokuGame(win) {
       message.style.display = "block";
       message.style.borderLeftColor = "var(--color-success)";
       message.querySelector("h3").innerText = "¡Victoria!";
-      message.querySelector("p").innerText = `Tiempo: ${document.getElementById("sudoku-timer").innerText
-        }`;
+      message.querySelector("p").innerText = `Tiempo: ${
+        document.getElementById("sudoku-timer").innerText
+      }`;
     }, 1000);
 
     const reward = sudokuConfig.mode === "daily" ? 150 : 30;
@@ -7958,7 +8649,7 @@ function disableCards() {
   resetBoard();
 
   if (memoryConfig.pairsFound === memoryConfig.totalPairs) {
-    updateAchievement('memory_fast', 1);
+    updateAchievement("memory_fast", 1);
     setTimeout(() => {
       document.getElementById("memory-message").style.display = "block";
       showNotification("¡Genial!", "Has completado el Memory", "success");
@@ -7988,7 +8679,11 @@ function updateMemoryStats() {
 }
 
 window.useMemoryPowerup = function () {
-  if (memoryConfig.lockBoard || memoryConfig.pairsFound === memoryConfig.totalPairs) return;
+  if (
+    memoryConfig.lockBoard ||
+    memoryConfig.pairsFound === memoryConfig.totalPairs
+  )
+    return;
 
   if (useInventoryItem("ojo-memory")) {
     memoryConfig.lockBoard = true;
@@ -8078,12 +8773,13 @@ function showQuestion() {
   const inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
   const btnPwr = document.getElementById("btn-pwr-quiz");
   if (btnPwr) {
-    btnPwr.style.display = (inv["mitad-quiz"] > 0) ? "block" : "none";
+    btnPwr.style.display = inv["mitad-quiz"] > 0 ? "block" : "none";
     btnPwr.disabled = false;
     btnPwr.style.opacity = "1";
   }
-  counterEl.innerText = `PREGUNTA ${quizConfig.currentIdx + 1} / ${quizConfig.questionsPerRound
-    }`;
+  counterEl.innerText = `PREGUNTA ${quizConfig.currentIdx + 1} / ${
+    quizConfig.questionsPerRound
+  }`;
   qEl.innerText = qData.pregunta;
   optsEl.innerHTML = "";
   quizConfig.isAnswered = false;
@@ -8145,7 +8841,9 @@ window.useQuizPowerup = function () {
     const btns = Array.from(document.querySelectorAll(".quiz-btn"));
     const incorrectBtns = btns.filter((btn) => {
       const btnText = btn.querySelector("span").innerText.trim();
-      return btnText !== qData.respuesta_correcta && btn.style.opacity !== "0.2";
+      return (
+        btnText !== qData.respuesta_correcta && btn.style.opacity !== "0.2"
+      );
     });
 
     incorrectBtns.sort(() => 0.5 - Math.random());
@@ -8154,7 +8852,8 @@ window.useQuizPowerup = function () {
       if (incorrectBtns[i]) {
         incorrectBtns[i].style.opacity = "0.2";
         incorrectBtns[i].style.pointerEvents = "none";
-        incorrectBtns[i].querySelector("i").className = "icon ri-close-circle-line";
+        incorrectBtns[i].querySelector("i").className =
+          "icon ri-close-circle-line";
       }
     }
 
@@ -8180,7 +8879,7 @@ function finishQuizGame() {
   text.innerText = `Has acertado ${score} de ${total}`;
 
   if (score === total) {
-    updateAchievement('quiz_perfect', 1);
+    updateAchievement("quiz_perfect", 1);
     title.innerText = "¡Matrícula de Honor!";
     title.style.color = "var(--color-success)";
     icon.className = "icon ri-trophy-fill";
@@ -8357,17 +9056,23 @@ async function loadZBEDataForHUD() {
     const response = await fetch("data/zbe.geojson");
     const data = await response.json();
     zbePolygon = data.features[0].geometry.coordinates[0];
-  } catch (e) { console.error("Error ZBE GeoJSON", e); }
+  } catch (e) {
+    console.error("Error ZBE GeoJSON", e);
+  }
 }
 
 function isPointInZBE(lat, lng) {
   if (!zbePolygon) return false;
-  let x = lat, y = lng;
+  let x = lat,
+    y = lng;
   let inside = false;
   for (let i = 0, j = zbePolygon.length - 1; i < zbePolygon.length; j = i++) {
-    let xi = zbePolygon[i][1], yi = zbePolygon[i][0];
-    let xj = zbePolygon[j][1], yj = zbePolygon[j][0];
-    let intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+    let xi = zbePolygon[i][1],
+      yi = zbePolygon[i][0];
+    let xj = zbePolygon[j][1],
+      yj = zbePolygon[j][0];
+    let intersect =
+      yi > y != yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
     if (intersect) inside = !inside;
   }
   return inside;
@@ -8377,10 +9082,13 @@ function checkZBEAlert(lat, lng) {
   const now = Date.now();
   if (now - lastZBEAlertTime < 120000) return;
 
-  const isRestricted = !vehicleConfig.isResident && vehicleConfig.badge === "NONE";
+  const isRestricted =
+    !vehicleConfig.isResident && vehicleConfig.badge === "NONE";
 
   if (isRestricted && isPointInZBE(lat, lng)) {
-    speak("Atención: Has accedido a la Zona de Bajas Emisiones con un vehículo restringido.");
+    speak(
+      "Atención: Has accedido a la Zona de Bajas Emisiones con un vehículo restringido.",
+    );
     lastZBEAlertTime = now;
 
     const alertBox = document.getElementById("hud-alert");
@@ -8402,17 +9110,29 @@ async function toggleDrivingMode() {
     const residentSet = localStorage.getItem("granaGo_is_resident");
 
     if (badgeSet === null || residentSet === null) {
-      showNotification("Configuración", "Define tu vehículo para recibir avisos precisos de la ZBE.", "info");
+      showNotification(
+        "Configuración",
+        "Define tu vehículo para recibir avisos precisos de la ZBE.",
+        "info",
+      );
       openVehicleConfig();
       window._startDrivingAfterConfig = true;
       return;
     }
-    if (!document.getElementById('camaras-view').classList.contains('active')) {
-      await navigateTo('camaras');
+    if (!document.getElementById("camaras-view").classList.contains("active")) {
+      await navigateTo("camaras");
     }
-    showNotification("Iniciando", "Cargando asistente de conducción...", "info");
-    await Promise.all([loadSpeedLimits(), initCamarasMap(), loadZBEDataForHUD()]);
-    updateAchievement('driver_mode', 1);
+    showNotification(
+      "Iniciando",
+      "Cargando asistente de conducción...",
+      "info",
+    );
+    await Promise.all([
+      loadSpeedLimits(),
+      initCamarasMap(),
+      loadZBEDataForHUD(),
+    ]);
+    updateAchievement("driver_mode", 1);
     if (RADIO_STATIONS.length === 0) {
       await cargarRadiosDesdeAPI();
     } else {
@@ -8429,13 +9149,14 @@ async function toggleDrivingMode() {
 
     hud.style.display = "flex";
 
-    const isPrefHorizontal = localStorage.getItem('granaGo_hud_horizontal') === 'true';
+    const isPrefHorizontal =
+      localStorage.getItem("granaGo_hud_horizontal") === "true";
 
     if (document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen().then(() => {
         if (isPrefHorizontal && screen.orientation && screen.orientation.lock) {
-          hud.classList.add('hud-horizontal');
-          screen.orientation.lock('landscape').catch(() => { });
+          hud.classList.add("hud-horizontal");
+          screen.orientation.lock("landscape").catch(() => {});
         }
       });
     }
@@ -8474,7 +9195,7 @@ async function toggleDrivingMode() {
     drivingModeActive = false;
 
     if (radioStartedFromHUD && radioIsPlaying) {
-      const audio = document.getElementById('hud-audio-element');
+      const audio = document.getElementById("hud-audio-element");
       if (audio) {
         audio.pause();
         radioIsPlaying = false;
@@ -8653,29 +9374,32 @@ function checkNearbyRadars(userLat, userLng, userHeading) {
 }
 
 async function updateHudSystemInfo() {
-  const clockEl = document.getElementById('hud-clock');
-  const batteryLevelEl = document.getElementById('hud-battery-level');
-  const batteryIconEl = document.getElementById('hud-battery-icon');
+  const clockEl = document.getElementById("hud-clock");
+  const batteryLevelEl = document.getElementById("hud-battery-level");
+  const batteryIconEl = document.getElementById("hud-battery-icon");
 
   if (!clockEl) return;
 
   const now = new Date();
-  clockEl.innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  clockEl.innerText = now.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
-  if ('getBattery' in navigator) {
+  if ("getBattery" in navigator) {
     try {
       const battery = await navigator.getBattery();
       const level = Math.round(battery.level * 100);
       batteryLevelEl.innerText = `${level}%`;
 
       if (battery.charging) {
-        batteryIconEl.className = 'ri-battery-charge-fill';
-        batteryIconEl.style.color = '#10b981';
+        batteryIconEl.className = "ri-battery-charge-fill";
+        batteryIconEl.style.color = "#10b981";
       } else {
-        batteryIconEl.style.color = 'white';
-        if (level <= 20) batteryIconEl.className = 'ri-battery-low-fill';
-        else if (level <= 60) batteryIconEl.className = 'ri-battery-2-fill';
-        else batteryIconEl.className = 'ri-battery-fill';
+        batteryIconEl.style.color = "white";
+        if (level <= 20) batteryIconEl.className = "ri-battery-low-fill";
+        else if (level <= 60) batteryIconEl.className = "ri-battery-2-fill";
+        else batteryIconEl.className = "ri-battery-fill";
       }
     } catch (e) {
       console.warn("No se pudo acceder a la batería");
@@ -8697,7 +9421,14 @@ function checkCurrentSpeedLimit(userLat, userLng, userHeading) {
     const coords = currentStreetFeature.geometry.coordinates;
 
     for (let i = 0; i < coords.length - 1; i++) {
-      const d = getDistanceToSegment(userLat, userLng, coords[i][1], coords[i][0], coords[i + 1][1], coords[i + 1][0]);
+      const d = getDistanceToSegment(
+        userLat,
+        userLng,
+        coords[i][1],
+        coords[i][0],
+        coords[i + 1][1],
+        coords[i + 1][0],
+      );
       if (d < 0.025) {
         stillOnSameStreet = true;
         break;
@@ -8717,14 +9448,25 @@ function checkCurrentSpeedLimit(userLat, userLng, userHeading) {
     for (let i = 0; i < coords.length - 1; i++) {
       const p1 = coords[i];
       const p2 = coords[i + 1];
-      const dist = getDistanceToSegment(userLat, userLng, p1[1], p1[0], p2[1], p2[0]);
+      const dist = getDistanceToSegment(
+        userLat,
+        userLng,
+        p1[1],
+        p1[0],
+        p2[1],
+        p2[0],
+      );
 
       if (dist < DETECTION_RADIUS) {
         if (!isStationary) {
           const segmentBearing = getBearing(p1[1], p1[0], p2[1], p2[0]);
           const diff1 = Math.abs(userHeading - segmentBearing) % 360;
-          const diff2 = Math.abs(userHeading - (segmentBearing + 180) % 360) % 360;
-          const minDiff = Math.min(diff1 > 180 ? 360 - diff1 : diff1, diff2 > 180 ? 360 - diff2 : diff2);
+          const diff2 =
+            Math.abs(userHeading - ((segmentBearing + 180) % 360)) % 360;
+          const minDiff = Math.min(
+            diff1 > 180 ? 360 - diff1 : diff1,
+            diff2 > 180 ? 360 - diff2 : diff2,
+          );
 
           if (minDiff > 45) continue;
         }
@@ -8736,7 +9478,6 @@ function checkCurrentSpeedLimit(userLat, userLng, userHeading) {
       }
     }
   });
-
 
   if (bestFeature) {
     currentStreetFeature = bestFeature;
@@ -8764,14 +9505,14 @@ function updateSpeedUI(feature) {
   }
 
   if (lanesLimit) {
-    const lanes = lanesLimit.split('|');
+    const lanes = lanesLimit.split("|");
     container.innerHTML = `
       <div class="speed-lanes-container" style="display: flex; gap: 5px; justify-content: center; align-items: center;">
-        ${lanes.map(l => `<div class="speed-sign mini" style="transform: scale(0.7); margin: -5px;">${l}</div>`).join('')}
+        ${lanes.map((l) => `<div class="speed-sign mini" style="transform: scale(0.7); margin: -5px;">${l}</div>`).join("")}
       </div>`;
 
     if (lanesLimit !== lastAnnouncedLimit) {
-      speak(`Límites por carril: ${lanes.join(', ')}`);
+      speak(`Límites por carril: ${lanes.join(", ")}`);
       lastAnnouncedLimit = lanesLimit;
     }
   } else if (limit) {
@@ -8790,7 +9531,9 @@ function updateSpeedUI(feature) {
   container.style.display = "block";
 
   const speedText = document.getElementById("hud-speed");
-  const maxLimit = lanesLimit ? Math.max(...lanesLimit.split('|').map(Number)) : parseInt(limit);
+  const maxLimit = lanesLimit
+    ? Math.max(...lanesLimit.split("|").map(Number))
+    : parseInt(limit);
 
   if (targetSpeed > maxLimit + 5) {
     speedText.style.color = "#ef4444";
@@ -8931,41 +9674,44 @@ async function initTaxiMap() {
   if (loader) setTimeout(() => loader.classList.remove("visible"), 500);
 }
 
-function loadTaxiKML() {
-  const customLayer = L.geoJson(null, {
-    pointToLayer: function (feature, latlng) {
-      return L.marker(latlng, {
-        icon: L.divIcon({
-          className: "",
-          html: `<div class="transport-marker-container" style="background-color: #333; border: 2px solid #fff;">
-                    <i class="ri-taxi-fill" style="font-size: 16px; color: #fff;"></i>
-                 </div>`,
-          iconSize: [30, 30],
-          iconAnchor: [15, 15],
-        }),
-      });
-    },
-    onEachFeature: function (feature, layer) {
-      if (feature.geometry.type !== "Point") return;
+async function loadTaxiKML() {
+  try {
+    const response = await fetch("data/taxi_granada.geojson");
+    const data = await response.json();
 
-      const name = feature.properties.name || "Parada de Taxi";
-      const latlng = layer.getLatLng();
+    L.geoJSON(data, {
+      pointToLayer: function (feature, latlng) {
+        return L.marker(latlng, {
+          icon: L.divIcon({
+            className: "",
+            html: `<div class="transport-marker-container" style="background-color: #333; border: 2px solid #fff;">
+                      <i class="ri-taxi-fill" style="font-size: 16px; color: #fff;"></i>
+                   </div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15],
+          }),
+        });
+      },
+      onEachFeature: function (feature, layer) {
+        if (feature.geometry.type !== "Point") return;
 
-      const content = `
-        <div style="text-align:center; min-width:130px; padding: 5px;">
-            <strong style="font-size:0.95rem; display: block; margin-bottom: 8px; class="notranslate">${name}</strong>
-            <button class="btn-navigate-popup" onclick="openMapsApp(${latlng.lat}, ${latlng.lng})">
-                <i class="ri-direction-fill"></i> Ir ahora
-            </button>
-        </div>`;
+        const name = feature.properties.name || "Parada de Taxi";
+        const latlng = layer.getLatLng();
 
-      layer.bindPopup(content, { closeButton: false });
-    },
-  });
+        const content = `
+          <div style="text-align:center; min-width:130px; padding: 5px;">
+              <strong style="font-size:0.95rem; display: block; margin-bottom: 8px;" class="notranslate">${name}</strong>
+              <button class="btn-navigate-popup" onclick="openMapsApp(${latlng.lat}, ${latlng.lng})">
+                  <i class="ri-direction-fill"></i> Ir ahora
+              </button>
+          </div>`;
 
-  omnivore
-    .kml("data/taxi_granada.kml", null, customLayer)
-    .addTo(taxiMapInstance);
+        layer.bindPopup(content, { closeButton: false });
+      },
+    }).addTo(taxiMapInstance);
+  } catch (e) {
+    console.error("Error cargando Taxis:", e);
+  }
 }
 
 window.scrollToTaxiInfo = function () {
@@ -9029,7 +9775,7 @@ window.initMastermindGame = function () {
   for (let i = 0; i < 4; i++) {
     mastermindConfig.target.push(
       mastermindConfig.icons[
-      Math.floor(Math.random() * mastermindConfig.icons.length)
+        Math.floor(Math.random() * mastermindConfig.icons.length)
       ],
     );
   }
@@ -9200,7 +9946,8 @@ window.useMastermindPowerup = function () {
     const iconClass = mastermindConfig.target[pos];
     const slots = document.getElementById("mastermind-board").children;
     if (slots[pos]) {
-      slots[pos].innerHTML = `<i class="${iconClass}" style="color:var(--color-success)"></i>`;
+      slots[pos].innerHTML =
+        `<i class="${iconClass}" style="color:var(--color-success)"></i>`;
       slots[pos].style.borderColor = "var(--color-success)";
     }
 
@@ -9213,7 +9960,7 @@ function endMastermind(win) {
   mastermindConfig.gameOver = true;
   document.getElementById("mastermind-controls").style.display = "none";
   if (win) {
-    updateAchievement('mind_expert', 1);
+    updateAchievement("mind_expert", 1);
     const bonus =
       (mastermindConfig.maxAttempts - mastermindConfig.attempts) * 10;
     const totalReward = 40 + bonus;
@@ -9235,9 +9982,10 @@ function endMastermind(win) {
   targetHtml += "</div>";
 
   document.getElementById("mastermind-result-text").innerHTML = `
-    <p style="text-align:center;">${win
-      ? "Enhorabuena, tienes un sentido de la orientación envidiable."
-      : "No has dado con la combinación. El código correcto era:"
+    <p style="text-align:center;">${
+      win
+        ? "Enhorabuena, tienes un sentido de la orientación envidiable."
+        : "No has dado con la combinación. El código correcto era:"
     }</p>
     ${targetHtml}
   `;
@@ -9390,7 +10138,11 @@ window.useAutoEncadenadasPowerup = function () {
     if (foundWord) {
       const input = document.getElementById("encadenadas-input");
       input.value = foundWord;
-      showNotification("Auto-Cadena", `Palabra: ${foundWord.toUpperCase()}`, "success");
+      showNotification(
+        "Auto-Cadena",
+        `Palabra: ${foundWord.toUpperCase()}`,
+        "success",
+      );
 
       setTimeout(() => {
         submitEncadenada();
@@ -9473,7 +10225,7 @@ function endEncadenadasGame(reason) {
     `Puntuación final: ${encadenadasState.score}`;
 
   if (encadenadasState.score > 0) {
-    updateAchievement('chain_pro', encadenadasState.score, true);
+    updateAchievement("chain_pro", encadenadasState.score, true);
     addGranaSaldo(encadenadasState.score * 10, "palabras encadenadas");
   }
 
@@ -9668,7 +10420,7 @@ function resolveBJWinner() {
   }
 
   if (win) {
-    updateAchievement('bj_lucky', 1);
+    updateAchievement("bj_lucky", 1);
     bjState.balance += bjState.currentBet * 2;
   } else if (push) {
     bjState.balance += bjState.currentBet;
@@ -9769,7 +10521,11 @@ window.useBlackjackPowerup = function () {
 
   if (useInventoryItem("seguro-bj")) {
     bjState.hasInsurance = true;
-    showNotification("Seguro Activado", "Si pierdes esta mano, recuperas el 50% de la apuesta.", "info");
+    showNotification(
+      "Seguro Activado",
+      "Si pierdes esta mano, recuperas el 50% de la apuesta.",
+      "info",
+    );
 
     const btn = document.getElementById("btn-pwr-blackjack");
     if (btn) {
@@ -9877,113 +10633,87 @@ async function loadSostenibleData() {
   carrilBiciLayer = L.featureGroup();
   parkingBiciLayer = L.featureGroup();
 
-  omnivore
-    .kml(
-      "data/carrilbici.kml",
-      null,
-      L.geoJson(null, {
-        style: (f) => {
-          const type = (f.properties.name || "").toUpperCase();
-          let color = "#10b981";
+  try {
+    const resCarril = await fetch("data/carrilbici.geojson");
+    const dataCarril = await resCarril.json();
 
-          if (type.includes("PACIFICADO")) {
-            color = "#8b5cf6";
-          } else if (type.includes("CICLO CALLE")) {
-            color = "#f59e0b";
-          } else if (type.includes("CICLO-CARRIL-BUS-VMP")) {
-            color = "#3b82f6";
-          } else if (type.includes("OTROS MUNICIPIOS")) {
-            color = "#94a3b8";
-          }
+    const layerCarriles = L.geoJSON(dataCarril, {
+      style: (f) => {
+        const type = (f.properties.name || "").toUpperCase();
+        let color = "#10b981";
 
-          return {
-            color: color,
-            weight: 4,
-            opacity: 0.8,
-          };
-        },
-      }),
-    )
-    .on("ready", function () {
-      this.eachLayer((layer) => {
-        const name =
-          layer.feature.properties.name || "Infraestructura ciclista";
+        if (type.includes("PACIFICADO")) {
+          color = "#8b5cf6";
+        } else if (type.includes("CICLO CALLE")) {
+          color = "#f59e0b";
+        } else if (type.includes("CICLO-CARRIL-BUS-VMP")) {
+          color = "#3b82f6";
+        } else if (type.includes("OTROS MUNICIPIOS")) {
+          color = "#94a3b8";
+        }
+
+        return { color: color, weight: 4, opacity: 0.8 };
+      },
+      onEachFeature: (feature, layer) => {
+        const name = feature.properties.name || "Infraestructura ciclista";
         layer.bindPopup(`<strong>${name}</strong>`, { closeButton: false });
         layer.addTo(carrilBiciLayer);
-      });
-
-      if (
-        document.getElementById("btn-carriles").classList.contains("active")
-      ) {
-        carrilBiciLayer.addTo(sostenibleMap);
-      }
+      },
     });
 
-  try {
-    const response = await fetch("data/parkingbici.kml");
-    const kmlText = await response.text();
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(kmlText, "text/xml");
-    const folders = xmlDoc.getElementsByTagName("Folder");
-
-    for (let i = 0; i < folders.length; i++) {
-      const folder = folders[i];
-
-      const folderName =
-        folder.getElementsByTagName("name")[0]?.textContent || "";
-      const isExterior = folderName.toLowerCase().includes("exterior");
-
-      const colorHex = isExterior ? "#10b981" : "#ef4444";
-      const tipoNombre = isExterior ? "Exterior" : "Interior";
-
-      const placemarks = folder.getElementsByTagName("Placemark");
-      for (let j = 0; j < placemarks.length; j++) {
-        const pm = placemarks[j];
-        const name =
-          pm.getElementsByTagName("name")[0]?.textContent || "Aparcabicis";
-        const coordText = pm
-          .getElementsByTagName("coordinates")[0]
-          ?.textContent.trim();
-
-        if (coordText) {
-          const coords = coordText.split(",");
-          const lng = parseFloat(coords[0]);
-          const lat = parseFloat(coords[1]);
-
-          if (!isNaN(lat) && !isNaN(lng)) {
-            const marker = L.marker([lat, lng], {
-              icon: L.divIcon({
-                className: "transport-marker-container",
-                html: `<div style="background:${colorHex}; border:2px solid white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; color:white; box-shadow: var(--shadow-soft);"><i class="ri-parking-box-fill"></i></div>`,
-                iconSize: [28, 28],
-              }),
-            });
-
-            marker.bindPopup(
-              `<strong>Parking ${tipoNombre}</strong><br>${name}`,
-              { closeButton: false },
-            );
-            marker.addTo(parkingBiciLayer);
-          }
-        }
-      }
+    if (document.getElementById("btn-carriles").classList.contains("active")) {
+      carrilBiciLayer.addTo(sostenibleMap);
     }
+
+    const resParking = await fetch("data/parkingbici.geojson");
+    const dataParking = await resParking.json();
+
+    const layerParkings = L.geoJSON(dataParking, {
+      pointToLayer: function (feature, latlng) {
+        const props = feature.properties || {};
+        const searchString = [
+          props.folder,
+          props.layer,
+          props.description,
+          props.name,
+        ]
+          .join(" ")
+          .toLowerCase();
+        const isExterior = searchString.includes("exterior");
+
+        const colorHex = isExterior ? "#10b981" : "#ef4444";
+        const tipoNombre = isExterior ? "Exterior" : "Interior";
+        const name = props.name || "Aparcabicis";
+
+        const marker = L.marker(latlng, {
+          icon: L.divIcon({
+            className: "transport-marker-container",
+            html: `<div style="background:${colorHex}; border:2px solid white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; color:white; box-shadow: var(--shadow-soft);"><i class="ri-parking-box-fill"></i></div>`,
+            iconSize: [28, 28],
+          }),
+        });
+
+        marker.bindPopup(`<strong>Parking ${tipoNombre}</strong><br>${name}`, {
+          closeButton: false,
+        });
+        return marker;
+      },
+      onEachFeature: function (feature, layer) {
+        layer.addTo(parkingBiciLayer);
+      },
+    });
 
     if (
       document.getElementById("btn-parkings-bici").classList.contains("active")
     ) {
       parkingBiciLayer.addTo(sostenibleMap);
     }
-    if (loader) loader.classList.remove("visible");
   } catch (e) {
-    console.error(
-      "Error procesando estructura de carpetas en parkingbici.kml:",
-      e,
-    );
+    console.error("Error procesando datos sostenibles:", e);
+  } finally {
     if (loader) loader.classList.remove("visible");
+    sostenibleDataLoaded = true;
   }
-
-  sostenibleDataLoaded = true;
 }
 
 window.locateUserSostenible = function (isInitial = false) {
@@ -10078,14 +10808,14 @@ window.updateGamesMenuBalance = function () {
 };
 
 const GAME_NAMES = {
-  "wordle": "Granádle",
-  "sudoku": "Granádoku",
-  "memory": "Granámory",
-  "quiz": "Granáquiz",
-  "mastermind": "Granámind",
-  "encadenadas": "Granábras Encadenadas",
-  "blackjack": "GranáJack",
-  "geograna": "GeoGraná",
+  wordle: "Granádle",
+  sudoku: "Granádoku",
+  memory: "Granámory",
+  quiz: "Granáquiz",
+  mastermind: "Granámind",
+  encadenadas: "Granábras Encadenadas",
+  blackjack: "GranáJack",
+  geograna: "GeoGraná",
 };
 
 window.renderShop = function () {
@@ -10114,34 +10844,40 @@ window.renderShop = function () {
         const isActive = activeColor === c.hex;
 
         return `
-        <div class="transport-card" style="justify-content: space-between; border-left: 4px solid ${c.hex
-          }; align-items: center; padding: 12px 15px;">
+        <div class="transport-card" style="justify-content: space-between; border-left: 4px solid ${
+          c.hex
+        }; align-items: center; padding: 12px 15px;">
           <div style="display: flex; align-items: center; gap: 15px">
-            <div class="card-icon-wrapper" style="background: ${c.hex
-          }1A; color: ${c.hex}; width: 42px; height: 42px; min-width: 42px;">
+            <div class="card-icon-wrapper" style="background: ${
+              c.hex
+            }1A; color: ${c.hex}; width: 42px; height: 42px; min-width: 42px;">
               <i class="ri-palette-fill"></i>
             </div>
             <div class="transport-info">
               <h3 style="font-size: 0.95rem; margin:0;">${c.name}</h3>
-              <p style="margin:0; opacity: 0.7;">${isOwned ? "Propiedad" : c.price + " G$"
-          }</p>
+              <p style="margin:0; opacity: 0.7;">${
+                isOwned ? "Propiedad" : c.price + " G$"
+              }</p>
             </div>
           </div>
           <div style="flex-shrink: 0; margin-left: 10px;">
-            ${isOwned
-            ? `<button class="cookie-btn ${isActive ? "secondary" : "primary"
-            }" 
+            ${
+              isOwned
+                ? `<button class="cookie-btn ${
+                    isActive ? "secondary" : "primary"
+                  }" 
                        style="min-width: 100px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;" 
-                       onclick="applyAccentColor('${c.hex}')" ${isActive ? "disabled" : ""
-            }>
+                       onclick="applyAccentColor('${c.hex}')" ${
+                         isActive ? "disabled" : ""
+                       }>
                  ${isActive ? "Activo" : "Usar"}
                </button>`
-            : `<button class="cookie-btn secondary" 
+                : `<button class="cookie-btn secondary" 
                        style="min-width: 100px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;" 
                        onclick="buyItem('${c.id}', 'color')">
                  Comprar
                </button>`
-          }
+            }
           </div>
         </div>`;
       })
@@ -10179,15 +10915,18 @@ window.renderShop = function () {
   }
 
   const visContainer = document.getElementById("shop-visualizers-container");
-  const ownedVisualizers = JSON.parse(localStorage.getItem("granaGo_owned_visualizers") || '[]');
+  const ownedVisualizers = JSON.parse(
+    localStorage.getItem("granaGo_owned_visualizers") || "[]",
+  );
   const activeVisualizer = localStorage.getItem("granaGo_active_visualizer");
 
   if (visContainer) {
-    visContainer.innerHTML = items.visualizers.map((v) => {
-      const isOwned = ownedVisualizers.includes(v.id);
-      const isActive = activeVisualizer === v.file;
+    visContainer.innerHTML = items.visualizers
+      .map((v) => {
+        const isOwned = ownedVisualizers.includes(v.id);
+        const isActive = activeVisualizer === v.file;
 
-      return `
+        return `
     <div class="square-card" style="height: auto; min-height: 220px; padding: 18px 15px 15px 15px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; position: relative;">
       
       <span style="font-size: 0.6rem; font-weight: 800; text-transform: uppercase; color: var(--text-accent); background: var(--text-accent)1A; padding: 2px 8px; border-radius: 6px; margin-bottom: 8px;">
@@ -10203,10 +10942,11 @@ window.renderShop = function () {
          <p style="font-size:0.65rem; opacity:0.6; margin:0; line-height: 1.3;">Visualizador animado para el reproductor de radio.</p>
       </div>
 
-      ${isOwned
-          ? `<button class="cookie-btn ${isOwned ? 'secondary' : 'primary'}" 
+      ${
+        isOwned
+          ? `<button class="cookie-btn ${isOwned ? "secondary" : "primary"}" 
                 style="width: 100%; height: 42px; font-size: 0.8rem; flex: none; display: flex; align-items: center; justify-content: center;" 
-                onclick="equiparVisualizador('${v.file}')" ${isActive ? 'disabled' : ''}>
+                onclick="equiparVisualizador('${v.file}')" ${isActive ? "disabled" : ""}>
               ${isActive ? "Activo" : "Usar"}
            </button>`
           : `<button class="cookie-btn secondary" 
@@ -10214,18 +10954,20 @@ window.renderShop = function () {
                    onclick="buyItem('${v.id}', 'visualizer')">
               <span style="font-weight: 800;">${v.price} G$</span>
            </button>`
-        }
+      }
     </div>`;
-    }).join("");
+      })
+      .join("");
   }
 };
 
 function renderTiendaRadio() {
-  const tiendaContainer = document.getElementById('tienda-items-container');
+  const tiendaContainer = document.getElementById("tienda-items-container");
 
-  RADIO_SKINS.forEach(skin => {
+  RADIO_SKINS.forEach((skin) => {
     const isOwned = checkOwnership(skin.id);
-    const isActive = localStorage.getItem('granaGo_active_radio_skin') === skin.img;
+    const isActive =
+      localStorage.getItem("granaGo_active_radio_skin") === skin.img;
 
     tiendaContainer.innerHTML += `
       <div class="shop-card">
@@ -10236,8 +10978,8 @@ function renderTiendaRadio() {
         <h4>${skin.name}</h4>
         <p>${skin.price} 🪙</p>
         <button onclick="${isOwned ? `equiparSkin('${skin.img}')` : `comprarSkin('${skin.id}')`}" 
-                class="btn-shop ${isActive ? 'active' : ''}">
-          ${isOwned ? (isActive ? 'Equipado' : 'Equipar') : 'Comprar'}
+                class="btn-shop ${isActive ? "active" : ""}">
+          ${isOwned ? (isActive ? "Equipado" : "Equipar") : "Comprar"}
         </button>
       </div>
     `;
@@ -10249,11 +10991,11 @@ window.buyItem = function (id, type) {
 
   let item;
   if (type === "color") {
-    item = items.colors.find(c => c.id === id);
+    item = items.colors.find((c) => c.id === id);
   } else if (type === "visualizer") {
-    item = items.visualizers.find(v => v.id === id);
+    item = items.visualizers.find((v) => v.id === id);
   } else {
-    item = items.powerups.find(p => p.id === id);
+    item = items.powerups.find((p) => p.id === id);
   }
 
   const savedBalance = localStorage.getItem("granaGo_bj_balance");
@@ -10278,17 +11020,15 @@ window.buyItem = function (id, type) {
     if (!owned.includes(id)) owned.push(id);
     localStorage.setItem("granaGo_owned_colors", JSON.stringify(owned));
     applyAccentColor(item.hex);
-    updateAchievement('shopper', 1);
-  }
-  else if (type === "visualizer") {
+    updateAchievement("shopper", 1);
+  } else if (type === "visualizer") {
     let ownedVis = JSON.parse(
-      localStorage.getItem("granaGo_owned_visualizers") || "[]"
+      localStorage.getItem("granaGo_owned_visualizers") || "[]",
     );
     if (!ownedVis.includes(id)) ownedVis.push(id);
     localStorage.setItem("granaGo_owned_visualizers", JSON.stringify(ownedVis));
     localStorage.setItem("granaGo_active_visualizer", item.file);
-  }
-  else {
+  } else {
     let inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
     inv[id] = (inv[id] || 0) + 1;
     localStorage.setItem("granaGo_inventory", JSON.stringify(inv));
@@ -10312,7 +11052,7 @@ window.equiparVisualizador = function (file) {
     localStorage.setItem("granaGo_active_visualizer", file);
   }
   renderShop();
-  if (typeof actualizarUIPlayer === 'function') actualizarUIPlayer();
+  if (typeof actualizarUIPlayer === "function") actualizarUIPlayer();
 };
 
 window.checkDailyReward = function () {
@@ -10338,7 +11078,9 @@ window.claimDailyReward = function () {
 };
 
 function updatePowerUpButton(buttonId, itemId) {
-  const inventory = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+  const inventory = JSON.parse(
+    localStorage.getItem("granaGo_inventory") || "{}",
+  );
   if (!inventory[itemId] || inventory[itemId] <= 0) {
     const btn = document.getElementById(buttonId);
     if (btn) btn.style.display = "none";
@@ -10371,9 +11113,15 @@ window.openSlotsMenu = function () {
   if (betDisplay) betDisplay.innerText = slotBet;
 
   const initialIcons = [
-    "ri-bus-fill", "ri-train-fill", "ri-taxi-fill",
-    "ri-parking-box-fill", "ri-gas-station-fill", "ri-camera-lens-fill",
-    "ri-bus-fill", "ri-train-fill", "ri-taxi-fill"
+    "ri-bus-fill",
+    "ri-train-fill",
+    "ri-taxi-fill",
+    "ri-parking-box-fill",
+    "ri-gas-station-fill",
+    "ri-camera-lens-fill",
+    "ri-bus-fill",
+    "ri-train-fill",
+    "ri-taxi-fill",
   ];
 
   initialIcons.forEach((icon, i) => {
@@ -10391,13 +11139,19 @@ window.openSlotsMenu = function () {
   let balance = parseInt(localStorage.getItem("granaGo_bj_balance") || 500);
 
   if (balance <= 0) {
-    let courtesyCount = parseInt(localStorage.getItem("granaGo_slots_courtesy_count") || "0");
+    let courtesyCount = parseInt(
+      localStorage.getItem("granaGo_slots_courtesy_count") || "0",
+    );
     if (courtesyCount < 5) {
       balance = 50;
       courtesyCount++;
       localStorage.setItem("granaGo_bj_balance", 50);
       localStorage.setItem("granaGo_slots_courtesy_count", courtesyCount);
-      showNotification("Regalo de cortesía", `50 G$ para probar suerte (${courtesyCount}/5)`, "success");
+      showNotification(
+        "Regalo de cortesía",
+        `50 G$ para probar suerte (${courtesyCount}/5)`,
+        "success",
+      );
     }
   }
 
@@ -10481,7 +11235,7 @@ function resolve3x3Results(grid) {
     const icons = [grid[a], grid[b], grid[c]];
 
     if (icons[0] === icons[1] && icons[1] === icons[2]) {
-      if (icons[0] === "ri-train-fill") updateAchievement('slot_jackpot', 1);
+      if (icons[0] === "ri-train-fill") updateAchievement("slot_jackpot", 1);
       const mult = icons[0] === "ri-train-fill" ? 15 : 8;
       totalWin += Math.floor(slotBet * mult);
       line.forEach((idx) => winningCells.add(idx));
@@ -10570,7 +11324,8 @@ function showSupportNotification() {
   if (!container) return;
 
   const toast = document.createElement("div");
-  toast.className = "notification-toast toast-info gpu-accelerated support-toast";
+  toast.className =
+    "notification-toast toast-info gpu-accelerated support-toast";
   toast.style.animation = "slideInDown 0.5s forwards";
   toast.style.pointerEvents = "auto";
   toast.style.flexDirection = "column";
@@ -10611,9 +11366,13 @@ function showSupportNotification() {
 window.handleSupportClick = function (action) {
   const toast = document.querySelector(".support-toast");
   if (toast) toast.remove();
-  if (action === 'donate') window.open('https://www.paypal.com/donate/?hosted_button_id=ELYXMJVZP5B8W', '_blank');
-  if (action === 'share') shareAppDirectly();
-  if (action === 'feedback') openFeedbackModal();
+  if (action === "donate")
+    window.open(
+      "https://www.paypal.com/donate/?hosted_button_id=ELYXMJVZP5B8W",
+      "_blank",
+    );
+  if (action === "share") shareAppDirectly();
+  if (action === "feedback") openFeedbackModal();
   scheduleSupportNotification(15 * 60 * 1000);
 };
 
@@ -10645,7 +11404,7 @@ window.shareAppDirectly = function () {
     );
   }
 
-  updateAchievement('ambassador', 1);
+  updateAchievement("ambassador", 1);
 };
 
 window.calculateTripFuel = function () {
@@ -10769,12 +11528,18 @@ window.openGeoMenu = function () {
 window.closeGeo = function () {
   document.getElementById("games-menu").style.display = "flex";
   document.getElementById("geograna-game-container").style.display = "none";
-  if (geoMapInstance) { geoMapInstance.remove(); geoMapInstance = null; }
+  if (geoMapInstance) {
+    geoMapInstance.remove();
+    geoMapInstance = null;
+  }
 };
 
 function updateGeoPowerUpUI() {
-  const inventory = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
-  document.getElementById("pu-reveal-count").innerText = inventory.geo_reveal || 0;
+  const inventory = JSON.parse(
+    localStorage.getItem("granaGo_inventory") || "{}",
+  );
+  document.getElementById("pu-reveal-count").innerText =
+    inventory.geo_reveal || 0;
   document.getElementById("pu-5050-count").innerText = inventory.geo_5050 || 0;
 }
 
@@ -10787,10 +11552,10 @@ window.useGeoPowerUp = function (type) {
   };
   const correctAnswer = getName(geoConfig.currentTarget);
 
-  if (type === 'reveal') {
+  if (type === "reveal") {
     if (useInventoryItem("geo-lince")) {
       const buttons = document.querySelectorAll("#geo-options-grid .quiz-btn");
-      buttons.forEach(btn => {
+      buttons.forEach((btn) => {
         if (btn.dataset.answer === correctAnswer) {
           btn.style.boxShadow = "0 0 15px var(--text-accent)";
           btn.style.borderColor = "var(--text-accent)";
@@ -10800,15 +11565,20 @@ window.useGeoPowerUp = function (type) {
       updatePowerUpButton("pu-reveal-btn", "geo-lince");
       showNotification("Geo-Lince", "Respuesta correcta resaltada", "success");
     }
-  }
-  else if (type === '5050') {
+  } else if (type === "5050") {
     if (useInventoryItem("geo-5050")) {
-      const buttons = Array.from(document.querySelectorAll("#geo-options-grid .quiz-btn"));
-      let incorrectButtons = buttons.filter(btn => btn.dataset.answer !== correctAnswer && btn.style.opacity !== "0.2");
+      const buttons = Array.from(
+        document.querySelectorAll("#geo-options-grid .quiz-btn"),
+      );
+      let incorrectButtons = buttons.filter(
+        (btn) =>
+          btn.dataset.answer !== correctAnswer && btn.style.opacity !== "0.2",
+      );
 
-      incorrectButtons.sort(() => 0.5 - Math.random())
+      incorrectButtons
+        .sort(() => 0.5 - Math.random())
         .slice(0, 2)
-        .forEach(btn => {
+        .forEach((btn) => {
           btn.style.opacity = "0.2";
           btn.disabled = true;
           btn.style.pointerEvents = "none";
@@ -10831,9 +11601,9 @@ async function startGeoGame(mode) {
   document.getElementById("geo-options-overlay").style.display = "none";
 
   const fileMap = {
-    'granada': 'data/municipiosgranada.json',
-    'espana': 'data/espprovincias.json',
-    'mundo': 'data/paisesmundo.json'
+    granada: "data/municipiosgranada.json",
+    espana: "data/espprovincias.json",
+    mundo: "data/paisesmundo.json",
   };
 
   showNotification("Cargando", "Preparando el mapa...", "info");
@@ -10852,17 +11622,21 @@ async function startGeoGame(mode) {
     nextGeoRound();
   } catch (e) {
     console.error(e);
-    showNotification("Error", "No se pudo cargar el mapa o las librerías", "error");
+    showNotification(
+      "Error",
+      "No se pudo cargar el mapa o las librerías",
+      "error",
+    );
   }
 }
 
 function initGeoMap(fullData) {
   if (geoMapInstance) geoMapInstance.remove();
 
-  geoMapInstance = L.map('map-geo', {
+  geoMapInstance = L.map("map-geo", {
     zoomControl: false,
     attributionControl: false,
-    maxZoom: 12
+    maxZoom: 12,
   });
 
   const isDark = document.body.classList.contains("dark-mode");
@@ -10877,8 +11651,8 @@ function initGeoMap(fullData) {
       color: isDark ? "#334155" : "#cbd5e1",
       weight: 1,
       fillOpacity: 0.1,
-      fillColor: "#000"
-    }
+      fillColor: "#000",
+    },
   }).addTo(geoMapInstance);
 
   geoMapInstance.fitBounds(geoLayer.getBounds());
@@ -10888,29 +11662,35 @@ function nextGeoRound() {
   geoConfig.isAnswered = false;
   geoConfig.currentTarget = geoConfig.targetFeatures[geoConfig.round - 1];
 
-  document.getElementById("geo-stats-text").innerText = `Puntos: ${geoConfig.score} | Ronda: ${geoConfig.round}/10`;
+  document.getElementById("geo-stats-text").innerText =
+    `Puntos: ${geoConfig.score} | Ronda: ${geoConfig.round}/10`;
   document.getElementById("geo-options-overlay").style.display = "block";
 
   const btnLince = document.getElementById("pu-reveal-btn");
   const btn5050 = document.getElementById("pu-5050-btn");
   const invGeo = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
 
-  if (btnLince) btnLince.style.display = (invGeo["geo-lince"] > 0) ? "flex" : "none";
-  if (btn5050) btn5050.style.display = (invGeo["geo-5050"] > 0) ? "flex" : "none";
+  if (btnLince)
+    btnLince.style.display = invGeo["geo-lince"] > 0 ? "flex" : "none";
+  if (btn5050) btn5050.style.display = invGeo["geo-5050"] > 0 ? "flex" : "none";
 
   const isDark = document.body.classList.contains("dark-mode");
   geoLayer.setStyle((feature) => {
     const isCurrent = feature === geoConfig.currentTarget;
     return {
       fillOpacity: isCurrent ? 0.8 : 0.1,
-      fillColor: isCurrent ? "var(--text-accent)" : (isDark ? "#000" : "#fff"),
-      color: isCurrent ? "white" : (isDark ? "#444" : "#ccc"),
-      weight: isCurrent ? 3 : 1
+      fillColor: isCurrent ? "var(--text-accent)" : isDark ? "#000" : "#fff",
+      color: isCurrent ? "white" : isDark ? "#444" : "#ccc",
+      weight: isCurrent ? 3 : 1,
     };
   });
 
   const bounds = L.geoJSON(geoConfig.currentTarget).getBounds();
-  geoMapInstance.flyToBounds(bounds, { padding: [60, 60], duration: 1.2, maxZoom: 9 });
+  geoMapInstance.flyToBounds(bounds, {
+    padding: [60, 60],
+    duration: 1.2,
+    maxZoom: 9,
+  });
 
   renderGeoOptions();
 }
@@ -10926,17 +11706,20 @@ function renderGeoOptions() {
 
   const correctAnswer = getName(geoConfig.currentTarget);
 
-  let allPossibleNames = geoLayer.getLayers()
-    .map(l => getName(l.feature))
-    .filter(n => n !== correctAnswer && n !== "Lugar desconocido");
+  let allPossibleNames = geoLayer
+    .getLayers()
+    .map((l) => getName(l.feature))
+    .filter((n) => n !== correctAnswer && n !== "Lugar desconocido");
 
   let incorrectOptions = [...new Set(allPossibleNames)]
     .sort(() => 0.5 - Math.random())
     .slice(0, 3);
 
-  let options = [correctAnswer, ...incorrectOptions].sort(() => 0.5 - Math.random());
+  let options = [correctAnswer, ...incorrectOptions].sort(
+    () => 0.5 - Math.random(),
+  );
 
-  options.forEach(opt => {
+  options.forEach((opt) => {
     const btn = document.createElement("button");
     btn.className = "quiz-btn";
     btn.dataset.answer = opt;
@@ -10957,7 +11740,7 @@ function checkGeoAnswer(selected, correct, btn) {
   } else {
     btn.classList.add("wrong");
     const buttons = document.querySelectorAll("#geo-options-grid .quiz-btn");
-    buttons.forEach(b => {
+    buttons.forEach((b) => {
       if (b.dataset.answer === correct) {
         b.classList.add("correct");
       }
@@ -10981,7 +11764,7 @@ window.recenterGeoTarget = function () {
   geoMapInstance.flyToBounds(bounds, {
     padding: [60, 60],
     duration: 1.2,
-    maxZoom: 9
+    maxZoom: 9,
   });
 };
 
@@ -10989,9 +11772,10 @@ function finishGeoGame() {
   document.getElementById("geo-gameplay").style.display = "none";
   const resultDiv = document.getElementById("geo-result");
   resultDiv.style.display = "block";
-  updateAchievement('geo_expert', geoConfig.score);
+  updateAchievement("geo_expert", geoConfig.score);
 
-  document.getElementById("geo-result-score").innerText = `Puntuación final: ${geoConfig.score} puntos`;
+  document.getElementById("geo-result-score").innerText =
+    `Puntuación final: ${geoConfig.score} puntos`;
 
   const recompensaFinal = geoConfig.score * 100;
   addGranaSaldo(recompensaFinal, "GeoGraná");
@@ -11006,20 +11790,30 @@ window.closeFeedbackModal = function () {
 };
 
 window.switchFeedbackTab = function (tab) {
-  document.getElementById('feedback-content-envio').style.display = tab === 'envio' ? 'block' : 'none';
-  document.getElementById('feedback-content-estado').style.display = tab === 'estado' ? 'block' : 'none';
-  document.getElementById('tab-btn-envio').classList.toggle('active', tab === 'envio');
-  document.getElementById('tab-btn-estado').classList.toggle('active', tab === 'estado');
+  document.getElementById("feedback-content-envio").style.display =
+    tab === "envio" ? "block" : "none";
+  document.getElementById("feedback-content-estado").style.display =
+    tab === "estado" ? "block" : "none";
+  document
+    .getElementById("tab-btn-envio")
+    .classList.toggle("active", tab === "envio");
+  document
+    .getElementById("tab-btn-estado")
+    .classList.toggle("active", tab === "estado");
 
-  if (tab === 'estado') {
+  if (tab === "estado") {
     fetchFeedbackStatus();
   }
 };
 
 window.setFeedbackType = function (type) {
   currentFeedbackType = type;
-  document.getElementById("btn-feed-error").classList.toggle("active", type === 'Error');
-  document.getElementById("btn-feed-idea").classList.toggle("active", type === 'Sugerencia');
+  document
+    .getElementById("btn-feed-error")
+    .classList.toggle("active", type === "Error");
+  document
+    .getElementById("btn-feed-idea")
+    .classList.toggle("active", type === "Sugerencia");
 };
 
 window.sendToGoogleForms = async function () {
@@ -11040,13 +11834,21 @@ window.sendToGoogleForms = async function () {
   const url = `https://docs.google.com/forms/d/e/${FORM_ID}/formResponse?${ENTRY_TIPO}=${currentFeedbackType}&${ENTRY_MSG}=${encodeURIComponent(message)}&submit=Submit`;
 
   try {
-    await fetch(url, { mode: 'no-cors' });
+    await fetch(url, { mode: "no-cors" });
 
     document.getElementById("feedback-message").value = "";
     setTimeout(closeFeedbackModal, 500);
-    showNotification("¡Enviado!", "Gracias por tu feedback anónimo.", "success");
+    showNotification(
+      "¡Enviado!",
+      "Gracias por tu feedback anónimo.",
+      "success",
+    );
   } catch (e) {
-    showNotification("Error", "No se pudo enviar. Inténtalo más tarde.", "error");
+    showNotification(
+      "Error",
+      "No se pudo enviar. Inténtalo más tarde.",
+      "error",
+    );
   } finally {
     btn.disabled = false;
     btn.innerText = "Enviar Feedback";
@@ -11087,15 +11889,22 @@ async function updateHomeAchievementsWidget() {
   const container = document.getElementById("home-achievements-content");
   if (!container) return;
 
-  const stats = JSON.parse(localStorage.getItem('granaGo_achievements') || '{}');
+  const stats = JSON.parse(
+    localStorage.getItem("granaGo_achievements") || "{}",
+  );
 
   let pending = Object.keys(ACHIEVEMENTS_DATA)
-    .map(id => {
-      const current = stats[id] ? (stats[id].p || 0) : 0;
+    .map((id) => {
+      const current = stats[id] ? stats[id].p || 0 : 0;
       const goal = ACHIEVEMENTS_DATA[id].goal;
-      return { id, percent: (current / goal) * 100, ...ACHIEVEMENTS_DATA[id], current };
+      return {
+        id,
+        percent: (current / goal) * 100,
+        ...ACHIEVEMENTS_DATA[id],
+        current,
+      };
     })
-    .filter(a => !stats[a.id]?.c)
+    .filter((a) => !stats[a.id]?.c)
     .sort((a, b) => b.percent - a.percent)
     .slice(0, 2);
 
@@ -11104,9 +11913,10 @@ async function updateHomeAchievementsWidget() {
     return;
   }
 
-  container.innerHTML = pending.map(a => {
-    const currentDisplay = Number(parseFloat(a.current).toFixed(1));
-    return `
+  container.innerHTML = pending
+    .map((a) => {
+      const currentDisplay = Number(parseFloat(a.current).toFixed(1));
+      return `
     <div style="margin-bottom: 8px;">
       <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:4px;">
         <span style="font-weight:700;"><i class="${a.icon}"></i> ${a.title}</span>
@@ -11115,11 +11925,12 @@ async function updateHomeAchievementsWidget() {
         <div style="width:${a.percent}%; height:100%; background:var(--text-accent); transition:width 0.5s;"></div>
       </div>
     </div>`;
-  }).join('');
+    })
+    .join("");
 }
 
 window.updateAchievement = function (id, amount, isAbsolute = false) {
-  let stats = JSON.parse(localStorage.getItem('granaGo_achievements') || '{}');
+  let stats = JSON.parse(localStorage.getItem("granaGo_achievements") || "{}");
   const meta = ACHIEVEMENTS_DATA[id];
   if (!meta) return;
 
@@ -11137,14 +11948,16 @@ window.updateAchievement = function (id, amount, isAbsolute = false) {
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
   }
 
-  localStorage.setItem('granaGo_achievements', JSON.stringify(stats));
-  if (document.getElementById("home-view").classList.contains("active")) updateHomeAchievementsWidget();
+  localStorage.setItem("granaGo_achievements", JSON.stringify(stats));
+  if (document.getElementById("home-view").classList.contains("active"))
+    updateHomeAchievementsWidget();
 };
 
-const FEEDBACK_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-9HhWj41654zlzt77s9c2qSxAWJIpAttia0jRagHB5ALBhd8yitBDr8lvCiYpaEYS9NHMUDe6cfU-/pub?gid=1560052631&single=true&output=csv";
+const FEEDBACK_SHEET_CSV =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-9HhWj41654zlzt77s9c2qSxAWJIpAttia0jRagHB5ALBhd8yitBDr8lvCiYpaEYS9NHMUDe6cfU-/pub?gid=1560052631&single=true&output=csv";
 
 async function fetchFeedbackStatus() {
-  const container = document.getElementById('feedback-status-list');
+  const container = document.getElementById("feedback-status-list");
   if (!container) return;
 
   container.innerHTML = '<div class="spinner" style="margin: 30px auto"></div>';
@@ -11153,59 +11966,68 @@ async function fetchFeedbackStatus() {
     const response = await fetch(FEEDBACK_SHEET_CSV);
     const data = await response.text();
 
-    const rows = data.split('\n').slice(1);
+    const rows = data.split("\n").slice(1);
     container.innerHTML = "";
 
     let hasUpdates = false;
 
-    rows.forEach(row => {
+    rows.forEach((row) => {
       const columns = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
 
       const publicTitle = columns[3]?.replace(/"/g, "").trim();
       const publicDesc = columns[4]?.replace(/"/g, "").trim();
       const status = columns[5]?.replace(/"/g, "").trim().toUpperCase();
 
-      if (status && (status === "EN PROCESO" || status === "SOLUCIONADO" || status === "IMPLEMENTADO")) {
+      if (
+        status &&
+        (status === "EN PROCESO" ||
+          status === "SOLUCIONADO" ||
+          status === "IMPLEMENTADO")
+      ) {
         hasUpdates = true;
 
         const isPending = status === "EN PROCESO";
         const color = isPending ? "#2563eb" : "#10b981";
-        const bg = isPending ? "rgba(37, 99, 235, 0.1)" : "rgba(16, 185, 129, 0.1)";
+        const bg = isPending
+          ? "rgba(37, 99, 235, 0.1)"
+          : "rgba(16, 185, 129, 0.1)";
 
-        const card = document.createElement('div');
+        const card = document.createElement("div");
         card.className = "fav-card fade-in-up";
-        card.style.cssText = "padding: 12px; flex-direction: column; align-items: flex-start; gap: 5px; border: 1px solid var(--border-subtle); margin-bottom: 10px; width: 100%;";
+        card.style.cssText =
+          "padding: 12px; flex-direction: column; align-items: flex-start; gap: 5px; border: 1px solid var(--border-subtle); margin-bottom: 10px; width: 100%;";
 
         card.innerHTML = `
           <span class="location-chip" style="background: ${bg}; color: ${color}; font-weight: 800; font-size: 0.7rem;">${status}</span>
-          <p style="font-size: 0.85rem; margin: 0; font-weight: 600; color: var(--text-primary);">${publicTitle || 'Mejora en curso'}</p>
-          <p style="font-size: 0.75rem; margin: 0; color: var(--text-secondary); line-height: 1.3;">${publicDesc || 'Sin descripción disponible.'}</p>
+          <p style="font-size: 0.85rem; margin: 0; font-weight: 600; color: var(--text-primary);">${publicTitle || "Mejora en curso"}</p>
+          <p style="font-size: 0.75rem; margin: 0; color: var(--text-secondary); line-height: 1.3;">${publicDesc || "Sin descripción disponible."}</p>
         `;
         container.appendChild(card);
       }
     });
 
     if (!hasUpdates) {
-      container.innerHTML = '<p style="text-align:center; font-size:0.8rem; opacity:0.6; padding: 20px;">No hay actualizaciones públicas en este momento.</p>';
+      container.innerHTML =
+        '<p style="text-align:center; font-size:0.8rem; opacity:0.6; padding: 20px;">No hay actualizaciones públicas en este momento.</p>';
     }
-
   } catch (e) {
-    container.innerHTML = '<p style="text-align:center; color:var(--color-error); font-size:0.8rem; padding: 20px;">Error al conectar con la base de datos.</p>';
+    container.innerHTML =
+      '<p style="text-align:center; color:var(--color-error); font-size:0.8rem; padding: 20px;">Error al conectar con la base de datos.</p>';
   }
 }
 
 window.openEcoCalculator = function () {
-  document.getElementById('eco-modal').classList.add('visible');
+  document.getElementById("eco-modal").classList.add("visible");
 };
 
 window.closeEcoModal = function () {
-  document.getElementById('eco-modal').classList.remove('visible');
-  document.getElementById('eco-input-km').value = '';
+  document.getElementById("eco-modal").classList.remove("visible");
+  document.getElementById("eco-input-km").value = "";
 };
 
 window.saveManualEcoTrip = function () {
-  const kmInput = document.getElementById('eco-input-km');
-  const typeSelect = document.getElementById('eco-input-type');
+  const kmInput = document.getElementById("eco-input-km");
+  const typeSelect = document.getElementById("eco-input-type");
 
   if (!kmInput || !typeSelect) return;
 
@@ -11218,8 +12040,8 @@ window.saveManualEcoTrip = function () {
   }
 
   let typeLabel = "andando";
-  if (type === 'bike') typeLabel = "en bici/VMP";
-  if (type === 'pt') typeLabel = "en transporte público";
+  if (type === "bike") typeLabel = "en bici/VMP";
+  if (type === "pt") typeLabel = "en transporte público";
 
   let totalKm = parseFloat(localStorage.getItem("granaGo_eco_km") || "0");
   totalKm += km;
@@ -11236,12 +12058,12 @@ window.saveManualEcoTrip = function () {
   closeEcoModal();
 
   updateHomeEcoWidget();
-  updateAchievement('eco_start', totalKm * ECO_CONFIG.CO2_SAVED_PER_KM, true);
+  updateAchievement("eco_start", totalKm * ECO_CONFIG.CO2_SAVED_PER_KM, true);
 
   showNotification(
     "¡Impacto Registrado!",
     `Has recorrido ${km}km ${typeLabel}. Ahorro: ${co2}kg CO2 y ${money}€`,
-    "success"
+    "success",
   );
 
   if (navigator.vibrate) navigator.vibrate(50);
@@ -11270,12 +12092,22 @@ window.closeMinesweeper = function () {
 window.setMinesDiff = function (diff, btn) {
   minesConfig.diff = diff;
   const btns = document.querySelectorAll("#mines-setup .tab-pill");
-  btns.forEach(b => b.classList.remove("active"));
+  btns.forEach((b) => b.classList.remove("active"));
   btn.classList.add("active");
 
-  if (diff === 'easy') { minesConfig.rows = 8; minesConfig.cols = 8; minesConfig.mines = 10; }
-  else if (diff === 'medium') { minesConfig.rows = 12; minesConfig.cols = 10; minesConfig.mines = 20; }
-  else { minesConfig.rows = 16; minesConfig.cols = 10; minesConfig.mines = 35; }
+  if (diff === "easy") {
+    minesConfig.rows = 8;
+    minesConfig.cols = 8;
+    minesConfig.mines = 10;
+  } else if (diff === "medium") {
+    minesConfig.rows = 12;
+    minesConfig.cols = 10;
+    minesConfig.mines = 20;
+  } else {
+    minesConfig.rows = 16;
+    minesConfig.cols = 10;
+    minesConfig.mines = 35;
+  }
 };
 
 window.startMinesGame = function () {
@@ -11292,7 +12124,12 @@ function initMinesBoard() {
   const totalCells = minesConfig.rows * minesConfig.cols;
 
   for (let i = 0; i < totalCells; i++) {
-    minesConfig.board.push({ mine: false, revealed: false, flagged: false, count: 0 });
+    minesConfig.board.push({
+      mine: false,
+      revealed: false,
+      flagged: false,
+      count: 0,
+    });
   }
 
   renderMinesBoard();
@@ -11315,7 +12152,9 @@ function placeMinesSafe(firstIdx) {
   for (let i = 0; i < totalCells; i++) {
     if (!minesConfig.board[i].mine) {
       let neighbors = getNeighbors(i);
-      minesConfig.board[i].count = neighbors.filter(n => minesConfig.board[n].mine).length;
+      minesConfig.board[i].count = neighbors.filter(
+        (n) => minesConfig.board[n].mine,
+      ).length;
     }
   }
 }
@@ -11330,7 +12169,12 @@ function getNeighbors(idx) {
       if (i === 0 && j === 0) continue;
       let nr = r + i;
       let nc = c + j;
-      if (nr >= 0 && nr < minesConfig.rows && nc >= 0 && nc < minesConfig.cols) {
+      if (
+        nr >= 0 &&
+        nr < minesConfig.rows &&
+        nc >= 0 &&
+        nc < minesConfig.cols
+      ) {
         neighbors.push(nr * minesConfig.cols + nc);
       }
     }
@@ -11350,7 +12194,8 @@ function renderMinesBoard() {
     if (cell.revealed) {
       div.classList.add("revealed");
       if (cell.mine) {
-        div.innerHTML = '<i class="ri-close-circle-fill" style="color:#ef4444"></i>';
+        div.innerHTML =
+          '<i class="ri-close-circle-fill" style="color:#ef4444"></i>';
         div.style.background = "rgba(239, 68, 68, 0.2)";
       } else {
         div.innerText = cell.count > 0 ? cell.count : "";
@@ -11375,7 +12220,12 @@ function renderMinesBoard() {
 }
 
 function revealCell(idx) {
-  if (minesConfig.gameOver || minesConfig.board[idx].revealed || minesConfig.board[idx].flagged) return;
+  if (
+    minesConfig.gameOver ||
+    minesConfig.board[idx].revealed ||
+    minesConfig.board[idx].flagged
+  )
+    return;
 
   if (minesConfig.firstClick) {
     placeMinesSafe(idx);
@@ -11388,7 +12238,7 @@ function revealCell(idx) {
     endMinesGame(false);
   } else {
     if (minesConfig.board[idx].count === 0) {
-      getNeighbors(idx).forEach(n => revealCell(n));
+      getNeighbors(idx).forEach((n) => revealCell(n));
     }
     if (checkMinesWin()) endMinesGame(true);
   }
@@ -11404,7 +12254,7 @@ function toggleFlag(idx) {
 }
 
 function checkMinesWin() {
-  return minesConfig.board.every(c => c.mine || c.revealed);
+  return minesConfig.board.every((c) => c.mine || c.revealed);
 }
 
 function updateMinesStats() {
@@ -11414,7 +12264,9 @@ function updateMinesStats() {
 
 function endMinesGame(win) {
   minesConfig.gameOver = true;
-  minesConfig.board.forEach(c => { if (c.mine) c.revealed = true; });
+  minesConfig.board.forEach((c) => {
+    if (c.mine) c.revealed = true;
+  });
 
   const msg = document.getElementById("mines-message");
   const title = document.getElementById("mines-result-title");
@@ -11422,9 +12274,14 @@ function endMinesGame(win) {
   msg.style.borderLeft = `4px solid ${win ? "#10b981" : "#ef4444"}`;
 
   if (win) {
-    updateAchievement('mines_expert', 1);
+    updateAchievement("mines_expert", 1);
     title.innerText = "¡Ciudad Limpia!";
-    const reward = minesConfig.diff === 'easy' ? 30 : minesConfig.diff === 'medium' ? 60 : 120;
+    const reward =
+      minesConfig.diff === "easy"
+        ? 30
+        : minesConfig.diff === "medium"
+          ? 60
+          : 120;
     addGranaSaldo(reward, "despejar la ciudad");
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
   } else {
@@ -11434,19 +12291,19 @@ function endMinesGame(win) {
 }
 
 window.openVehicleConfig = function () {
-  document.getElementById('vehicle-config-modal').classList.add('visible');
+  document.getElementById("vehicle-config-modal").classList.add("visible");
 
   const resBtn = document.getElementById("btn-residente-toggle");
   resBtn.innerText = vehicleConfig.isResident ? "SÍ" : "NO";
   resBtn.classList.toggle("active", vehicleConfig.isResident);
 
-  document.querySelectorAll(".badge-opt").forEach(b => {
+  document.querySelectorAll(".badge-opt").forEach((b) => {
     b.classList.toggle("active", b.dataset.badge === vehicleConfig.badge);
   });
 };
 
 window.closeVehicleConfig = function () {
-  document.getElementById('vehicle-config-modal').classList.remove('visible');
+  document.getElementById("vehicle-config-modal").classList.remove("visible");
 
   if (window._startDrivingAfterConfig) {
     window._startDrivingAfterConfig = false;
@@ -11468,7 +12325,9 @@ window.setVehicleBadge = function (badgeType, btn) {
   vehicleConfig.badge = badgeType;
   localStorage.setItem("granaGo_vehicle_badge", badgeType);
 
-  document.querySelectorAll(".badge-opt").forEach(b => b.classList.remove("active"));
+  document
+    .querySelectorAll(".badge-opt")
+    .forEach((b) => b.classList.remove("active"));
   btn.classList.add("active");
 };
 
@@ -11484,12 +12343,15 @@ async function initWeatherView(lat, lon, cityName) {
   }
 
   weatherLocationActive = { lat, lon, name: cityName };
-  document.getElementById('weather-detail-city').innerText = cityName;
+  document.getElementById("weather-detail-city").innerText = cityName;
 
   const cacheKey = `${parseFloat(lat).toFixed(4)},${parseFloat(lon).toFixed(4)}`;
   const now = Date.now();
 
-  if (weatherCache[cacheKey] && (now - weatherCache[cacheKey].timestamp < 1800000)) {
+  if (
+    weatherCache[cacheKey] &&
+    now - weatherCache[cacheKey].timestamp < 1800000
+  ) {
     currentWeatherData = weatherCache[cacheKey].data;
     renderWeatherFull(currentWeatherData, weatherCache[cacheKey].aqi);
   } else {
@@ -11531,7 +12393,7 @@ async function fetchFullWeatherData(lat, lon, cacheKey) {
     weatherCache[cacheKey] = {
       timestamp: Date.now(),
       data: data,
-      aqi: aqiData
+      aqi: aqiData,
     };
 
     currentWeatherData = data;
@@ -11543,28 +12405,37 @@ async function fetchFullWeatherData(lat, lon, cacheKey) {
 
 function renderWeatherFull(data, aqiData) {
   const current = data.current;
-  document.getElementById('hero-temp').innerText = `${Math.round(current.temperature_2m)}°`;
-  document.getElementById('hero-wind').innerText = `${Math.round(current.wind_speed_10m)} km/h`;
-  document.getElementById('hero-humidity').innerText = `${current.relative_humidity_2m}%`;
-  document.getElementById('hero-aqi').innerText = `AQI ${aqiData.current.european_aqi}`;
-  document.getElementById('weather-detail-status').innerText = getWeatherDesc(current.weather_code);
+  document.getElementById("hero-temp").innerText =
+    `${Math.round(current.temperature_2m)}°`;
+  document.getElementById("hero-wind").innerText =
+    `${Math.round(current.wind_speed_10m)} km/h`;
+  document.getElementById("hero-humidity").innerText =
+    `${current.relative_humidity_2m}%`;
+  document.getElementById("hero-aqi").innerText =
+    `AQI ${aqiData.current.european_aqi}`;
+  document.getElementById("weather-detail-status").innerText = getWeatherDesc(
+    current.weather_code,
+  );
   applyWeatherTheme(current.weather_code);
 
-  const daySelector = document.getElementById('weather-day-selector');
+  const daySelector = document.getElementById("weather-day-selector");
   daySelector.innerHTML = "";
 
   data.daily.time.forEach((day, i) => {
     const date = new Date(day);
-    const weekdayName = date.toLocaleDateString('es-ES', { weekday: 'long' });
-    const capitalizedDay = weekdayName.charAt(0).toUpperCase() + weekdayName.slice(1);
+    const weekdayName = date.toLocaleDateString("es-ES", { weekday: "long" });
+    const capitalizedDay =
+      weekdayName.charAt(0).toUpperCase() + weekdayName.slice(1);
     const label = i === 0 ? `Hoy (${capitalizedDay})` : capitalizedDay;
 
-    const btn = document.createElement('button');
-    btn.className = `tab-pill ${i === 0 ? 'active' : ''}`;
+    const btn = document.createElement("button");
+    btn.className = `tab-pill ${i === 0 ? "active" : ""}`;
     btn.innerText = label;
     btn.onclick = () => {
-      document.querySelectorAll('#weather-day-selector .tab-pill').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      document
+        .querySelectorAll("#weather-day-selector .tab-pill")
+        .forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
       renderHourlyForDay(i);
     };
     daySelector.appendChild(btn);
@@ -11572,14 +12443,16 @@ function renderWeatherFull(data, aqiData) {
 
   renderHourlyForDay(0);
 
-  const dailyContainer = document.getElementById('daily-forecast-container');
-  dailyContainer.innerHTML = data.daily.time.map((day, i) => {
-    const date = new Date(day);
-    const weekdayName = date.toLocaleDateString('es-ES', { weekday: 'long' });
-    const capitalizedDay = weekdayName.charAt(0).toUpperCase() + weekdayName.slice(1);
-    const label = i === 0 ? `Hoy (${capitalizedDay})` : capitalizedDay;
+  const dailyContainer = document.getElementById("daily-forecast-container");
+  dailyContainer.innerHTML = data.daily.time
+    .map((day, i) => {
+      const date = new Date(day);
+      const weekdayName = date.toLocaleDateString("es-ES", { weekday: "long" });
+      const capitalizedDay =
+        weekdayName.charAt(0).toUpperCase() + weekdayName.slice(1);
+      const label = i === 0 ? `Hoy (${capitalizedDay})` : capitalizedDay;
 
-    return `
+      return `
             <div class="daily-row">
                 <span class="day-name" style="width: auto; min-width: 110px; text-align: left; margin-right: 10px;">${label}</span>
                 <i class="${getWeatherIconName(data.daily.weather_code[i])}"></i>
@@ -11588,11 +12461,12 @@ function renderWeatherFull(data, aqiData) {
                     <span class="min">${Math.round(data.daily.temperature_2m_min[i])}°</span>
                 </div>
             </div>`;
-  }).join('');
+    })
+    .join("");
 }
 
 function renderHourlyForDay(dayIndex) {
-  const container = document.getElementById('hourly-forecast-container');
+  const container = document.getElementById("hourly-forecast-container");
   container.innerHTML = "";
 
   const start = dayIndex * 24;
@@ -11604,7 +12478,7 @@ function renderHourlyForDay(dayIndex) {
     const code = currentWeatherData.hourly.weather_code[i];
     const wind = Math.round(currentWeatherData.hourly.wind_speed_10m[i]);
 
-    const item = document.createElement('div');
+    const item = document.createElement("div");
     item.className = "hourly-item";
     item.innerHTML = `
             <span class="h-time">${time.getHours()}:00</span>
@@ -11618,42 +12492,53 @@ function renderHourlyForDay(dayIndex) {
 }
 
 function setupWeatherSearch() {
-  const input = document.getElementById('weather-search-input');
-  const results = document.getElementById('weather-search-results');
+  const input = document.getElementById("weather-search-input");
+  const results = document.getElementById("weather-search-results");
 
   input.oninput = debounce(async (e) => {
     const query = e.target.value.trim();
-    if (query.length < 3) { results.classList.remove('visible'); return; }
+    if (query.length < 3) {
+      results.classList.remove("visible");
+      return;
+    }
 
     try {
-      const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${query}&count=5&language=es&format=json`);
+      const res = await fetch(
+        `https://geocoding-api.open-meteo.com/v1/search?name=${query}&count=5&language=es&format=json`,
+      );
       const data = await res.json();
       if (!data.results) return;
 
-      results.innerHTML = data.results.map(loc => `
+      results.innerHTML = data.results
+        .map(
+          (loc) => `
                 <div class="search-result-item" onclick="selectWeatherLoc(${loc.latitude}, ${loc.longitude}, '${loc.name}')">
                     <i class="ri-map-pin-2-line result-icon"></i>
                     <div class="result-info">
                         <strong>${loc.name}</strong>
-                        <span>${loc.admin1 || ''}, ${loc.country}</span>
+                        <span>${loc.admin1 || ""}, ${loc.country}</span>
                     </div>
                 </div>
-            `).join('');
-      results.classList.add('visible');
-    } catch (e) { console.error(e); }
+            `,
+        )
+        .join("");
+      results.classList.add("visible");
+    } catch (e) {
+      console.error(e);
+    }
   }, 300);
 }
 
 window.selectWeatherLoc = function (lat, lon, name) {
-  document.getElementById('weather-search-results').classList.remove('visible');
-  document.getElementById('weather-search-input').value = "";
+  document.getElementById("weather-search-results").classList.remove("visible");
+  document.getElementById("weather-search-input").value = "";
   weatherLocationActive = { lat, lon, name };
   initWeatherView(lat, lon, name);
 };
 
 function applyWeatherTheme(code) {
-  const hero = document.getElementById('weather-hero-card');
-  const icon = document.getElementById('hero-icon');
+  const hero = document.getElementById("weather-hero-card");
+  const icon = document.getElementById("hero-icon");
   let theme = "theme-sunny";
 
   if (code >= 1 && code <= 3) theme = "theme-cloudy";
@@ -11679,14 +12564,18 @@ window.closeWelcomeModal = function () {
 
 document.addEventListener("click", (e) => {
   const welcomeModal = document.getElementById("welcome-modal");
-  if (welcomeModal && e.target === welcomeModal && welcomeModal.classList.contains("visible")) {
+  if (
+    welcomeModal &&
+    e.target === welcomeModal &&
+    welcomeModal.classList.contains("visible")
+  ) {
     closeWelcomeModal();
   }
 });
 
 async function cargarRadiosDesdeAPI() {
-  const statusInfoHUD = document.getElementById('radio-status-info');
-  const statusInfoView = document.getElementById('radio-view-status-info');
+  const statusInfoHUD = document.getElementById("radio-status-info");
+  const statusInfoView = document.getElementById("radio-view-status-info");
 
   const updateStatusText = (text) => {
     if (statusInfoHUD) statusInfoHUD.innerText = text;
@@ -11705,36 +12594,57 @@ async function cargarRadiosDesdeAPI() {
   }
 
   try {
-    const serversRes = await fetch("https://all.api.radio-browser.info/json/servers", { priority: 'low' });
+    const serversRes = await fetch(
+      "https://all.api.radio-browser.info/json/servers",
+      { priority: "low" },
+    );
     const servers = await serversRes.json();
     const base_url = `https://${servers[0].name}/json/stations/search?`;
     const [resEspana, resMundo] = await Promise.all([
-      fetch(`${base_url}countrycode=ES&https=true&order=clickcount&reverse=true&limit=600`),
-      fetch(`${base_url}countrynotcode=ES&tag=music&https=true&order=clickcount&reverse=true&limit=400`)
+      fetch(
+        `${base_url}countrycode=ES&https=true&order=clickcount&reverse=true&limit=600`,
+      ),
+      fetch(
+        `${base_url}countrynotcode=ES&tag=music&https=true&order=clickcount&reverse=true&limit=400`,
+      ),
     ]);
 
-    const [dataEspana, dataMundo] = await Promise.all([resEspana.json(), resMundo.json()]);
+    const [dataEspana, dataMundo] = await Promise.all([
+      resEspana.json(),
+      resMundo.json(),
+    ]);
 
     const mapaRadios = new Map();
     const nombresVistos = new Set();
 
     const procesarLista = (lista) => {
-      lista.forEach(s => {
+      lista.forEach((s) => {
         const nombreNorm = s.name.trim().toLowerCase();
         const rawFavicon = s.favicon ? s.favicon.trim() : "";
 
-        let finalLogo = 'images/logo.png';
-        if (rawFavicon && rawFavicon !== "" && rawFavicon !== "null" && !rawFavicon.includes("fbcdn.net") && !rawFavicon.includes("facebook.com")) {
+        let finalLogo = "images/logo.png";
+        if (
+          rawFavicon &&
+          rawFavicon !== "" &&
+          rawFavicon !== "null" &&
+          !rawFavicon.includes("fbcdn.net") &&
+          !rawFavicon.includes("facebook.com")
+        ) {
           finalLogo = PROXY_URL + encodeURIComponent(rawFavicon);
         }
 
-        if (s.name && s.url_resolved && s.url_resolved.startsWith('https://') &&
-          !mapaRadios.has(s.url_resolved) && !nombresVistos.has(nombreNorm)) {
+        if (
+          s.name &&
+          s.url_resolved &&
+          s.url_resolved.startsWith("https://") &&
+          !mapaRadios.has(s.url_resolved) &&
+          !nombresVistos.has(nombreNorm)
+        ) {
           nombresVistos.add(nombreNorm);
           mapaRadios.set(s.url_resolved, {
             n: s.name.trim(),
             u: s.url_resolved,
-            l: finalLogo
+            l: finalLogo,
           });
         }
       });
@@ -11750,7 +12660,6 @@ async function cargarRadiosDesdeAPI() {
       renderRadioList();
       updateStatusText(`${RADIO_STATIONS.length} EMISORAS SINTONIZADAS`);
     });
-
   } catch (error) {
     console.error("Error API Radio:", error);
     updateStatusText("MODO OFFLINE / ERROR RED");
@@ -11758,9 +12667,9 @@ async function cargarRadiosDesdeAPI() {
 }
 
 function renderRadioList() {
-  const hudContainer = document.getElementById('radio-list-horizontal');
-  const viewContainer = document.getElementById('radio-view-list');
-  const searchInput = document.getElementById('radio-search-input');
+  const hudContainer = document.getElementById("radio-list-horizontal");
+  const viewContainer = document.getElementById("radio-view-list");
+  const searchInput = document.getElementById("radio-search-input");
   if (!hudContainer && !viewContainer) return;
 
   const favs = getRadioFavorites();
@@ -11768,19 +12677,21 @@ function renderRadioList() {
 
   let filteredIndices = RADIO_STATIONS.map((_, i) => i);
   if (term) {
-    filteredIndices = filteredIndices.filter(idx =>
-      RADIO_STATIONS[idx].n.toLowerCase().includes(term)
+    filteredIndices = filteredIndices.filter((idx) =>
+      RADIO_STATIONS[idx].n.toLowerCase().includes(term),
     );
   }
   filteredIndices.sort((a, b) => {
-    return favs.includes(RADIO_STATIONS[b].u) - favs.includes(RADIO_STATIONS[a].u);
+    return (
+      favs.includes(RADIO_STATIONS[b].u) - favs.includes(RADIO_STATIONS[a].u)
+    );
   });
 
   if (hudContainer) {
     hudContainer.innerHTML = "";
     const hudBatch = filteredIndices;
     const hudFrag = document.createDocumentFragment();
-    hudBatch.forEach(idx => hudFrag.appendChild(createRadioCard(idx)));
+    hudBatch.forEach((idx) => hudFrag.appendChild(createRadioCard(idx)));
     hudContainer.appendChild(hudFrag);
     setupImageLazyLoading(hudContainer);
   }
@@ -11806,13 +12717,14 @@ function createRadioCard(idx) {
   const station = RADIO_STATIONS[idx];
   const isFav = getRadioFavorites().includes(station.u);
   const isCurrent = currentRadioIdx === idx;
-  const stationLogo = (station.l && !station.l.includes("url=null") && station.l !== "undefined")
-    ? station.l
-    : 'images/logo.png';
+  const stationLogo =
+    station.l && !station.l.includes("url=null") && station.l !== "undefined"
+      ? station.l
+      : "images/logo.png";
 
-  const card = document.createElement('div');
-  card.className = `radio-station-card ${isFav ? 'is-favorite' : ''} ${isCurrent ? 'active' : ''}`;
-  if (isCurrent && radioIsPlaying) card.classList.add('playing');
+  const card = document.createElement("div");
+  card.className = `radio-station-card ${isFav ? "is-favorite" : ""} ${isCurrent ? "active" : ""}`;
+  if (isCurrent && radioIsPlaying) card.classList.add("playing");
   card.id = `radio-card-${idx}`;
 
   card.innerHTML = `
@@ -11825,9 +12737,9 @@ function createRadioCard(idx) {
              referrerpolicy="no-referrer"
              style="object-fit: cover; width: 100%; height: 100%;"
              onerror="this.onerror=null; this.src='images/logo.png'; this.parentElement.style.background='transparent';">
-        ${isFav ? '<i class="ri-star-fill" style="position:absolute; top:5px; right:5px; color:#fbbf24; z-index:10; text-shadow: 0 0 4px rgba(0,0,0,0.8);"></i>' : ''}
+        ${isFav ? '<i class="ri-star-fill" style="position:absolute; top:5px; right:5px; color:#fbbf24; z-index:10; text-shadow: 0 0 4px rgba(0,0,0,0.8);"></i>' : ""}
         <div class="radio-equalizer"><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div></div>
-        <div class="radio-play-overlay"><i class="${isCurrent && radioIsPlaying ? 'ri-pause-fill' : 'ri-play-fill'}"></i></div>
+        <div class="radio-play-overlay"><i class="${isCurrent && radioIsPlaying ? "ri-pause-fill" : "ri-play-fill"}"></i></div>
       </div>
       <span class="radio-card-name" style="display: block; margin-top: 5px; font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${station.n}</span>
     `;
@@ -11836,10 +12748,13 @@ function createRadioCard(idx) {
 }
 
 function renderNextRadioBatch() {
-  const viewContainer = document.getElementById('radio-view-list');
+  const viewContainer = document.getElementById("radio-view-list");
   if (!viewContainer || radioItemsDisplayed >= radioMainIndices.length) return;
 
-  const nextBatch = radioMainIndices.slice(radioItemsDisplayed, radioItemsDisplayed + RADIO_PAGE_SIZE);
+  const nextBatch = radioMainIndices.slice(
+    radioItemsDisplayed,
+    radioItemsDisplayed + RADIO_PAGE_SIZE,
+  );
   const fragment = document.createDocumentFragment();
 
   let i = 0;
@@ -11862,15 +12777,18 @@ function renderNextRadioBatch() {
 }
 
 function setupInfiniteScroll() {
-  const viewContainer = document.getElementById('radio-view-list');
+  const viewContainer = document.getElementById("radio-view-list");
   if (radioScrollObserver) radioScrollObserver.disconnect();
 
-  radioScrollObserver = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting) {
-      radioScrollObserver.disconnect();
-      renderNextRadioBatch();
-    }
-  }, { rootMargin: '400px' });
+  radioScrollObserver = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting) {
+        radioScrollObserver.disconnect();
+        renderNextRadioBatch();
+      }
+    },
+    { rootMargin: "400px" },
+  );
 
   if (viewContainer.lastElementChild) {
     radioScrollObserver.observe(viewContainer.lastElementChild);
@@ -11879,26 +12797,35 @@ function setupInfiniteScroll() {
 
 function setupImageLazyLoading(container) {
   if (!radioImageObserver) {
-    radioImageObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const img = entry.target;
-          const realSrc = img.getAttribute('data-src');
-          if (realSrc && realSrc !== 'images/logo.png' && realSrc !== 'undefined') {
-            img.src = realSrc;
+    radioImageObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            const realSrc = img.getAttribute("data-src");
+            if (
+              realSrc &&
+              realSrc !== "images/logo.png" &&
+              realSrc !== "undefined"
+            ) {
+              img.src = realSrc;
+            }
+            img.removeAttribute("data-src");
+            radioImageObserver.unobserve(img);
           }
-          img.removeAttribute('data-src');
-          radioImageObserver.unobserve(img);
-        }
-      });
-    }, { rootMargin: '150px' });
+        });
+      },
+      { rootMargin: "150px" },
+    );
   }
-  container.querySelectorAll('img[data-src]').forEach(img => radioImageObserver.observe(img));
+  container
+    .querySelectorAll("img[data-src]")
+    .forEach((img) => radioImageObserver.observe(img));
 }
 
 window.toggleStation = async function (index) {
-  const audio = document.getElementById('hud-audio-element');
-  const statusInfo = document.getElementById('radio-status-info');
+  const audio = document.getElementById("hud-audio-element");
+  const statusInfo = document.getElementById("radio-status-info");
   const station = RADIO_STATIONS[index];
 
   if (!radioIsPlaying || currentRadioIdx !== index) {
@@ -11939,23 +12866,29 @@ function actualizarUIPlayer() {
   const station = RADIO_STATIONS[currentRadioIdx];
   const favs = getRadioFavorites();
 
-  document.querySelectorAll('.radio-station-card').forEach(card => {
-    const cardIdx = parseInt(card.id.split('-').pop());
-    card.classList.toggle('active', cardIdx === currentRadioIdx);
-    card.classList.toggle('playing', cardIdx === currentRadioIdx && radioIsPlaying);
+  document.querySelectorAll(".radio-station-card").forEach((card) => {
+    const cardIdx = parseInt(card.id.split("-").pop());
+    card.classList.toggle("active", cardIdx === currentRadioIdx);
+    card.classList.toggle(
+      "playing",
+      cardIdx === currentRadioIdx && radioIsPlaying,
+    );
 
-    const icon = card.querySelector('.radio-play-overlay i');
+    const icon = card.querySelector(".radio-play-overlay i");
     if (icon) {
-      icon.className = (cardIdx === currentRadioIdx && radioIsPlaying) ? 'ri-pause-fill' : 'ri-play-fill';
+      icon.className =
+        cardIdx === currentRadioIdx && radioIsPlaying
+          ? "ri-pause-fill"
+          : "ri-play-fill";
     }
   });
 
   if (currentRadioIdx !== -1 && station) {
     const isFav = favs.includes(station.u);
-    const nameEl = document.getElementById('radio-current-name');
-    const logoEl = document.getElementById('radio-current-logo');
-    const playBtn = document.getElementById('radio-main-play-btn');
-    const favBtn = document.getElementById('btn-fav-radio');
+    const nameEl = document.getElementById("radio-current-name");
+    const logoEl = document.getElementById("radio-current-logo");
+    const playBtn = document.getElementById("radio-main-play-btn");
+    const favBtn = document.getElementById("btn-fav-radio");
 
     if (nameEl) nameEl.innerText = station.n;
     if (logoEl) {
@@ -11970,17 +12903,22 @@ function actualizarUIPlayer() {
                                  onerror="this.src='images/logo.png'; this.onerror=null;">`;
       }
     }
-    if (playBtn) playBtn.innerHTML = `<i class="${radioIsPlaying ? 'ri-pause-fill' : 'ri-play-fill'}"></i>`;
+    if (playBtn)
+      playBtn.innerHTML = `<i class="${radioIsPlaying ? "ri-pause-fill" : "ri-play-fill"}"></i>`;
     if (favBtn) {
-      favBtn.innerHTML = `<i class="${isFav ? 'ri-star-fill' : 'ri-star-line'}"></i> ${isFav ? 'Favorito' : 'Añadir a favoritos'}`;
-      favBtn.style.color = isFav ? '#fbbf24' : 'inherit';
+      favBtn.innerHTML = `<i class="${isFav ? "ri-star-fill" : "ri-star-line"}"></i> ${isFav ? "Favorito" : "Añadir a favoritos"}`;
+      favBtn.style.color = isFav ? "#fbbf24" : "inherit";
     }
 
-    if ('mediaSession' in navigator) {
+    if ("mediaSession" in navigator) {
       const activeVis = localStorage.getItem("granaGo_active_visualizer");
-      let imageToUse = (activeVis && radioIsPlaying) ? activeVis : station.l;
+      let imageToUse = activeVis && radioIsPlaying ? activeVis : station.l;
 
-      if (!imageToUse || imageToUse === "undefined" || imageToUse.includes("url=null")) {
+      if (
+        !imageToUse ||
+        imageToUse === "undefined" ||
+        imageToUse.includes("url=null")
+      ) {
         imageToUse = "https://granago.github.io/images/logo.png";
       }
 
@@ -11991,13 +12929,17 @@ function actualizarUIPlayer() {
         artwork: [
           {
             src: imageToUse,
-            sizes: '512x512',
-            type: imageToUse.endsWith('.gif') ? 'image/gif' : 'image/png'
-          }
-        ]
+            sizes: "512x512",
+            type: imageToUse.endsWith(".gif") ? "image/gif" : "image/png",
+          },
+        ],
       });
-      navigator.mediaSession.setActionHandler('play', () => toggleStation(currentRadioIdx));
-      navigator.mediaSession.setActionHandler('pause', () => toggleStation(currentRadioIdx));
+      navigator.mediaSession.setActionHandler("play", () =>
+        toggleStation(currentRadioIdx),
+      );
+      navigator.mediaSession.setActionHandler("pause", () =>
+        toggleStation(currentRadioIdx),
+      );
     }
   }
 }
@@ -12013,7 +12955,7 @@ window.toggleRadioFav = function () {
   const isFav = favs.includes(station.u);
 
   if (isFav) {
-    favs = favs.filter(url => url !== station.u);
+    favs = favs.filter((url) => url !== station.u);
     showNotification("Eliminado", "Quitado de favoritos", "info");
   } else {
     favs.push(station.u);
@@ -12039,7 +12981,8 @@ window.nextRadio = function () {
 };
 
 window.prevRadio = function () {
-  let prev = (currentRadioIdx - 1 + RADIO_STATIONS.length) % RADIO_STATIONS.length;
+  let prev =
+    (currentRadioIdx - 1 + RADIO_STATIONS.length) % RADIO_STATIONS.length;
   toggleStation(prev);
 };
 
@@ -12048,22 +12991,22 @@ function initConnectionTracker() {
     showOfflineNotice();
   }
 
-  window.addEventListener('offline', () => {
+  window.addEventListener("offline", () => {
     showOfflineNotice();
   });
 
-  window.addEventListener('online', () => {
+  window.addEventListener("online", () => {
     const container = document.getElementById("notification-container");
     if (container) {
       const activeOfflineToasts = container.querySelectorAll(".toast-error");
-      activeOfflineToasts.forEach(t => t.remove());
+      activeOfflineToasts.forEach((t) => t.remove());
     }
 
     showNotification(
       "Conexión restablecida",
       "Vuelves a tener internet. Todas las funciones de la aplicación están accesibles de nuevo.",
       "success",
-      5000
+      5000,
     );
   });
 }
@@ -12073,7 +13016,7 @@ function showOfflineNotice() {
     "Sin conexión",
     "Estás navegando sin internet. Recuerda que algunas funciones pueden dar error o no ser accesibles.",
     "error",
-    15000
+    15000,
   );
 }
 
@@ -12088,7 +13031,10 @@ document.addEventListener("input", (e) => {
 });
 
 document.addEventListener("click", (e) => {
-  if (e.target.id === "clear-radio-search-btn" || e.target.closest("#clear-radio-search-btn")) {
+  if (
+    e.target.id === "clear-radio-search-btn" ||
+    e.target.closest("#clear-radio-search-btn")
+  ) {
     const input = document.getElementById("radio-search-input");
     if (input) {
       input.value = "";
@@ -12099,9 +13045,10 @@ document.addEventListener("click", (e) => {
 });
 
 window.toggleHudLayout = async function () {
-  const hud = document.getElementById('driving-hud');
-  const isHorizontalNow = hud.classList.toggle('hud-horizontal');
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const hud = document.getElementById("driving-hud");
+  const isHorizontalNow = hud.classList.toggle("hud-horizontal");
+  const isIOS =
+    /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
   try {
     if (isHorizontalNow) {
@@ -12110,21 +13057,24 @@ window.toggleHudLayout = async function () {
           "Modo Horizontal",
           "Por favor, gira tu iPhone físicamente y asegúrate de quitar el bloqueo de orientación en el centro de control.",
           "info",
-          6000
+          6000,
         );
       } else {
-        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        if (
+          !document.fullscreenElement &&
+          document.documentElement.requestFullscreen
+        ) {
           await document.documentElement.requestFullscreen();
         }
         if (screen.orientation && screen.orientation.lock) {
-          await screen.orientation.lock('landscape');
+          await screen.orientation.lock("landscape");
         }
 
         showNotification(
           "Modo Horizontal",
           "Modo horizontal aplicado correctamente.",
           "success",
-          3000
+          3000,
         );
       }
     } else {
@@ -12135,15 +13085,22 @@ window.toggleHudLayout = async function () {
         "Modo Vertical",
         "Volviendo al modo vertical.",
         "success",
-        3000
+        3000,
       );
     }
   } catch (err) {
-    console.warn("La rotación automática no es compatible con este navegador/S.O.:", err);
-    showNotification("Aviso", "Gira el móvil manualmente si no ha rotado automáticamente", "info");
+    console.warn(
+      "La rotación automática no es compatible con este navegador/S.O.:",
+      err,
+    );
+    showNotification(
+      "Aviso",
+      "Gira el móvil manualmente si no ha rotado automáticamente",
+      "info",
+    );
   }
 
-  localStorage.setItem('granaGo_hud_horizontal', isHorizontalNow);
+  localStorage.setItem("granaGo_hud_horizontal", isHorizontalNow);
   if (navigator.vibrate) navigator.vibrate(30);
 };
 
@@ -12151,7 +13108,7 @@ function renderMetroUI(data) {
   const container = document.getElementById("home-metro-content");
   if (!container) return;
 
-  if (data.status === 'ok') {
+  if (data.status === "ok") {
     container.innerHTML = `
       <div style="text-align: center; padding: 10px 0;">
         <i class="ri-checkbox-circle-fill" style="color: #10b981; font-size: 1.5rem;"></i>
@@ -12160,13 +13117,17 @@ function renderMetroUI(data) {
     return;
   }
 
-  if (data.status === 'alert' && data.tweets) {
-    let html = data.tweets.map(t => `
+  if (data.status === "alert" && data.tweets) {
+    let html = data.tweets
+      .map(
+        (t) => `
       <div style="margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle);">
         <p style="font-size: 0.82rem; line-height: 1.4; color: var(--text-primary); margin: 0 0 4px 0;">${t.text}</p>
         <span style="font-size: 0.65rem; color: var(--text-secondary); opacity: 0.7;">${t.date}</span>
       </div>
-    `).join('');
+    `,
+      )
+      .join("");
 
     html += `<div style="font-size: 0.65rem; opacity: 0.5; margin-top: 5px; display: flex; align-items: center; gap: 4px;">
                <i class="ri-twitter-x-fill"></i> Estado del Servicio
@@ -12189,10 +13150,18 @@ async function updateMetroXWidget() {
       localStorage.removeItem(CACHE_KEY);
     }
   } else {
-    container.innerHTML = '<div class="spinner" style="margin: 10px auto; width:20px; height:20px;"></div>';
+    container.innerHTML =
+      '<div class="spinner" style="margin: 10px auto; width:20px; height:20px;"></div>';
   }
 
-  const instances = ["nitter.net", "nitter.privacyredirect.com", "nitter.poast.org", "nitter.tiekoetter.com", "nuku.trabun.org", "nitter.space"];
+  const instances = [
+    "nitter.net",
+    "nitter.privacyredirect.com",
+    "nitter.poast.org",
+    "nitter.tiekoetter.com",
+    "nuku.trabun.org",
+    "nitter.space",
+  ];
   let success = false;
 
   for (const instance of instances) {
@@ -12201,26 +13170,36 @@ async function updateMetroXWidget() {
     const finalUrl = PROXY_URL + encodeURIComponent(url);
 
     try {
-      const res = await fetch(finalUrl, { priority: 'low' });
+      const res = await fetch(finalUrl, { priority: "low" });
       if (!res.ok) throw new Error("Fallo de red");
 
       const html = await res.text();
       const doc = new DOMParser().parseFromString(html, "text/html");
-      const allTweets = Array.from(doc.querySelectorAll(".timeline-item:not(.pinned)"));
+      const allTweets = Array.from(
+        doc.querySelectorAll(".timeline-item:not(.pinned)"),
+      );
 
       if (allTweets.length === 0) throw new Error("Instancia vacía");
 
       const filteredTweets = allTweets
-        .filter(tweet => tweet.querySelector(".tweet-content")?.innerText.trim().startsWith("🔴"))
+        .filter((tweet) =>
+          tweet
+            .querySelector(".tweet-content")
+            ?.innerText.trim()
+            .startsWith("🔴"),
+        )
         .slice(0, 2)
-        .map(tweet => ({
-          text: tweet.querySelector(".tweet-content")?.innerText.trim() || "Sin contenido",
-          date: tweet.querySelector(".tweet-date a")?.title || "Reciente"
+        .map((tweet) => ({
+          text:
+            tweet.querySelector(".tweet-content")?.innerText.trim() ||
+            "Sin contenido",
+          date: tweet.querySelector(".tweet-date a")?.title || "Reciente",
         }));
 
-      const dataToSave = filteredTweets.length > 0
-        ? { status: 'alert', tweets: filteredTweets }
-        : { status: 'ok' };
+      const dataToSave =
+        filteredTweets.length > 0
+          ? { status: "alert", tweets: filteredTweets }
+          : { status: "ok" };
 
       renderMetroUI(dataToSave);
       localStorage.setItem(CACHE_KEY, JSON.stringify(dataToSave));
@@ -12236,16 +13215,16 @@ async function updateMetroXWidget() {
 }
 
 window.openRunningSetup = function () {
-  document.getElementById('run-setup-modal').classList.add('visible');
+  document.getElementById("run-setup-modal").classList.add("visible");
 };
 
 window.closeRunSetup = function () {
-  document.getElementById('run-setup-modal').classList.remove('visible');
+  document.getElementById("run-setup-modal").classList.remove("visible");
 };
 
 window.startTracking = async function (mode) {
   closeRunSetup();
-  navigateTo('running');
+  navigateTo("running");
 
   runState = {
     active: false,
@@ -12258,40 +13237,51 @@ window.startTracking = async function (mode) {
     path: [],
     lastCoord: null,
     watchId: null,
-    timerInterval: null
+    timerInterval: null,
   };
 
-  document.getElementById('run-display-mode').innerText = mode === 'run' ? 'Modo Carrera' : 'Modo Caminata';
-  document.getElementById('run-start-time-label').innerText = "Listo para empezar";
-  document.getElementById('run-timer').innerText = "00:00:00";
-  document.getElementById('run-dist').innerHTML = `0.00 <small>km</small>`;
-  document.getElementById('run-speed').innerHTML = `0.0 <small>km/h</small>`;
-  document.getElementById('btn-run-start').style.display = "block";
-  document.getElementById('btn-run-pause').style.display = "none";
-  document.getElementById('btn-run-stop').style.display = "none";
+  document.getElementById("run-display-mode").innerText =
+    mode === "run" ? "Modo Carrera" : "Modo Caminata";
+  document.getElementById("run-start-time-label").innerText =
+    "Listo para empezar";
+  document.getElementById("run-timer").innerText = "00:00:00";
+  document.getElementById("run-dist").innerHTML = `0.00 <small>km</small>`;
+  document.getElementById("run-speed").innerHTML = `0.0 <small>km/h</small>`;
+  document.getElementById("btn-run-start").style.display = "block";
+  document.getElementById("btn-run-pause").style.display = "none";
+  document.getElementById("btn-run-stop").style.display = "none";
 };
 
 window.beginActivity = function () {
   runState.active = true;
   runState.startTime = new Date();
 
-  document.getElementById('run-start-time-label').innerText = `Iniciado a las ${runState.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  document.getElementById("run-start-time-label").innerText =
+    `Iniciado a las ${runState.startTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
 
-  document.getElementById('btn-run-start').style.display = "none";
-  document.getElementById('btn-run-pause').style.display = "flex";
-  document.getElementById('btn-run-stop').style.display = "flex";
+  document.getElementById("btn-run-start").style.display = "none";
+  document.getElementById("btn-run-pause").style.display = "flex";
+  document.getElementById("btn-run-stop").style.display = "flex";
 
   requestWakeLock();
   startRunTimer();
 
   const gpsOptions = {
     enableHighAccuracy: true,
-    maximumAge: runState.mode === 'run' ? 2500 : 10000,
-    timeout: 15000
+    maximumAge: runState.mode === "run" ? 2500 : 10000,
+    timeout: 15000,
   };
 
-  runState.watchId = navigator.geolocation.watchPosition(processRunPosition, null, gpsOptions);
-  showNotification("Ruta Iniciada", "¡Vamos! GranáGo está grabando.", "success");
+  runState.watchId = navigator.geolocation.watchPosition(
+    processRunPosition,
+    null,
+    gpsOptions,
+  );
+  showNotification(
+    "Ruta Iniciada",
+    "¡Vamos! GranáGo está grabando.",
+    "success",
+  );
 };
 
 function processRunPosition(pos) {
@@ -12299,17 +13289,24 @@ function processRunPosition(pos) {
 
   const lat = parseFloat(pos.coords.latitude.toFixed(5));
   const lng = parseFloat(pos.coords.longitude.toFixed(5));
-  const speed = pos.coords.speed ? (pos.coords.speed * 3.6) : 0;
+  const speed = pos.coords.speed ? pos.coords.speed * 3.6 : 0;
 
-  document.getElementById('run-speed').innerHTML = `${speed.toFixed(1)} <small>km/h</small>`;
+  document.getElementById("run-speed").innerHTML =
+    `${speed.toFixed(1)} <small>km/h</small>`;
 
   if (runState.lastCoord) {
-    const dist = getDistanceFromLatLonInKm(runState.lastCoord.lat, runState.lastCoord.lng, lat, lng);
+    const dist = getDistanceFromLatLonInKm(
+      runState.lastCoord.lat,
+      runState.lastCoord.lng,
+      lat,
+      lng,
+    );
     if (dist > 0.005) {
       runState.distance += dist;
       runState.path.push([lat, lng]);
       runState.lastCoord = { lat, lng };
-      document.getElementById('run-dist').innerHTML = `${runState.distance.toFixed(2)} <small>km</small>`;
+      document.getElementById("run-dist").innerHTML =
+        `${runState.distance.toFixed(2)} <small>km</small>`;
     }
   } else {
     runState.lastCoord = { lat, lng };
@@ -12321,39 +13318,53 @@ function startRunTimer() {
   runState.timerInterval = setInterval(() => {
     if (!runState.paused) {
       runState.totalSeconds++;
-      const hrs = Math.floor(runState.totalSeconds / 3600).toString().padStart(2, '0');
-      const mins = Math.floor((runState.totalSeconds % 3600) / 60).toString().padStart(2, '0');
-      const secs = (runState.totalSeconds % 60).toString().padStart(2, '0');
-      document.getElementById('run-timer').innerText = `${hrs}:${mins}:${secs}`;
+      const hrs = Math.floor(runState.totalSeconds / 3600)
+        .toString()
+        .padStart(2, "0");
+      const mins = Math.floor((runState.totalSeconds % 3600) / 60)
+        .toString()
+        .padStart(2, "0");
+      const secs = (runState.totalSeconds % 60).toString().padStart(2, "0");
+      document.getElementById("run-timer").innerText = `${hrs}:${mins}:${secs}`;
       updateActivityMediaSession();
     }
   }, 1000);
 }
 
 function updateActivityMediaSession() {
-  if ('mediaSession' in navigator && runState.active) {
-    const timeStr = document.getElementById('run-timer').innerText;
+  if ("mediaSession" in navigator && runState.active) {
+    const timeStr = document.getElementById("run-timer").innerText;
     const distStr = runState.distance.toFixed(2);
 
     navigator.mediaSession.metadata = new MediaMetadata({
       title: `Ruta en curso: ${distStr} km`,
       artist: `Tiempo: ${timeStr}`,
-      album: 'GranáGo Actividad',
+      album: "GranáGo Actividad",
       artwork: [
-        { src: 'https://granago.github.io/images/logo512.png', sizes: '512x512', type: 'image/png' }
-      ]
+        {
+          src: "https://granago.github.io/images/logo512.png",
+          sizes: "512x512",
+          type: "image/png",
+        },
+      ],
     });
 
-    navigator.mediaSession.setActionHandler('play', () => { toggleRunPause(); });
-    navigator.mediaSession.setActionHandler('pause', () => { toggleRunPause(); });
+    navigator.mediaSession.setActionHandler("play", () => {
+      toggleRunPause();
+    });
+    navigator.mediaSession.setActionHandler("pause", () => {
+      toggleRunPause();
+    });
   }
 }
 
 window.toggleRunPause = function () {
   runState.paused = !runState.paused;
-  const btn = document.getElementById('btn-run-pause');
-  btn.innerHTML = runState.paused ? '<i class="ri-play-fill"></i> REANUDAR' : '<i class="ri-pause-fill"></i> PAUSAR';
-  btn.classList.toggle('primary', runState.paused);
+  const btn = document.getElementById("btn-run-pause");
+  btn.innerHTML = runState.paused
+    ? '<i class="ri-play-fill"></i> REANUDAR'
+    : '<i class="ri-pause-fill"></i> PAUSAR';
+  btn.classList.toggle("primary", runState.paused);
 };
 
 window.finishRun = function () {
@@ -12363,9 +13374,14 @@ window.finishRun = function () {
   if (runState.watchId) navigator.geolocation.clearWatch(runState.watchId);
   if (wakeLock) wakeLock.release();
 
-  const timeStr = document.getElementById('run-timer').innerText;
-  const avgSpeed = runState.totalSeconds > 0 ? (runState.distance / (runState.totalSeconds / 3600)).toFixed(1) : "0";
-  const history = JSON.parse(localStorage.getItem('granaGo_run_history') || "[]");
+  const timeStr = document.getElementById("run-timer").innerText;
+  const avgSpeed =
+    runState.totalSeconds > 0
+      ? (runState.distance / (runState.totalSeconds / 3600)).toFixed(1)
+      : "0";
+  const history = JSON.parse(
+    localStorage.getItem("granaGo_run_history") || "[]",
+  );
   const isTraceValid = runState.distance > 0.1 && runState.totalSeconds >= 10;
 
   history.push({
@@ -12374,41 +13390,43 @@ window.finishRun = function () {
     d: runState.distance.toFixed(2),
     t: timeStr,
     s: avgSpeed,
-    p: isTraceValid ? compressPath(runState.path) : []
+    p: isTraceValid ? compressPath(runState.path) : [],
   });
 
-  localStorage.setItem('granaGo_run_history', JSON.stringify(history));
+  localStorage.setItem("granaGo_run_history", JSON.stringify(history));
 
   let totalEcoKm = parseFloat(localStorage.getItem("granaGo_eco_km") || "0");
   totalEcoKm += runState.distance;
   localStorage.setItem("granaGo_eco_km", totalEcoKm);
-  updateAchievement('sport_master', runState.distance);
+  updateAchievement("sport_master", runState.distance);
 
   showRunSummary();
 };
 
 window.deleteRunFromHistory = function (index) {
   runIndexToDelete = index;
-  const modal = document.getElementById('delete-confirm-modal');
-  modal.classList.add('visible');
+  const modal = document.getElementById("delete-confirm-modal");
+  modal.classList.add("visible");
 
-  const confirmBtn = document.getElementById('btn-confirm-delete-final');
+  const confirmBtn = document.getElementById("btn-confirm-delete-final");
   confirmBtn.onclick = function () {
     executeDeleteRun();
   };
 };
 
 window.closeDeleteConfirm = function () {
-  document.getElementById('delete-confirm-modal').classList.remove('visible');
+  document.getElementById("delete-confirm-modal").classList.remove("visible");
   runIndexToDelete = null;
 };
 
 function executeDeleteRun() {
   if (runIndexToDelete === null) return;
 
-  const history = JSON.parse(localStorage.getItem('granaGo_run_history') || "[]");
+  const history = JSON.parse(
+    localStorage.getItem("granaGo_run_history") || "[]",
+  );
   history.splice(runIndexToDelete, 1);
-  localStorage.setItem('granaGo_run_history', JSON.stringify(history));
+  localStorage.setItem("granaGo_run_history", JSON.stringify(history));
 
   closeDeleteConfirm();
   renderRunHistory();
@@ -12416,37 +13434,52 @@ function executeDeleteRun() {
 }
 
 function showRunSummary() {
-  document.getElementById('run-summary-modal').classList.add('visible');
+  document.getElementById("run-summary-modal").classList.add("visible");
 
-  const avgSpeed = runState.totalSeconds > 0 ? (runState.distance / (runState.totalSeconds / 3600)) : 0;
-  const timeStr = document.getElementById('run-timer').innerText;
+  const avgSpeed =
+    runState.totalSeconds > 0
+      ? runState.distance / (runState.totalSeconds / 3600)
+      : 0;
+  const timeStr = document.getElementById("run-timer").innerText;
 
-  const statsGrid = document.getElementById('summary-stats-grid');
+  const statsGrid = document.getElementById("summary-stats-grid");
   statsGrid.innerHTML = `
-        <div class="fuel-price-item"><span class="fuel-type-label">Inicio</span><span class="fuel-price-val">${runState.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
+        <div class="fuel-price-item"><span class="fuel-type-label">Inicio</span><span class="fuel-price-val">${runState.startTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span></div>
         <div class="fuel-price-item"><span class="fuel-type-label">Distancia</span><span class="fuel-price-val">${runState.distance.toFixed(2)} km</span></div>
         <div class="fuel-price-item"><span class="fuel-type-label">Tiempo</span><span class="fuel-price-val">${timeStr}</span></div>
         <div class="fuel-price-item"><span class="fuel-type-label">Velocidad Media</span><span class="fuel-price-val">${avgSpeed.toFixed(1)} km/h</span></div>
     `;
 
-  const mapContainer = document.getElementById('summary-map');
+  const mapContainer = document.getElementById("summary-map");
   const isTraceValid = runState.distance > 0.1 && runState.totalSeconds >= 10;
 
   if (isTraceValid) {
     mapContainer.style.display = "block";
     setTimeout(() => {
       if (summaryMap) summaryMap.remove();
-      summaryMap = L.map('summary-map', { zoomControl: false, attributionControl: false });
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(summaryMap);
+      summaryMap = L.map("summary-map", {
+        zoomControl: false,
+        attributionControl: false,
+      });
+      L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+      ).addTo(summaryMap);
 
       if (runState.path.length > 1) {
-        const polyline = L.polyline(runState.path, { color: '#ec4899', weight: 4 }).addTo(summaryMap);
+        const polyline = L.polyline(runState.path, {
+          color: "#ec4899",
+          weight: 4,
+        }).addTo(summaryMap);
         summaryMap.fitBounds(polyline.getBounds(), { padding: [10, 10] });
       }
     }, 300);
   } else {
     mapContainer.style.display = "none";
-    showNotification("Trayecto omitido", "No se ha generado mapa por distancia o tiempo insuficiente.", "info");
+    showNotification(
+      "Trayecto omitido",
+      "No se ha generado mapa por distancia o tiempo insuficiente.",
+      "info",
+    );
   }
 
   const reward = Math.floor(runState.distance * 100);
@@ -12456,8 +13489,10 @@ function showRunSummary() {
 window.shareRunSummary = async function () {
   const isTraceValid = runState.distance > 0.1 && runState.totalSeconds >= 10;
 
-  const avgSpeed = (runState.distance / (runState.totalSeconds / 3600)).toFixed(1);
-  const timeStr = document.getElementById('run-timer').innerText;
+  const avgSpeed = (runState.distance / (runState.totalSeconds / 3600)).toFixed(
+    1,
+  );
+  const timeStr = document.getElementById("run-timer").innerText;
 
   let shareText = `🏃‍♂️ ¡He completado mi actividad con GranáGo!\n📍 Distancia: ${runState.distance.toFixed(2)} km\n⏱️ Tiempo: ${timeStr}\n⚡ Vel. Media: ${avgSpeed} km/h\n#GranáGo`;
 
@@ -12467,7 +13502,7 @@ window.shareRunSummary = async function () {
       p: pathData,
       t: timeStr,
       d: runState.distance.toFixed(2),
-      s: avgSpeed
+      s: avgSpeed,
     };
     const encodedData = btoa(JSON.stringify(payload));
     const staticUrl = `${window.location.origin}${window.location.pathname}?route=${encodedData}`;
@@ -12475,38 +13510,58 @@ window.shareRunSummary = async function () {
     shareText += `\n🗺️ Ver mapa: ${staticUrl}`;
 
     try {
-      showNotification("Preparando...", "Generando imagen con marca de agua", "info");
+      showNotification(
+        "Preparando...",
+        "Generando imagen con marca de agua",
+        "info",
+      );
       await loadScript("js/html2canvas.min.js");
 
-      const mapElement = document.getElementById('summary-map');
-      const watermark = document.createElement('div');
-      watermark.style.cssText = "position:absolute; bottom:10px; right:10px; z-index:9999; pointer-events:none; filter:drop-shadow(0 0 4px rgba(0,0,0,0.6));";
+      const mapElement = document.getElementById("summary-map");
+      const watermark = document.createElement("div");
+      watermark.style.cssText =
+        "position:absolute; bottom:10px; right:10px; z-index:9999; pointer-events:none; filter:drop-shadow(0 0 4px rgba(0,0,0,0.6));";
       watermark.innerHTML = `<img src="images/logo.png" style="height:40px;">`;
       mapElement.appendChild(watermark);
 
-      const canvas = await html2canvas(mapElement, { useCORS: true, logging: false });
+      const canvas = await html2canvas(mapElement, {
+        useCORS: true,
+        logging: false,
+      });
       mapElement.removeChild(watermark);
 
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-      const file = new File([blob], 'mi_ruta_granago.png', { type: 'image/png' });
+      const blob = await new Promise((resolve) =>
+        canvas.toBlob(resolve, "image/png"),
+      );
+      const file = new File([blob], "mi_ruta_granago.png", {
+        type: "image/png",
+      });
 
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: 'Mi ruta en GranáGo',
+          title: "Mi ruta en GranáGo",
           text: shareText,
-          files: [file]
+          files: [file],
         });
       } else {
-        if (navigator.share) await navigator.share({ title: 'Mi ruta en GranáGo', text: shareText });
+        if (navigator.share)
+          await navigator.share({
+            title: "Mi ruta en GranáGo",
+            text: shareText,
+          });
         else copyToClipboard(shareText);
       }
     } catch (err) {
       console.error("Error sharing:", err);
-      if (navigator.share) navigator.share({ title: 'Mi ruta en GranáGo', text: shareText });
+      if (navigator.share)
+        navigator.share({ title: "Mi ruta en GranáGo", text: shareText });
     }
   } else {
     if (navigator.share) {
-      await navigator.share({ title: 'Mi actividad en GranáGo', text: shareText });
+      await navigator.share({
+        title: "Mi actividad en GranáGo",
+        text: shareText,
+      });
     } else {
       copyToClipboard(shareText);
     }
@@ -12516,30 +13571,42 @@ window.shareRunSummary = async function () {
 window.initSharedRoute = async function (encodedData) {
   try {
     const data = JSON.parse(atob(encodedData));
-    const modal = document.getElementById('shared-route-modal');
-    modal.classList.add('visible');
+    const modal = document.getElementById("shared-route-modal");
+    modal.classList.add("visible");
 
-    const statsGrid = document.getElementById('shared-stats-grid');
+    const statsGrid = document.getElementById("shared-stats-grid");
     statsGrid.innerHTML = `
             <div class="fuel-price-item"><span class="fuel-type-label">Distancia</span><span class="fuel-price-val">${data.d} km</span></div>
             <div class="fuel-price-item"><span class="fuel-type-label">Tiempo</span><span class="fuel-price-val">${data.t}</span></div>
             <div class="fuel-price-item"><span class="fuel-type-label">Vel. Media</span><span class="fuel-price-val">${data.s} km/h</span></div>
         `;
 
-    const mapContainer = document.getElementById('shared-route-map');
-    const isTraceValid = parseFloat(data.d) > 0.1 && data.p && data.p.length > 1;
+    const mapContainer = document.getElementById("shared-route-map");
+    const isTraceValid =
+      parseFloat(data.d) > 0.1 && data.p && data.p.length > 1;
 
     if (isTraceValid) {
       mapContainer.style.display = "block";
       await loadScript("js/leaflet.js");
       setTimeout(() => {
-        if (window.sharedRouteMapInstance) window.sharedRouteMapInstance.remove();
-        window.sharedRouteMapInstance = L.map('shared-route-map', { zoomControl: false, attributionControl: false });
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(window.sharedRouteMapInstance);
+        if (window.sharedRouteMapInstance)
+          window.sharedRouteMapInstance.remove();
+        window.sharedRouteMapInstance = L.map("shared-route-map", {
+          zoomControl: false,
+          attributionControl: false,
+        });
+        L.tileLayer(
+          "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+        ).addTo(window.sharedRouteMapInstance);
 
         const fullPath = decompressPath(data.p);
-        const polyline = L.polyline(fullPath, { color: '#ec4899', weight: 4 }).addTo(window.sharedRouteMapInstance);
-        window.sharedRouteMapInstance.fitBounds(polyline.getBounds(), { padding: [15, 15] });
+        const polyline = L.polyline(fullPath, {
+          color: "#ec4899",
+          weight: 4,
+        }).addTo(window.sharedRouteMapInstance);
+        window.sharedRouteMapInstance.fitBounds(polyline.getBounds(), {
+          padding: [15, 15],
+        });
       }, 400);
     } else {
       mapContainer.style.display = "none";
@@ -12552,21 +13619,21 @@ window.initSharedRoute = async function (encodedData) {
 };
 
 window.closeSharedRoute = function () {
-  document.getElementById('shared-route-modal').classList.remove('visible');
+  document.getElementById("shared-route-modal").classList.remove("visible");
   window.history.replaceState({}, document.title, window.location.pathname);
 };
 
 window.closeRunSummary = function () {
-  document.getElementById('run-summary-modal').classList.remove('visible');
-  navigateTo('home');
+  document.getElementById("run-summary-modal").classList.remove("visible");
+  navigateTo("home");
 };
 
 window.stopRunningProcess = function () {
-  document.getElementById('run-cancel-modal').classList.add('visible');
+  document.getElementById("run-cancel-modal").classList.add("visible");
 };
 
 window.closeRunCancelModal = function () {
-  document.getElementById('run-cancel-modal').classList.remove('visible');
+  document.getElementById("run-cancel-modal").classList.remove("visible");
 };
 
 window.confirmStopRunning = function () {
@@ -12582,31 +13649,40 @@ window.confirmStopRunning = function () {
   }
 
   closeRunCancelModal();
-  navigateTo('home');
+  navigateTo("home");
 
-  showNotification("Seguimiento Cancelado", "No se han guardado registros.", "info");
+  showNotification(
+    "Seguimiento Cancelado",
+    "No se han guardado registros.",
+    "info",
+  );
 };
 
 window.openRunHistory = function () {
   closeRunSetup();
-  document.getElementById('run-history-modal').classList.add('visible');
+  document.getElementById("run-history-modal").classList.add("visible");
   renderRunHistory();
 };
 
 window.closeRunHistory = function () {
-  document.getElementById('run-history-modal').classList.remove('visible');
+  document.getElementById("run-history-modal").classList.remove("visible");
 };
 
 function renderRunHistory() {
-  const container = document.getElementById('run-history-list');
-  const history = JSON.parse(localStorage.getItem('granaGo_run_history') || "[]");
+  const container = document.getElementById("run-history-list");
+  const history = JSON.parse(
+    localStorage.getItem("granaGo_run_history") || "[]",
+  );
 
   if (history.length === 0) {
-    container.innerHTML = '<div class="empty-state">No tienes rutas guardadas todavía.</div>';
+    container.innerHTML =
+      '<div class="empty-state">No tienes rutas guardadas todavía.</div>';
     return;
   }
 
-  const totalKm = history.reduce((acc, run) => acc + parseFloat(run.d || 0), 0).toFixed(2);
+  const totalKm = history
+    .reduce((acc, run) => acc + parseFloat(run.d || 0), 0)
+    .toFixed(2);
   const totalHeaderHTML = `
     <div class="info-card" style="margin-bottom: 20px; background: var(--text-accent); color: white; border: none; text-align: center; padding: 15px;">
         <span style="font-size: 0.8rem; text-transform: uppercase; font-weight: 700; opacity: 0.9;">Distancia Total Acumulada</span>
@@ -12614,24 +13690,32 @@ function renderRunHistory() {
     </div>
   `;
 
-  const listHTML = history.slice().reverse().map((run, index) => {
-    const originalIndex = history.length - 1 - index;
-    const hasPath = run.p && run.p.length > 1;
+  const listHTML = history
+    .slice()
+    .reverse()
+    .map((run, index) => {
+      const originalIndex = history.length - 1 - index;
+      const hasPath = run.p && run.p.length > 1;
 
-    const dateStr = new Date(run.ts).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+      const dateStr = new Date(run.ts).toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
 
-    const runData = { p: run.p, d: run.d, t: run.t, s: run.s };
-    const encodedData = btoa(JSON.stringify(runData));
+      const runData = { p: run.p, d: run.d, t: run.t, s: run.s };
+      const encodedData = btoa(JSON.stringify(runData));
 
-    return `
+      return `
         <div class="info-card" style="margin-bottom: 12px; padding: 12px; border-left: 4px solid var(--text-accent);">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
                 <div>
                     <span style="font-weight:800; font-size:0.9rem;">${dateStr}</span>
-                    <p style="margin:0; font-size:0.75rem; color:var(--text-secondary);">${run.m === 'r' ? '🏃 Carrera' : '🚶 Caminata'}</p>
+                    <p style="margin:0; font-size:0.75rem; color:var(--text-secondary);">${run.m === "r" ? "🏃 Carrera" : "🚶 Caminata"}</p>
                 </div>
                 <div style="display:flex; gap:5px;">
-                    ${hasPath ? `<button onclick="initSharedRoute('${encodedData}')" class="icon-btn-small" style="color:var(--text-accent);"><i class="ri-map-2-line"></i></button>` : ''}
+                    ${hasPath ? `<button onclick="initSharedRoute('${encodedData}')" class="icon-btn-small" style="color:var(--text-accent);"><i class="ri-map-2-line"></i></button>` : ""}
                     <button onclick="deleteRunFromHistory(${originalIndex})" class="icon-btn-small" style="color:var(--color-error);"><i class="ri-delete-bin-line"></i></button>
                 </div>
             </div>
@@ -12650,7 +13734,8 @@ function renderRunHistory() {
                 </div>
             </div>
         </div>`;
-  }).join('');
+    })
+    .join("");
 
   container.innerHTML = totalHeaderHTML + listHTML;
 }
@@ -12659,34 +13744,39 @@ window.exportUserData = function () {
   const dataToExport = {};
 
   const blacklist = [
-    'granaGo_radio_cache',
-    'granaGo_events_cache',
-    'granaGo_events_cache_time',
-    'granaGo_metro_cache',
-    'granaGo_last_lat',
-    'granaGo_last_lng',
-    'granaGo_gps_name',
-    'granaGo_weather_active_idx',
-    'sudoku_daily_session',
+    "granaGo_radio_cache",
+    "granaGo_events_cache",
+    "granaGo_events_cache_time",
+    "granaGo_metro_cache",
+    "granaGo_last_lat",
+    "granaGo_last_lng",
+    "granaGo_gps_name",
+    "granaGo_weather_active_idx",
+    "sudoku_daily_session",
   ];
 
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
 
-    if (key.startsWith('granaGo_') || key === 'theme' || key === 'last_visit_achievement') {
-
+    if (
+      key.startsWith("granaGo_") ||
+      key === "theme" ||
+      key === "last_visit_achievement"
+    ) {
       if (blacklist.includes(key)) continue;
 
-      if (key.startsWith('wordle_session_')) continue;
+      if (key.startsWith("wordle_session_")) continue;
 
       dataToExport[key] = localStorage.getItem(key);
     }
   }
 
-  const blob = new Blob([JSON.stringify(dataToExport)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify(dataToExport)], {
+    type: "application/json",
+  });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const date = new Date().toISOString().split('T')[0];
+  const a = document.createElement("a");
+  const date = new Date().toISOString().split("T")[0];
 
   a.href = url;
   a.download = `GranaGo_Backup_${date}.json`;
@@ -12695,11 +13785,15 @@ window.exportUserData = function () {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 
-  showNotification("Copia creada", "Respaldo optimizado: se han guardado tus favoritos, saldo y logros.", "success");
+  showNotification(
+    "Copia creada",
+    "Respaldo optimizado: se han guardado tus favoritos, saldo y logros.",
+    "success",
+  );
 };
 
 window.triggerImport = function () {
-  document.getElementById('import-file-input').click();
+  document.getElementById("import-file-input").click();
 };
 
 window.importUserData = function (event) {
@@ -12710,25 +13804,33 @@ window.importUserData = function (event) {
   reader.onload = function (e) {
     try {
       pendingImportData = JSON.parse(e.target.result);
-      document.getElementById('import-confirm-modal').classList.add('visible');
+      document.getElementById("import-confirm-modal").classList.add("visible");
     } catch (err) {
       console.error("Error al importar:", err);
-      showNotification("Error", "El archivo no es una copia válida de GranáGo", "error");
+      showNotification(
+        "Error",
+        "El archivo no es una copia válida de GranáGo",
+        "error",
+      );
     }
   };
   reader.readAsText(file);
 
-  event.target.value = '';
+  event.target.value = "";
 };
 
 window.executeImport = function () {
   if (!pendingImportData) return;
-  Object.keys(pendingImportData).forEach(key => {
+  Object.keys(pendingImportData).forEach((key) => {
     localStorage.setItem(key, pendingImportData[key]);
   });
 
   closeImportConfirm();
-  showNotification("Éxito", "Datos restaurados correctamente. Reiniciando...", "success");
+  showNotification(
+    "Éxito",
+    "Datos restaurados correctamente. Reiniciando...",
+    "success",
+  );
 
   setTimeout(() => {
     window.location.reload();
@@ -12736,7 +13838,7 @@ window.executeImport = function () {
 };
 
 window.closeImportConfirm = function () {
-  document.getElementById('import-confirm-modal').classList.remove('visible');
+  document.getElementById("import-confirm-modal").classList.remove("visible");
   pendingImportData = null;
 };
 
@@ -12761,10 +13863,10 @@ document.addEventListener("click", (e) => {
 });
 
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === 'hidden') {
-
+  if (document.visibilityState === "hidden") {
     if (runState.active && !radioIsPlaying) {
-      const avisoVoz = "Atención: La pantalla se ha apagado sin audio activo. El seguimiento GPS podría pausarse. Te recomendamos activar la radio en silencio.";
+      const avisoVoz =
+        "Atención: La pantalla se ha apagado sin audio activo. El seguimiento GPS podría pausarse. Te recomendamos activar la radio en silencio.";
       if (typeof speak === "function") {
         speak(avisoVoz);
       }
@@ -12777,10 +13879,12 @@ document.addEventListener("visibilitychange", () => {
         "¡Riesgo de pausa!",
         "Usa el truco de la radio para que el GPS no se detenga con la pantalla apagada.",
         "error",
-        6000
+        6000,
       );
 
-      console.warn("Detección de posible suspensión de GPS: Pantalla oculta sin audio.");
+      console.warn(
+        "Detección de posible suspensión de GPS: Pantalla oculta sin audio.",
+      );
     }
   }
 });

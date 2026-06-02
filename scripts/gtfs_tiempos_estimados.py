@@ -129,7 +129,7 @@ def procesar_tipo(tipo):
 
     os.makedirs(os.path.dirname(conf['ruta_salida']), exist_ok=True)
     with open(conf['ruta_salida'], 'w', encoding='utf-8') as f:
-        json.dump(resultado, f, ensure_ascii=False)
+        json.dump(resultado, f, ensure_ascii=False, separators=(',', ':'))
     print(f"✅ Finalizado: {conf['ruta_salida']}")
 
 if __name__ == "__main__":
