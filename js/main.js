@@ -2205,7 +2205,13 @@ function processStops(
 ) {
   const uniqueStops = new Map();
 
-  Object.values(stopsJson).forEach((lineaData) => {
+  Object.entries(stopsJson).forEach(([lineId, lineaData]) => {
+    if (
+      layerKey === "urbano" &&
+      lineId.toUpperCase().startsWith("F") &&
+      lineId.toUpperCase().startsWith("1123")
+    )
+      return;
     ["ida", "vuelta"].forEach((dir) => {
       if (!lineaData[dir]) return;
       lineaData[dir].forEach((stop) => {
@@ -2532,7 +2538,7 @@ window.filterLines = async function (type, btn) {
       const isMetro = id === "1" || id.toUpperCase().includes("M");
       const isInter =
         !isNaN(id) && id.length >= 3 && id !== "111" && id !== "121";
-      const isExcluded = id === "1123";
+      const isExcluded = id === "1123" || id.toUpperCase().startsWith("F");
       return !isMetro && !isInter && !isExcluded;
     });
   }
@@ -3222,8 +3228,8 @@ function renderRealTimeResults(data, type) {
 
   if (!arrivals.length) {
     const now = new Date();
-    const currentTime = now.getHours() + now.getMinutes() / 60;
-    const isNightTime = currentTime >= 23.5 || currentTime < 6.5;
+    const hour = now.getHours();
+    const isNightTime = hour >= 0 && hour < 7;
 
     if (isNightTime) {
       content.innerHTML = `
@@ -3262,16 +3268,17 @@ function renderRealTimeResults(data, type) {
         let timeObj;
 
         if (p.isStatic) {
-          let timeText = p.minutos > 30 ? p.horaExacta : `${p.minutos} min`;
+          let timeText = p.minutos > 30 ? p.horaExacta : `${p.minutos} m`;
           let timeClass = "time-scheduled";
 
           if (p.minutos === 0) {
             timeText = "AHORA";
             timeClass = "time-llegando";
           }
-          timeObj = { text: timeText, class: timeClass };
+          timeObj = { text: timeText, class: timeClass, isStatic: true };
         } else {
           timeObj = formatTime(p.minutos, "metro");
+          timeObj.isStatic = false;
         }
 
         html += createRowHTML(
@@ -3300,7 +3307,7 @@ function renderRealTimeResults(data, type) {
       let timeObj;
 
       if (p.isStatic) {
-        let timeText = p.minutos > 30 ? p.horaExacta : `${p.minutos} min`;
+        let timeText = p.minutos > 30 ? p.horaExacta : `${p.minutos} m`;
         let timeClass = "time-scheduled";
 
         if (p.minutos === 0) {
@@ -3308,10 +3315,11 @@ function renderRealTimeResults(data, type) {
           timeClass = "time-llegando";
         }
 
-        timeObj = { text: timeText, class: timeClass };
+        timeObj = { text: timeText, class: timeClass, isStatic: true };
         destinoDisplay = `${destinoDisplay}`;
       } else {
         timeObj = formatTime(p.minutos, "urbano");
+        timeObj.isStatic = false;
       }
 
       const realColor =
@@ -3339,12 +3347,16 @@ function createRowHTML(
     : `<span class="arrival-badge-box" style="background-color: ${badgeColor}">${badgeText}</span>
        <span class="arrival-dest-text">${destinationName}</span>`;
 
+  const statusIcon = timeObj.isStatic
+    ? '<i class="ri-time-line" style="margin-right:4px; opacity:0.7;"></i>'
+    : '<i class="ri-broadcast-line blink-icon" style="margin-right:4px; color:var(--text-accent);"></i>';
+
   return `
     <div class="arrival-item-row">
       <div class="flex items-center gap-3">
         ${leftContent}
       </div>
-      <span class="${timeObj.class} arrival-time-value">${timeObj.text}</span>
+      <span class="${timeObj.class} arrival-time-value">${statusIcon}${timeObj.text}</span>
     </div>`;
 }
 
@@ -3353,7 +3365,7 @@ function formatTime(minutes, type) {
   if (isNaN(min)) return { text: "--", class: "" };
   if (min === 0) return { text: "AHORA", class: "time-llegando" };
   const colorClass = type === "metro" ? "time-metro" : "time-bus";
-  return { text: `${min} min`, class: colorClass };
+  return { text: `${min} m`, class: colorClass };
 }
 
 function getFavorites() {
@@ -5975,12 +5987,6 @@ const VALID_LINES = new Set([
   "U3",
   "111",
   "121",
-  "F1",
-  "F2",
-  "F3",
-  "F4",
-  "F5",
-  "F6",
 ]);
 
 function cleanHTML(htmlString) {

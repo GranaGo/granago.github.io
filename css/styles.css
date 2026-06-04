@@ -1,19 +1,32 @@
 ﻿.leaflet-cluster-anim .leaflet-marker-icon,
 .leaflet-cluster-anim .leaflet-marker-shadow {
-  -webkit-transition: -webkit-transform 0.3s ease-out, opacity 0.3s ease-in;
-  -moz-transition: -moz-transform 0.3s ease-out, opacity 0.3s ease-in;
-  -o-transition: -o-transform 0.3s ease-out, opacity 0.3s ease-in;
-  transition: transform 0.3s ease-out, opacity 0.3s ease-in;
+  -webkit-transition:
+    -webkit-transform 0.3s ease-out,
+    opacity 0.3s ease-in;
+  -moz-transition:
+    -moz-transform 0.3s ease-out,
+    opacity 0.3s ease-in;
+  -o-transition:
+    -o-transform 0.3s ease-out,
+    opacity 0.3s ease-in;
+  transition:
+    transform 0.3s ease-out,
+    opacity 0.3s ease-in;
 }
 
 .leaflet-cluster-spider-leg {
-  -webkit-transition: -webkit-stroke-dashoffset 0.3s ease-out,
+  -webkit-transition:
+    -webkit-stroke-dashoffset 0.3s ease-out,
     -webkit-stroke-opacity 0.3s ease-in;
-  -moz-transition: -moz-stroke-dashoffset 0.3s ease-out,
+  -moz-transition:
+    -moz-stroke-dashoffset 0.3s ease-out,
     -moz-stroke-opacity 0.3s ease-in;
-  -o-transition: -o-stroke-dashoffset 0.3s ease-out,
+  -o-transition:
+    -o-stroke-dashoffset 0.3s ease-out,
     -o-stroke-opacity 0.3s ease-in;
-  transition: stroke-dashoffset 0.3s ease-out, stroke-opacity 0.3s ease-in;
+  transition:
+    stroke-dashoffset 0.3s ease-out,
+    stroke-opacity 0.3s ease-in;
 }
 
 .marker-cluster-small {
@@ -52,7 +65,11 @@
   margin-top: 5px;
   text-align: center;
   border-radius: 15px;
-  font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
+  font:
+    12px "Helvetica Neue",
+    Arial,
+    Helvetica,
+    sans-serif;
 }
 
 .marker-cluster span {
@@ -81,9 +98,11 @@
   --border-subtle: rgba(0, 0, 0, 0.05);
   --shadow-soft: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
   --shadow-float: 0 20px 40px -5px rgba(37, 99, 235, 0.2);
-  --primary-gradient: linear-gradient(135deg,
-      var(--color-primary) 0%,
-      #1d4ed8 100%);
+  --primary-gradient: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    #1d4ed8 100%
+  );
   --header-height: 70px;
   --dock-height: 90px;
 }
@@ -129,7 +148,9 @@ body {
   padding: 0;
   height: 100%;
   overflow-x: hidden;
-  transition: background-color 0.4s ease, color 0.4s ease;
+  transition:
+    background-color 0.4s ease,
+    color 0.4s ease;
   min-height: 100%;
   overscroll-behavior-y: none;
   top: 0px !important;
@@ -147,12 +168,17 @@ textarea {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background: radial-gradient(circle at 0% 0%,
+  background:
+    radial-gradient(
+      circle at 0% 0%,
       rgba(37, 99, 235, 0.08) 0%,
-      transparent 50%),
-    radial-gradient(circle at 100% 100%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 100% 100%,
       rgba(236, 72, 153, 0.08) 0%,
-      transparent 50%);
+      transparent 50%
+    );
   pointer-events: none;
 }
 
@@ -203,7 +229,6 @@ textarea {
 }
 
 @keyframes pulseText {
-
   0%,
   100% {
     opacity: 1;
@@ -215,7 +240,6 @@ textarea {
 }
 
 @keyframes blinkRed {
-
   0%,
   100% {
     opacity: 1;
@@ -948,7 +972,9 @@ body.dark-mode .weather-meta-item:not(.aq-badge) {
   align-items: center;
   gap: 16px;
   box-shadow: var(--shadow-soft);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   border: 1px solid var(--border-subtle);
   position: relative;
   overflow: hidden;
@@ -1035,7 +1061,9 @@ body.dark-mode .weather-meta-item:not(.aq-badge) {
   align-items: center;
   gap: 10px;
   box-shadow: var(--shadow-soft);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   border: 1px solid var(--border-subtle);
   width: 100%;
   padding: 10px;
@@ -1073,9 +1101,9 @@ body.dark-mode .weather-meta-item:not(.aq-badge) {
   border-left: 4px solid var(--card-color, #ccc);
 }
 
-#paradas-view>div,
-#lugares-view>div,
-#movilidad-sostenible-view>div {
+#paradas-view > div,
+#lugares-view > div,
+#movilidad-sostenible-view > div {
   width: 100%;
   height: 100%;
   position: relative !important;
@@ -1249,7 +1277,7 @@ body.dark-mode .map-loader {
   pointer-events: none;
 }
 
-.map-header-bar>* {
+.map-header-bar > * {
   pointer-events: auto;
   position: static !important;
   transform: none !important;
@@ -1420,7 +1448,9 @@ body.dark-mode .map-loader {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .custom-cluster:active {
@@ -1482,7 +1512,9 @@ body.dark-mode .map-loader {
   gap: 6px;
   margin-top: 8px;
   box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
-  transition: transform 0.2s, background-color 0.2s;
+  transition:
+    transform 0.2s,
+    background-color 0.2s;
 }
 
 .btn-navigate-popup:active {
@@ -1512,7 +1544,9 @@ body.dark-mode .map-loader {
   box-shadow: var(--shadow-soft);
   border: 1px solid var(--border-subtle);
   cursor: pointer;
-  transition: transform 0.2s, background-color 0.2s;
+  transition:
+    transform 0.2s,
+    background-color 0.2s;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
@@ -1977,7 +2011,9 @@ body.dark-mode .map-loader {
   justify-content: center;
   gap: 12px;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   box-shadow: var(--shadow-soft);
   aspect-ratio: 1 / 1;
   height: auto;
@@ -3158,7 +3194,9 @@ font:hover {
   font-size: 0.95rem;
   color: white;
   cursor: pointer;
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+  transition:
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.2s;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   text-align: center;
   background-size: 200% auto;
@@ -3313,7 +3351,9 @@ font:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: transform 0.2s, bottom 0.3s;
+  transition:
+    transform 0.2s,
+    bottom 0.3s;
   pointer-events: auto;
   white-space: nowrap;
 }
@@ -3595,7 +3635,6 @@ font:hover {
 }
 
 @keyframes bounce {
-
   0%,
   20%,
   50%,
@@ -3621,7 +3660,6 @@ font:hover {
 }
 
 @keyframes shake {
-
   10%,
   90% {
     transform: translate3d(-1px, 0, 0);
@@ -4187,7 +4225,9 @@ body.keyboard-open .glass-dock {
   border-radius: 14px;
   overflow: hidden;
   position: relative;
-  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.05),
+    0 2px 4px rgba(0, 0, 0, 0.05);
   border: 2px solid transparent;
   transition: all 0.3s ease;
 }
@@ -4752,7 +4792,6 @@ body.keyboard-open .glass-dock {
 }
 
 @keyframes equalize {
-
   0%,
   100% {
     height: 8px;
@@ -4831,7 +4870,7 @@ body.keyboard-open .glass-dock {
   color: white;
   border-radius: 50%;
   font-size: 2rem;
-  box-shadow: 0 10px 20px var(--text-accent)4D;
+  box-shadow: 0 10px 20px var(--text-accent) 4D;
 }
 
 .control-btn {
@@ -4866,4 +4905,22 @@ body.keyboard-open .glass-dock {
 .time-scheduled {
   color: #f59e0b !important;
   font-weight: 800;
+}
+
+@keyframes blink-icon-anim {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.blink-icon {
+  animation: blink-icon-anim 1.5s infinite ease-in-out;
+  display: inline-block;
+  vertical-align: middle;
 }
