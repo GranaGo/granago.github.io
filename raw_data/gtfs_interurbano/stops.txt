@@ -1261,6 +1261,9 @@ stop_id,stop_name,stop_lat,stop_lon
 2_189,"Jédula",36.724754,-5.929820
 2_190,"Jédula V",36.725011,-5.929644
 2_191,"Estación De Autobuses Arcos",36.749337,-5.818322
+2_193,"Terminal Marítima Cádiz",36.530915,-6.289546
+2_194,"Terminal Marítima El Puerto De Santa María",36.593778,-6.226493
+2_195,"Terminal Marítima Rota",36.615357,-6.352778
 2_196,"Centro P. Puerto Iii",36.664249,-6.256196
 2_197,"Centro P. Puerto I Y Ii",36.663400,-6.246123
 2_198,"Manuel De Falla",36.457785,-6.198996
@@ -2461,6 +2464,7 @@ stop_id,stop_name,stop_lat,stop_lon
 3_15627,"Avda. De La Ilustración 1",37.14903788911744,-3.6010479927062993
 3_15628,"Avda. De La Ilustración 1 V",37.14937140342131,-3.6010909080505376
 3_15631,"Avda. Del Conocimiento 2. V",37.1463440860183,-3.6021208763122563
+3_15635,"Ribera Del Beiro 2",37.1914205184145,-3.608377128839493
 3_15643,"Urb. Cañada Del Parque",37.05323346067377,-3.649488687515259
 3_15644,"Urb. Cañada Del Parque V",37.053301960057084,-3.6493760347366333
 3_15648,"Los Nogales V",37.13042616957225,-3.5354988276958466
@@ -2590,7 +2594,6 @@ stop_id,stop_name,stop_lat,stop_lon
 3_16021,"Ctra. De Ogijares 1 V",37.1442676,-3.6020751
 3_16022,"Ctra. De Ogijares 2",37.14223065229647,-3.6021643325879937
 3_16024,"Ctra. De Ogijares 3",37.139407103144066,-3.6022072341797533
-3_16025,"Ctra. De Ogijares 3 V",37.139126318240486,-3.6024442770894343
 3_16026,"Ctra. De Ogijares 4",37.133214767284535,-3.6031246104030195
 3_16027,"Ctra. De Ogijares 4 V",37.13336561035618,-3.6033068527767114
 3_16028,"Real Baja V",37.12206572080903,-3.6062304732093997
@@ -2659,6 +2662,7 @@ stop_id,stop_name,stop_lat,stop_lon
 3_16105,"Avda. Espadafor",37.078155,-3.769969
 3_16106,"Urb. San Jerónimo V",37.2131482,-3.5928811
 3_16107,"Carril De San Cecilio V",37.2435056,-3.5597896
+3_16108,"Ribera Del Beiro Mondragones",37.189310013615085,-3.6112476496822508
 4_3,"Campamento Benítez",36.65237222222222,-4.4870777777777775
 4_29,"Olías",36.76965555555555,-4.320747222222222
 4_37,"Feria De Málaga",36.701280555555556,-4.460825
@@ -3849,6 +3853,7 @@ stop_id,stop_name,stop_lat,stop_lon
 4_2101,"La Joya",36.932649999999995,-4.623505555555556
 4_2102,"Los Nogales",36.94806944444444,-4.618827777777779
 4_2104,"La Higuera",36.92793888888889,-4.589730555555556
+4_2112,"Hotel Las Pedrizas",36.96188333333333,-4.448580555555556
 4_2113,"Centro V",36.93148333333333,-4.528119444444444
 4_2114,"Centro",36.93151666666667,-4.528044444444444
 4_2115,"Ayuntamiento",36.93210277777778,-4.529361111111111
@@ -3947,6 +3952,12 @@ stop_id,stop_name,stop_lat,stop_lon
 4_2219,"Lagos V",36.743787,-4.0198547
 4_2220,"Muebles García",36.74802777777778,-4.057963888888889
 4_2221,"Muebles García V",36.74805555555556,-4.056666666666667
+4_2224,"Centro Comercial La Verónica",37.0255,-4.573416666666667
+4_2225,"La Vilecha",37.03861111111111,-4.56025
+4_2226,"Estación Tren Antequera",37.028083333333335,-4.5609166666666665
+4_2227,"Antequera Centro",37.01844444444444,-4.557888888888889
+4_2228,"Ies Pedro Espinosa",37.01891666666666,-4.555805555555556
+4_2229,"Ies Pintor Jose Mª Fernández",37.02327777777778,-4.547166666666667
 5_1,"Estación San Bernardo",36.125920977937476,-5.447542369365692
 5_2,"La Charca",36.13738733255713,-5.4560986161231995
 5_3,"Plaza Andalucía V",36.13431998146212,-5.452920198440552
@@ -4182,6 +4193,7 @@ stop_id,stop_name,stop_lat,stop_lon
 6_163,"Almería - Piedras Redondas",36.856829,-2.448564
 6_164,"Almería - Plaza Teruel",36.860901,-2.445115
 6_166,"Cercado - Villa Pilar",36.878615,-2.438215
+6_167,"Viator - Paseo",36.888746,-2.428496
 6_169,"Viator - Piscina",36.887872,-2.422521
 6_170,"Viator - Barrio De La Cruz",36.887943,-2.420441
 6_172,"El Parador - Karting",36.800381,-2.601144
@@ -4533,6 +4545,7 @@ stop_id,stop_name,stop_lat,stop_lon
 6_653,"Hotel Golf Trinidad",36.724323,-2.626025
 6_654,"Hotel Playaluna",36.721674,-2.630630
 6_655,"Playa Serena - Paseo Golf",36.723616,-2.633973
+6_657,"Urba - Guatemala",36.745622,-2.613571
 6_658,"Urba - Plaza Colón",36.742518,-2.616124
 6_659,"Urba - Hotel Zoraida V",36.740969,-2.614081
 6_660,"Los Millares",36.962229,-2.527048
@@ -4543,6 +4556,7 @@ stop_id,stop_name,stop_lat,stop_lon
 6_668,"Res. Sta. Teresa Jornet",36.854406,-2.415082
 6_670,"Paraje Chumbo - Autovía",36.936651,-2.206856
 6_671,"Paraje Chumbo - Autovía",36.938346,-2.207080
+6_672,"Universidad",36.827804,-2.403870
 6_673,"Huércal - Pl. Constitución",36.884440,-2.436233
 6_675,"Huércal - Paso A Nivel",36.885880,-2.437163
 6_677,"Huércal - Ramón Y Cajal",36.885135,-2.438513
@@ -4636,6 +4650,7 @@ stop_id,stop_name,stop_lat,stop_lon
 7_70,"Calle Santísimo",37.591389,-3.817222
 7_71,"Crta. Torrequebradilla Esq. Benjumea",37.938108,-3.730298
 7_78,"Avd. La Paz",37.689640,-3.823500
+7_81,"Centro Hospitalario. Solo Bajada(8 A 10 Y 15 A 16) V",37.774463,-3.794187
 7_83,"Jardines",37.958894,-3.664440
 7_84,"Plaza",37.996398,-3.637240
 7_85,"Calle Párroco Casado (Junto Cooperativa)",37.65276,-3.63454
@@ -4705,6 +4720,10 @@ stop_id,stop_name,stop_lat,stop_lon
 8_49,"Alcolea (Supermercado Dia) V",37.931034250,-4.676411787
 8_50,"Alcolea (Hostal)",37.933357230,-4.670696663
 8_51,"Alcolea (Hostal)) V",37.933475510,-4.670709226
+8_52,"Cerro Muriano (Bar Cinema)",38.001536,-4.770077
+8_53,"Cerro Muriano (Bar Cinema Fte.) V",38.001518910,-4.770185306
+8_54,"Brigadas Militares (Núcleo A)",38.012329010,-4.776991921
+8_55,"Brigadas Militares (Núcleo B)",38.016930120,-4.781748552
 8_56,"Villlarubia",37.84983591,-4.91500233233
 8_57,"Santa Cruz (Rafael Alberti)",37.733049920,-4.637136003
 8_58,"Santa Cruz (Rafael Alberti) V",37.733183440,-4.637033434
@@ -4713,6 +4732,8 @@ stop_id,stop_name,stop_lat,stop_lon
 8_62,"Avda. Juan Carlos I (Desvío Ss Ballesteros)",37.673918378399414,-4.731128364801407
 8_63,"Guadalcázar (Los Silos)",37.756507770,-4.942983276
 8_66,"Montemayor (Avda. Granada) 2 V",37.64594399549521,-4.700794592499733
+8_69,"Estación De Obejo (Rotonda)",38.024755110,-4.789647895
+8_70,"Estación De Obejo (Rotonda) V",38.024981300,-4.789974889
 8_72,"Pedro Abad I",37.9637743818,-4.46149030486
 8_73,"Pedro Abad I V",37.96396896125063,-4.461427895711853
 8_74,"Pedro Abad 2 (Sta. Rafaela Mª Convento)",37.96862067033123,-4.455448702804981
@@ -4739,7 +4760,9 @@ stop_id,stop_name,stop_lat,stop_lon
 8_99,"Estación De Autobuses Córdoba",37.889152210,-4.790648275
 8_100,"Pantano Puente Nuevo",38.0857752079,-4.92688326295
 8_102,"El Vacar (Aparcamiento)",38.0788626,-4.85426881
+8_103,"Cerro Muriano - Est. Obejo (Guardia Civil)",38.0081404734,-4.7714520712
 8_104,"Villaharta (Cruce)",38.1259163652,-4.90111960752
+8_105,"Cerro Muriano (Rest. Los Pinares)",37.9981766708,-4.76930075369
 8_106,"Villafranca Cruce",37.9462767,-4.54075732
 8_107,"Almacén (El Cortinilla)",37.9606930094,-4.54993743989
 8_108,"Almacén (El Cortinilla) V",37.9609031242,-4.55003349304
@@ -4756,6 +4779,9 @@ stop_id,stop_name,stop_lat,stop_lon
 8_126,"Campus Universitario Rabanales",37.9134599766,-4.71764559832
 8_127,"Pantano Puente Nuevo V",38.0861703532,-4.9242178129
 8_128,"El Vacar V",38.077654101899434,-4.852594882249832
+8_129,"Brigadas Militares (Núcleo A) V",38.012307262,-4.77751950782
+8_130,"Brigadas Militares (Núcleo B) V",38.0166381377,-4.78172044292
+8_131,"Cerro Muriano (Guardia Civil) V",38.0080180534,-4.77182780902
 8_132,"Villarrubia V",37.8495270575,-4.9149386988
 8_133,"Alcolea (Ronda De Salida)",37.9359497624,-4.67001020015
 8_134,"Alcolea (Ronda De Salida) V",37.9363504305,-4.67002325698
@@ -4772,6 +4798,7 @@ stop_id,stop_name,stop_lat,stop_lon
 8_154,"Arrecife 2 V",37.701014883,-4.88951677523
 8_155,"Las Malvinas",37.6750488530852,-4.930522441864014
 8_156,"Las Malvinas V",37.67516561474747,-4.930197894573212
+8_157,"Parque Acuático",37.9576444444,-4.5722290
 8_158,"Avda. Juan Carlos I (Desvío Ss Ballesteros) V",37.6737778113,-4.73086882452
 8_159,"Avda. Juan Carlos I ( Instituto)",37.6658502464,-4.72441126038
 8_160,"Avda. Juan Carlos I  (Instituto) V",37.6660613711,-4.72440459919

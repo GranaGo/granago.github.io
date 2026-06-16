@@ -3227,24 +3227,11 @@ function renderRealTimeResults(data, type) {
   let arrivals = data.proximos || [];
 
   if (!arrivals.length) {
-    const now = new Date();
-    const hour = now.getHours();
-    const isNightTime = hour >= 0 && hour < 7;
-
-    if (isNightTime) {
-      content.innerHTML = `
-        <div class="status-message" style="text-align:center; padding:20px; color:var(--text-secondary);">
-           <span style="font-size:2.5rem; display:block; margin-bottom:10px;">🌙</span>
-           <span style="font-weight:700; font-size:1.1rem; color:var(--text-primary);">SERVICIO NOCTURNO</span>
-           <p style="font-size:0.85rem; margin-top:5px; opacity:0.7;">Sin estimaciones programadas en esta franja.</p>
-        </div>`;
-    } else {
-      content.innerHTML = `
-        <div style="text-align:center; padding:20px; color:var(--text-secondary);">
-            <span style="font-size:2rem; display:block; margin-bottom:10px;">🚍</span>
-            <span>Sin llegadas próximas...</span>
-        </div>`;
-    }
+    content.innerHTML = `
+      <div style="text-align:center; padding:20px; color:var(--text-secondary);">
+          <span style="font-size:2rem; display:block; margin-bottom:10px;">🚍</span>
+          <span>Sin llegadas próximas...</span>
+      </div>`;
     return;
   }
 
