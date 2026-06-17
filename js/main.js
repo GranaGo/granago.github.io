@@ -2999,6 +2999,7 @@ async function fetchRealTimeData(id, type) {
 
   try {
     let data = { proximos: [] };
+    let apiSuccess = false;
 
     const calcularMinutos = (h, m) => {
       const arrivalDate = new Date();
@@ -3011,7 +3012,6 @@ async function fetchRealTimeData(id, type) {
     };
 
     if (type === "urbano") {
-      let apiSuccess = false;
       try {
         const url = `${API_BASE}/bus/llegadas/${id}`;
         const res = await fetch(PROXY_URL + encodeURIComponent(url), {
@@ -3024,13 +3024,15 @@ async function fetchRealTimeData(id, type) {
           const apiData = await res.json();
           const apiArrivals = apiData.proximos || apiData.llegadas;
           if (apiArrivals && apiArrivals.length > 0) {
-            data.proximos = apiArrivals;
+            data.proximos = apiArrivals.map((p) => ({ ...p, isStatic: false }));
             apiSuccess = true;
           }
         }
       } catch (apiErr) {
         if (apiErr.name === "AbortError") return;
-        console.warn("API de bus fallida, usando respaldo estático");
+        console.warn(
+          "API de bus fallida o vacía, recurriendo a horarios fijos.",
+        );
       }
 
       if (!apiSuccess) {
@@ -3086,13 +3088,14 @@ async function fetchRealTimeData(id, type) {
         }
       }
     } else if (type === "metro") {
-      const url = `${API_BASE}/metro/llegadas/${parseInt(id)}`;
       try {
+        const url = `${API_BASE}/metro/llegadas/${id}`;
         const res = await fetch(PROXY_URL + encodeURIComponent(url), {
           priority: "high",
           signal: currentRTController.signal,
           cache: "no-cache",
         });
+
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
         const metroData = await res.json();
@@ -3106,11 +3109,15 @@ async function fetchRealTimeData(id, type) {
             direccionLimpia = "Armilla";
           if (direccionLimpia.toLowerCase().includes("albolote"))
             direccionLimpia = "Albolote";
-          return { ...p, direccion: direccionLimpia };
+          return { ...p, direccion: direccionLimpia, isStatic: false };
         });
+        apiSuccess = true;
       } catch (e) {
         if (e.name === "AbortError") return;
-        console.warn("⚠️ Error en API Metro. Usando estático:", e.message);
+        console.warn(
+          "⚠️ API Metro fallida o vacía, recurriendo a horarios fijos:",
+          e.message,
+        );
 
         try {
           const resTiempos = await fetch(
@@ -3208,7 +3215,7 @@ async function fetchRealTimeData(id, type) {
           }
         }
       } catch (err) {
-        console.error("Error en fallback interurbano:", err);
+        console.error("Error en procesamiento interurbano:", err);
       }
     }
 
@@ -3216,7 +3223,7 @@ async function fetchRealTimeData(id, type) {
     renderRealTimeResults(data, type);
   } catch (e) {
     if (e.name === "AbortError") return;
-    console.error("Error general:", e);
+    console.error("Error general en el módulo de tiempos:", e);
     renderRealTimeResults({ proximos: [] }, type);
   }
 }
