@@ -1,4 +1,6 @@
 service_id,date,exception_type
+L1Domingo25,20260719,2
+L1Domingo19julio26361,20260719,1
 L1LaborableInvierno26,20261012,2
 L1DomingoFestivo26355,20261012,1
 L1LaborableInvierno26,20261102,2
