@@ -29,6 +29,7 @@ let weatherLocationActive = null;
 let tempHomeLayout = [];
 let supportTimeout = null;
 let runIndexToDelete = null;
+const CARTO_API_KEY = "cb1_3402_1_7dac7aa214615e4445558523";
 
 let mapInstance = null;
 let currentTileLayer = null;
@@ -1640,8 +1641,8 @@ function updateMapTheme(map, currentLayer) {
 
   const isDark = document.body.classList.contains("dark-mode");
   const targetUrl = isDark
-    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-    : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+    ? `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`
+    : `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`;
 
   if (currentLayer && currentLayer._url === targetUrl) {
     return currentLayer;
@@ -2670,8 +2671,8 @@ function renderLineMap() {
         .addTo(lineMapInstance);
       const isDark = document.body.classList.contains("dark-mode");
       const url = isDark
-        ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+        ? `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`
+        : `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`;
 
       currentLineTileLayer = L.tileLayer(url).addTo(lineMapInstance);
       lineLayersGroup = L.layerGroup().addTo(lineMapInstance);
@@ -3943,8 +3944,8 @@ async function renderMobilityEvents() {
       .addTo(cortesMapInstance);
     const isDark = document.body.classList.contains("dark-mode");
     const url = isDark
-      ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-      : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+      ? `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`
+      : `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`;
 
     cortesTileLayer = L.tileLayer(url).addTo(cortesMapInstance);
     cortesLayersGroup = L.layerGroup().addTo(cortesMapInstance);
@@ -5506,8 +5507,8 @@ async function initRestriccionesMap() {
 
     const isDark = document.body.classList.contains("dark-mode");
     const url = isDark
-      ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-      : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+      ? `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`
+      : `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`;
 
     L.tileLayer(url).addTo(restriccionesMap);
 
@@ -11644,8 +11645,8 @@ function initGeoMap(fullData) {
 
   const isDark = document.body.classList.contains("dark-mode");
   const url = isDark
-    ? "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
-    : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png";
+    ? `https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`
+    : `https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`;
 
   L.tileLayer(url).addTo(geoMapInstance);
 
