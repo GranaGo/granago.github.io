@@ -25,6 +25,19 @@
     />
     <meta property="og:url" content="https://granago.github.io" />
     <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_ES" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="GranáGo - Muévete con Sentido por Granada" />
+    <meta
+      name="twitter:description"
+      content="Consulta bus, metro, parkings, radares y gasolineras en una sola herramienta. Incluye modo conducción HUD y juegos con GranáSaldo."
+    />
+    <meta
+      name="twitter:image"
+      content="https://granago.github.io/images/logo.png"
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://granago.github.io/" />
     <meta
       name="theme-color"
       content="#f0f2f5"
@@ -78,9 +91,37 @@
     />
 
     <script src="js/main.js" defer></script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "GranáGo",
+        "url": "https://granago.github.io",
+        "description": "La app definitiva para Granada: tiempos de bus y metro, parkings en tiempo real, gasolineras baratas, radares, ZBE y juegos con recompensas.",
+        "applicationCategory": "TravelApplication",
+        "operatingSystem": "Any",
+        "inLanguage": "es",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "EUR"
+        }
+      }
+    </script>
   </head>
 
   <body>
+    <noscript>
+      <div
+        style="padding: 40px 20px; text-align: center; font-family: system-ui, sans-serif;"
+      >
+        <h1>GranáGo</h1>
+        <p>
+          Necesitas activar JavaScript en tu navegador para poder usar
+          GranáGo.
+        </p>
+      </div>
+    </noscript>
     <div class="app-background"></div>
 
     <header class="app-header">
@@ -402,7 +443,7 @@
             <h3>Calculadora Ecológica</h3>
             <button
               onclick="closeEcoModal()"
-              class="icon-btn close-modal-btn"
+              class="icon-btn close-modal-btn" aria-label="Cerrar"
               aria-label="Cerrar calculadora"
             >
               <i class="ri-close-line"></i>
@@ -475,7 +516,7 @@
             </h3>
             <button
               onclick="closeWelcomeModal()"
-              class="icon-btn close-modal-btn"
+              class="icon-btn close-modal-btn" aria-label="Cerrar"
               aria-label="Cerrar bienvenida"
             >
               <i class="ri-close-line"></i>
@@ -870,7 +911,7 @@
 
       <div id="running-view" class="view-section">
         <div class="section-header with-back-btn">
-          <button onclick="stopRunningProcess()" class="icon-btn back-btn">
+          <button onclick="stopRunningProcess()" class="icon-btn back-btn" aria-label="Volver">
             <i class="ri-arrow-left-line"></i>
           </button>
           <div>
@@ -1176,7 +1217,7 @@
             <h3 id="shared-route-title">Ruta recibida</h3>
             <button
               onclick="closeSharedRoute()"
-              class="icon-btn close-modal-btn"
+              class="icon-btn close-modal-btn" aria-label="Cerrar"
             >
               <i class="ri-close-line"></i>
             </button>
@@ -1233,7 +1274,7 @@
         <div class="section-header with-back-btn">
           <button
             onclick="navigateTo('home')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -1350,7 +1391,7 @@
         <div class="section-header with-back-btn">
           <button
             onclick="navigateTo('home')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -1452,7 +1493,7 @@
                   <h3>Modo Oscuro</h3>
                 </div>
               </div>
-              <button id="theme-toggle-view" class="theme-switch">
+              <button id="theme-toggle-view" class="theme-switch" role="switch" aria-label="Activar o desactivar modo oscuro">
                 <div class="switch-handle"></div>
               </button>
             </div>
@@ -1643,7 +1684,7 @@
             <h3 style="margin: 0">Restaurar Datos</h3>
             <button
               onclick="closeImportConfirm()"
-              class="icon-btn close-modal-btn"
+              class="icon-btn close-modal-btn" aria-label="Cerrar"
             >
               <i class="ri-close-line"></i>
             </button>
@@ -1715,7 +1756,7 @@
             <h3 style="margin: 0">Cancelar Seguimiento</h3>
             <button
               onclick="closeRunCancelModal()"
-              class="icon-btn close-modal-btn"
+              class="icon-btn close-modal-btn" aria-label="Cerrar"
             >
               <i class="ri-close-line"></i>
             </button>
@@ -1839,7 +1880,7 @@
             <h3>Feedback y Mejoras</h3>
             <button
               onclick="closeFeedbackModal()"
-              class="icon-btn close-modal-btn"
+              class="icon-btn close-modal-btn" aria-label="Cerrar"
               aria-label="Cerrar sugerencias"
             >
               <i class="icon ri-close-line"></i>
@@ -2018,7 +2059,7 @@
         >
           <button
             onclick="navigateTo('movilidad')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -2410,7 +2451,7 @@
         <div class="section-header with-back-btn">
           <button
             onclick="navigateTo('transporte')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -2545,7 +2586,7 @@
                 <h3>Paradas más próximas</h3>
                 <button
                   onclick="toggleNearbyPanel()"
-                  class="icon-btn close-modal-btn"
+                  class="icon-btn close-modal-btn" aria-label="Cerrar"
                   aria-label="Cerrar paradas cercanas"
                 >
                   <i class="icon ri-close-line"></i>
@@ -2562,7 +2603,7 @@
         <div class="section-header with-back-btn">
           <button
             onclick="navigateTo('publico')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -2590,7 +2631,7 @@
         <div class="section-header with-back-btn">
           <button
             onclick="navigateTo('lineas')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -2653,7 +2694,7 @@
         <div class="section-header with-back-btn">
           <button
             onclick="navigateTo('publico')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -2684,7 +2725,7 @@
         <div class="section-header with-back-btn">
           <button
             onclick="navigateTo('publico')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -2709,7 +2750,7 @@
           <div style="display: flex; align-items: center; gap: 10px">
             <button
               onclick="navigateTo('transporte')"
-              class="icon-btn back-btn"
+              class="icon-btn back-btn" aria-label="Volver"
               aria-label="Volver atrás"
             >
               <i class="icon ri-arrow-left-line"></i>
@@ -2773,7 +2814,7 @@
         <div class="section-header with-back-btn">
           <button
             onclick="navigateTo('personal')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -2914,7 +2955,7 @@
         <div class="section-header with-back-btn">
           <button
             onclick="navigateTo('repostar')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -3035,7 +3076,7 @@
         <div class="section-header with-back-btn">
           <button
             onclick="navigateTo('personal')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -3065,7 +3106,7 @@
         <div class="section-header with-back-btn">
           <button
             onclick="navigateTo('acceso-selection')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -3226,7 +3267,7 @@
         <div class="section-header with-back-btn">
           <button
             onclick="navigateTo('acceso-selection')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -3371,7 +3412,7 @@
         <div class="section-header with-back-btn">
           <button
             onclick="navigateTo('personal')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -3411,7 +3452,7 @@
         <div class="section-header with-back-btn" style="flex-shrink: 0">
           <button
             onclick="navigateTo('aparcamiento-selection')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -3493,7 +3534,7 @@
         <div class="section-header with-back-btn" style="flex-shrink: 0">
           <button
             onclick="navigateTo('aparcamiento-selection')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -4122,7 +4163,7 @@
         <div class="section-header with-back-btn" style="flex-shrink: 0">
           <button
             onclick="navigateTo('transporte')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -4836,7 +4877,7 @@
           class="fade-in-up"
         >
           <div class="section-header with-back-btn">
-            <button onclick="closeWordle()" class="icon-btn back-btn">
+            <button onclick="closeWordle()" class="icon-btn back-btn" aria-label="Volver">
               <i class="icon ri-arrow-left-line"></i>
             </button>
             <div>
@@ -4962,7 +5003,7 @@
           class="fade-in-up"
         >
           <div class="section-header with-back-btn">
-            <button onclick="closeSudoku()" class="icon-btn back-btn">
+            <button onclick="closeSudoku()" class="icon-btn back-btn" aria-label="Volver">
               <i class="icon ri-arrow-left-line"></i>
             </button>
             <div>
@@ -5126,7 +5167,7 @@
           class="fade-in-up"
         >
           <div class="section-header with-back-btn">
-            <button onclick="closeMemory()" class="icon-btn back-btn">
+            <button onclick="closeMemory()" class="icon-btn back-btn" aria-label="Volver">
               <i class="icon ri-arrow-left-line"></i>
             </button>
             <div>
@@ -5178,7 +5219,7 @@
           class="fade-in-up"
         >
           <div class="section-header with-back-btn">
-            <button onclick="closeQuiz()" class="icon-btn back-btn">
+            <button onclick="closeQuiz()" class="icon-btn back-btn" aria-label="Volver">
               <i class="icon ri-arrow-left-line"></i>
             </button>
             <div>
@@ -5314,7 +5355,7 @@
           class="fade-in-up"
         >
           <div class="section-header with-back-btn">
-            <button onclick="closeMastermind()" class="icon-btn back-btn">
+            <button onclick="closeMastermind()" class="icon-btn back-btn" aria-label="Volver">
               <i class="icon ri-arrow-left-line"></i>
             </button>
             <div>
@@ -5422,7 +5463,7 @@
           class="fade-in-up"
         >
           <div class="section-header with-back-btn">
-            <button onclick="closeEncadenadas()" class="icon-btn back-btn">
+            <button onclick="closeEncadenadas()" class="icon-btn back-btn" aria-label="Volver">
               <i class="icon ri-arrow-left-line"></i>
             </button>
             <div>
@@ -5608,7 +5649,7 @@
           class="fade-in-up"
         >
           <div class="section-header with-back-btn">
-            <button onclick="closeBlackjack()" class="icon-btn back-btn">
+            <button onclick="closeBlackjack()" class="icon-btn back-btn" aria-label="Volver">
               <i class="icon ri-arrow-left-line"></i>
             </button>
             <div>
@@ -5788,7 +5829,7 @@
           class="fade-in-up"
         >
           <div class="section-header with-back-btn">
-            <button onclick="closeSlots()" class="icon-btn back-btn">
+            <button onclick="closeSlots()" class="icon-btn back-btn" aria-label="Volver">
               <i class="icon ri-arrow-left-line"></i>
             </button>
             <div>
@@ -5955,7 +5996,7 @@
           class="fade-in-up"
         >
           <div class="section-header with-back-btn">
-            <button onclick="closeGeo()" class="icon-btn back-btn">
+            <button onclick="closeGeo()" class="icon-btn back-btn" aria-label="Volver">
               <i class="icon ri-arrow-left-line"></i>
             </button>
             <div>
@@ -6119,7 +6160,7 @@
           class="fade-in-up"
         >
           <div class="section-header with-back-btn">
-            <button onclick="closeMinesweeper()" class="icon-btn back-btn">
+            <button onclick="closeMinesweeper()" class="icon-btn back-btn" aria-label="Volver">
               <i class="icon ri-arrow-left-line"></i>
             </button>
             <div>
@@ -6194,7 +6235,7 @@
         <div class="section-header with-back-btn">
           <button
             onclick="navigateTo('juegos')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -6235,7 +6276,7 @@
         <div class="section-header with-back-btn">
           <button
             onclick="navigateTo('ajustes')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -6933,7 +6974,7 @@
         <div class="section-header with-back-btn">
           <button
             onclick="navigateTo('ajustes')"
-            class="icon-btn back-btn"
+            class="icon-btn back-btn" aria-label="Volver"
             aria-label="Volver atrás"
           >
             <i class="icon ri-arrow-left-line"></i>
@@ -7160,7 +7201,7 @@
           <h3 id="realtime-stop-title">Parada...</h3>
           <button
             onclick="closeRealTimeModal()"
-            class="icon-btn close-modal-btn"
+            class="icon-btn close-modal-btn" aria-label="Cerrar"
             aria-label="Cerrar ventana"
           >
             <i class="icon ri-close-line"></i>

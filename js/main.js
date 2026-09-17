@@ -583,8 +583,21 @@ function hexToHSL(hex) {
   return { h: h * 360, s: s * 100, l: l * 100 };
 }
 
+/* Envoltorio seguro para leer el inventario: antes cada función parseaba
+   localStorage directamente sin try/catch, así que un valor corrupto
+   (por ejemplo, tras una actualización del formato) rompía esa función
+   entera en vez de devolver un inventario vacío. */
+function getInventorySafe() {
+  try {
+    return getInventorySafe();
+  } catch (e) {
+    console.warn("Inventario corrupto en localStorage, se reinicia a vacío:", e);
+    return {};
+  }
+}
+
 window.useInventoryItem = function (itemId) {
-  let inventory = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+  let inventory = getInventorySafe();
   if (inventory[itemId] > 0) {
     inventory[itemId]--;
     localStorage.setItem("granaGo_inventory", JSON.stringify(inventory));
@@ -1099,7 +1112,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     localStorage.setItem("granaGo_optimized_v2", "true");
-    console.log("LocalStorage optimizado al nuevo estándar v2");
   }
 });
 
@@ -1996,7 +2008,6 @@ async function initMapParadas() {
           }
         },
         (e) => {
-          console.log("Auto-gps no disponible o denegado");
         },
         { enableHighAccuracy: true, timeout: 10000 },
       );
@@ -4939,7 +4950,6 @@ async function loadDGTXMLCameras() {
       addedCount++;
     }
 
-    console.log(`DGT: Se han añadido ${addedCount} cámaras.`);
   } catch (e) {
     console.error("Error procesando XML DGT:", e);
     showNotification("Aviso", "Error leyendo datos de la DGT", "error");
@@ -5036,7 +5046,6 @@ async function loadRadares() {
 
     if (camarasMapInstance) {
       radaresLayer.addTo(camarasMapInstance);
-      console.log("Radares cargados correctamente.");
     }
   } catch (e) {
     console.warn("No se pudieron cargar los radares:", e);
@@ -5118,7 +5127,6 @@ async function initParkingsMap() {
   }
 
   parkingInterval = setInterval(() => {
-    console.log("Actualizando datos de parking...");
     fetchParkingsData();
   }, 120000);
 
@@ -5274,7 +5282,6 @@ async function loadStaticParkingsCSV() {
       const csvKey = cleanString(nombreRaw);
 
       if (realTimeKeys.includes(csvKey)) {
-        console.log(`Omitiendo duplicado estático: ${nombreRaw}`);
         return;
       }
 
@@ -5363,7 +5370,6 @@ async function loadMotoParkingsKML() {
       },
     }).addTo(parkingsMapInstance);
 
-    console.log("Capa de motos cargada");
   } catch (e) {
     console.error("Error cargando parkingmotos:", e);
   }
@@ -6989,12 +6995,10 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker
       .register("./sw.js")
       .then((reg) => {
-        console.log("Service Worker registrado:", reg);
 
         document.addEventListener("visibilitychange", () => {
           if (document.visibilityState === "visible") {
             reg.update();
-            console.log("Comprobando actualizaciones al volver...");
           }
         });
 
@@ -7091,7 +7095,6 @@ function showUpdateNotification() {
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  console.log("[PWA] App lista para instalar");
 });
 
 window.installPWA = async function () {
@@ -7111,7 +7114,6 @@ window.installPWA = async function () {
   if (deferredPrompt) {
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    console.log(`[PWA] Opción de usuario: ${outcome}`);
     deferredPrompt = null;
 
     if (outcome === "accepted") {
@@ -7143,7 +7145,6 @@ window.installPWA = async function () {
 
 window.addEventListener("appinstalled", () => {
   deferredPrompt = null;
-  console.log("[PWA] Aplicación instalada correctamente");
   showNotification(
     "¡Instalada!",
     "GranáGo ya está en tu pantalla de inicio",
@@ -7370,17 +7371,17 @@ window.flyToStopFromList = function (lat, lon) {
 };
 
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-  var R = 6371;
-  var dLat = deg2rad(lat2 - lat1);
-  var dLon = deg2rad(lon2 - lon1);
-  var a =
+  const R = 6371;
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(deg2rad(lat1)) *
       Math.cos(deg2rad(lat2)) *
       Math.sin(dLon / 2) *
       Math.sin(dLon / 2);
-  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  var d = R * c;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c;
   return d;
 }
 
@@ -7435,7 +7436,6 @@ async function initWordleDictionary() {
       }
     });
 
-    console.log(`Diccionario cargado con soporte Ñ`);
     return true;
   } catch (e) {
     console.error("Error cargando diccionario:", e);
@@ -7674,7 +7674,7 @@ function startGameUI(isRestoring = false) {
   }
 
   document.getElementById("wordle-setup").style.display = "none";
-  const inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+  const inv = getInventorySafe();
   const btnPwr = document.getElementById("btn-pwr-wordle");
   if (btnPwr) {
     btnPwr.style.display = inv["pista-wordle"] > 0 ? "flex" : "none";
@@ -8136,7 +8136,7 @@ const SudokuGen = {
 
 function mulberry32(a) {
   return function () {
-    var t = (a += 0x6d2b79f5);
+    let t = (a += 0x6d2b79f5);
     t = Math.imul(t ^ (t >>> 15), t | 1);
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -8224,7 +8224,7 @@ window.startSudokuGame = function () {
   document.getElementById("sudoku-setup").style.display = "none";
   document.getElementById("sudoku-board-wrapper").style.display = "block";
 
-  const inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+  const inv = getInventorySafe();
   const btnPwr = document.getElementById("btn-pwr-sudoku");
   if (btnPwr) {
     btnPwr.style.display = inv["celda-sudoku"] > 0 ? "flex" : "none";
@@ -8576,7 +8576,7 @@ function initMemoryGame() {
   board.innerHTML = "";
   msg.style.display = "none";
 
-  const inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+  const inv = getInventorySafe();
   const btnPwr = document.getElementById("btn-pwr-memory");
   if (btnPwr) {
     btnPwr.style.display = inv["ojo-memory"] > 0 ? "flex" : "none";
@@ -8774,7 +8774,7 @@ function showQuestion() {
   container.classList.remove("fade-in-right");
   void container.offsetWidth;
   container.classList.add("fade-in-right");
-  const inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+  const inv = getInventorySafe();
   const btnPwr = document.getElementById("btn-pwr-quiz");
   if (btnPwr) {
     btnPwr.style.display = inv["mitad-quiz"] > 0 ? "block" : "none";
@@ -9166,7 +9166,7 @@ async function toggleDrivingMode() {
     }
 
     if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch((e) => console.log(e));
+      document.documentElement.requestFullscreen().catch((e) => console.error(e));
     }
 
     currentDisplayedSpeed = 0;
@@ -9214,7 +9214,7 @@ async function toggleDrivingMode() {
     hud.style.display = "none";
 
     if (document.exitFullscreen && document.fullscreenElement) {
-      document.exitFullscreen().catch((e) => console.log(e));
+      document.exitFullscreen().catch((e) => console.error(e));
     }
 
     if (speedAnimationId) cancelAnimationFrame(speedAnimationId);
@@ -9636,7 +9636,6 @@ async function requestWakeLock() {
   try {
     wakeLock = await navigator.wakeLock.request("screen");
     wakeLock.addEventListener("release", () => {
-      console.log("Pantalla desbloqueada");
     });
   } catch (err) {
     console.error(`${err.name}, ${err.message}`);
@@ -9787,7 +9786,7 @@ window.initMastermindGame = function () {
   document.getElementById("mastermind-history").innerHTML = "";
   document.getElementById("mastermind-message").style.display = "none";
   document.getElementById("mastermind-controls").style.display = "block";
-  const inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+  const inv = getInventorySafe();
   const btnPwr = document.getElementById("btn-pwr-mastermind");
   if (btnPwr) {
     btnPwr.style.display = inv["codigo-mind"] > 0 ? "flex" : "none";
@@ -10049,7 +10048,7 @@ window.surrenderEncadenadas = function () {
 function initEncadenadas() {
   const keys = Object.keys(encadenadasData);
   const startWord = keys[Math.floor(Math.random() * keys.length)];
-  const inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+  const inv = getInventorySafe();
   const btnPwr = document.getElementById("btn-pwr-encadenadas");
   if (btnPwr) {
     btnPwr.style.display = inv["tiempo-encadenadas"] > 0 ? "flex" : "none";
@@ -10367,7 +10366,7 @@ window.blackjackAction = function (action, amount) {
     document.getElementById("betting-area").style.display = "none";
     document.getElementById("play-buttons").style.display = "flex";
 
-    const inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+    const inv = getInventorySafe();
     const btnPwr = document.getElementById("btn-pwr-blackjack");
     if (btnPwr && inv["seguro-bj"] > 0) {
       btnPwr.style.display = "flex";
@@ -11033,7 +11032,7 @@ window.buyItem = function (id, type) {
     localStorage.setItem("granaGo_owned_visualizers", JSON.stringify(ownedVis));
     localStorage.setItem("granaGo_active_visualizer", item.file);
   } else {
-    let inv = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+    let inv = getInventorySafe();
     inv[id] = (inv[id] || 0) + 1;
     localStorage.setItem("granaGo_inventory", JSON.stringify(inv));
   }
@@ -11293,7 +11292,6 @@ function resolve3x3Results(grid) {
     }
 
     if (slotBet > 0) {
-      console.log("Apuesta ajustada al saldo disponible: " + slotBet);
     }
   }
 
@@ -11672,7 +11670,7 @@ function nextGeoRound() {
 
   const btnLince = document.getElementById("pu-reveal-btn");
   const btn5050 = document.getElementById("pu-5050-btn");
-  const invGeo = JSON.parse(localStorage.getItem("granaGo_inventory") || "{}");
+  const invGeo = getInventorySafe();
 
   if (btnLince)
     btnLince.style.display = invGeo["geo-lince"] > 0 ? "flex" : "none";
@@ -13614,7 +13612,6 @@ window.initSharedRoute = async function (encodedData) {
       }, 400);
     } else {
       mapContainer.style.display = "none";
-      console.log("Ruta compartida sin trazo suficiente para generar mapa.");
     }
   } catch (e) {
     console.error("Ruta compartida corrupta", e);
