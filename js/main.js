@@ -13,7 +13,6 @@
  * Deberías haber recibido una copia de la Licencia Pública General GNU
  * junto con este programa. Si no es así, consulte <https://www.gnu.org/licenses/>.
  */
-﻿
 const GRANADA_COORDS={lat:37.173485,lon:-3.599678};const API_BASE="https://movgr.apis.mianfg.me";const PROXY_URL="https://proxy.contacto-granago.workers.dev/?url=";const UNAVAILABLE_MESSAGE="Sin llegadas próximas...";let newWorker;let pendingImportData=null;let deferredPrompt;let isManualUpdate=false;let weatherCache={};let currentWeatherData=null;let weatherLocationActive=null;let tempHomeLayout=[];let supportTimeout=null;let runIndexToDelete=null;const CARTO_API_KEY="cb1_3402_1_7dac7aa214615e4445558523";let mapInstance=null;let currentTileLayer=null;let userMarker=null;let mapLayers={metro:null,urbano:null,interurbano:null,};let isMapDataLoaded=false;let allSearchableStops=[];let isNearbyPanelOpen=false;let realtimeCache=new Map();let currentRadioIdx=-1;let radioIsPlaying=false;let RADIO_STATIONS=[];let currentRTController=null;let radioStartedFromHUD=false;let radioMainIndices=[];let radioItemsDisplayed=0;const RADIO_PAGE_SIZE=30;let radioScrollObserver=null;let radioImageObserver=null;let lineMapInstance=null;let currentLineTileLayer=null;let lineLayersGroup=null;let currentLineId=null;let currentLineColor=null;let currentLineName=null;let currentTransportType="urbano";let placesMapInstance=null;let currentPlacesTileLayer=null;let placesLayers={};let placesDataLoaded=false;let allSearchablePlaces=[];let cortesMapInstance=null;let cortesLayersGroup=null;let cortesTileLayer=null;let cortesDataLoaded=false;let placesClusterGroup=null;let allMobilityEvents=[];let currentCortesFilter="all";let repostarMap=null;let repostarLayerGroup=null;let repostarUserMarker=null;let currentFuelType=null;let allStationsData=[];let repostarTileLayer=null;let restriccionesMap=null;let restriccionesLayer=null;let camarasMapInstance=null;let camarasClusterGroup=null;let camarasTileLayer=null;let camarasDataLoaded=false;let drivingModeActive=false;let watchId=null;let wakeLock=null;let lastAlertTime=0;const ALERT_RADIUS=0.3;let currentDisplayedSpeed=0;let targetSpeed=0;let speedAnimationId=null;let currentStreetFeature=null;let lastAnnouncedLimit=null;let hudUpdateInterval=null;let parkingsMapInstance=null;let parkingsLayerGroup=null;let parkingsDataLoaded=false;let parkingInterval=null;let oraMapInstance=null;let oraLayerGroup=null;let oraDataLoaded=false;let parkingsTileLayer=null;let motoParkingsLayerGroup=null;let oraTileLayer=null;let staticParkingsLayerGroup=null;let vehicleConfig={isResident:localStorage.getItem("granaGo_is_resident")==="true",badge:localStorage.getItem("granaGo_vehicle_badge")||"NONE",};let zbePolygon=null;let lastZBEAlertTime=0;let sostenibleMap=null;let sostenibleTileLayer=null;let carrilBiciLayer=null;let parkingBiciLayer=null;let sostenibleDataLoaded=false;let sostenibleUserMarker=null;let dragStartIndex=null;let runState={active:false,paused:false,mode:"walk",startTime:null,endTime:null,totalSeconds:0,distance:0,path:[],lastCoord:null,watchId:null,timerInterval:null,};let summaryMap=null;let wordleSetupHTML="";let isMuted=false;let speedLimitsData=null;let slotBet=10;let slotsSpinning=false;let shopItemsCache=null;let currentFeedbackType="Error";const ECO_CONFIG={PT_AVG_KM:3.5,BIKE_AVG_KM:2.5,CO2_SAVED_PER_KM:0.15,EURO_SAVED_PER_KM:0.2,};let geoMapInstance=null;let geoLayer=null;let geoConfig={mode:"",round:0,score:0,targetFeatures:[],currentTarget:null,isAnswered:false,};let minesConfig={rows:8,cols:8,mines:10,board:[],gameOver:false,flags:0,diff:"easy",firstClick:true,};let taxiMapInstance=null;let taxiLayersGroup=null;let taxiTileLayer=null;let taxiDataLoaded=false;let zbeMapInstance=null;let zbeTileLayer=null;let zbeDataLoaded=false;const ACHIEVEMENTS_DATA={eco_start:{title:"Primer paso verde",desc:"Ahorra tu primer kg de CO2",goal:1,reward:100,icon:"ri-leaf-line",type:"eco",},eco_hero:{title:"Héroe de Granada",desc:"Ahorra 10 kg de CO2",goal:10,reward:500,icon:"ri-plant-fill",type:"eco",},bus_fan:{title:"Viajero Frecuente",desc:"Consulta 25 paradas",goal:25,reward:150,icon:"ri-bus-fill",type:"stps",},cycling:{title:"A piñón fijo",desc:"Registra 10km en bici",goal:10,reward:200,icon:"ri-riding-fill",type:"bike",},wordle_win:{title:"Linguista",desc:"Adivina 5 Granádles",goal:5,reward:200,icon:"ri-chat-check-fill",type:"game",},sudoku_master:{title:"Mente Analítica",desc:"Resuelve 3 Sudokus",goal:3,reward:250,icon:"ri-grid-fill",type:"game",},quiz_perfect:{title:"Granadino de Pura Cepa",desc:"Saca un 10/10 en el Quiz",goal:1,reward:300,icon:"ri-medal-fill",type:"game",},memory_fast:{title:"Memoria de Lince",desc:"Gana en Granámory",goal:10,reward:100,icon:"ri-brain-fill",type:"game",},mind_expert:{title:"Descifrador",desc:"Gana en Granámind",goal:10,reward:150,icon:"ri-lock-unlock-fill",type:"game",},chain_pro:{title:"Encadenado",desc:"Llega a 35 puntos en Encadenadas",goal:35,reward:200,icon:"ri-link",type:"game",},bj_lucky:{title:"As del Tapete",desc:"Gana 10 manos de Blackjack",goal:10,reward:200,icon:"ri-playing-cards-fill",type:"game",},slot_jackpot:{title:"¡Jackpot!",desc:"Consigue una línea de Metros",goal:1,reward:400,icon:"ri-money-euro-box-fill",type:"game",},geo_expert:{title:"Guía Turístico",desc:"Acierta 10 municipios en GeoGraná",goal:10,reward:250,icon:"ri-map-2-fill",type:"game",},mines_expert:{title:"Barrendero Mayor",desc:"Gana 5 partidas de BuscaGraná",goal:5,reward:200,icon:"ri-blur-off-fill",type:"game",},shopper:{title:"Con Estilo",desc:"Compra tu primer color de acento",goal:1,reward:100,icon:"ri-palette-fill",type:"shop",},collector:{title:"Coleccionista",desc:"Desbloquea 3 colores distintos",goal:3,reward:300,icon:"ri-paint-brush-fill",type:"shop",},powerup_user:{title:"Ventaja Táctica",desc:"Usa 5 power-ups",goal:5,reward:150,icon:"ri-flashlight-fill",type:"shop",},ambassador:{title:"Embajador",desc:"Comparte la app con amigos",goal:5,reward:200,icon:"ri-share-forward-fill",type:"soc",},night_owl:{title:"Búho Nocturno",desc:"Usa la app después de medianoche",goal:5,reward:100,icon:"ri-moon-clear-fill",type:"app",},driver_mode:{title:"Al volante",desc:"Activa el Modo Conducción",goal:10,reward:100,icon:"ri-steering-2-fill",type:"app",},loyal:{title:"Vecino Fiel",desc:"Abre la app 5 días distintos",goal:5,reward:500,icon:"ri-calendar-check-fill",type:"app",},sport_master:{title:"Km a Km",desc:"Acumula 10km corriendo o andando",goal:10,reward:300,icon:"ri-run-line",type:"sport",},};function getShopItems(){if(shopItemsCache)return shopItemsCache;shopItemsCache={colors:[{id:"color-default",name:"GranáGo",hex:"#2563eb",price:0},{id:"color-alhambra",name:"Atardecer Alhambra",hex:"#d97706",price:5000,},{id:"color-sierra",name:"Nieve Sierra",hex:"#06b6d4",price:6500},{id:"color-generalife",name:"Verde Generalife",hex:"#10b981",price:7000,},{id:"color-sacromonte",name:"Cueva Sacromonte",hex:"#8b5cf6",price:8000,},{id:"color-albaicin",name:"Oro Albaicín",hex:"#f59e0b",price:10000,},{id:"color-darro",name:"Río Darro",hex:"#14b8a6",price:15000},{id:"color-realejo",name:"Barrio Realejo",hex:"#ec4899",price:20000,},],powerups:[{id:"pista-wordle",name:"Lupa Granádle",desc:"Revela una letra",price:500,icon:"ri-search-eye-line",game:"wordle",},{id:"celda-sudoku",name:"Saber-doku",desc:"Resuelve una celda",price:500,icon:"ri-lightbulb-flash-line",game:"sudoku",},{id:"ojo-memory",name:"Ojo de Lince",desc:"Mira las cartas 2s",price:750,icon:"ri-eye-fill",game:"memory",},{id:"mitad-quiz",name:"Cincuenta%",desc:"Quita 2 respuestas",price:500,icon:"ri-scissors-2-fill",game:"quiz",},{id:"codigo-mind",name:"Eco-Código",desc:"Revela 1 posición",price:500,icon:"ri-radar-line",game:"mastermind",},{id:"tiempo-encadenadas",name:"Reloj de Arena",desc:"+15s extra",price:750,icon:"ri-hourglass-2-fill",game:"encadenadas",},{id:"auto-encadenadas",name:"Auto-Cadena",desc:"Encuentra una palabra por ti",price:1000,icon:"ri-magic-line",game:"encadenadas",},{id:"seguro-bj",name:"Seguro GranáJack",desc:"Recupera 50% si pierdes",price:1000,icon:"ri-shield-check-fill",game:"blackjack",},{id:"geo-lince",name:"Geo-Lince",desc:"Marca la respuesta correcta",price:750,icon:"ri-eye-fill",game:"geograna",},{id:"geo-5050",name:"Geo 50/50",desc:"Quita 2 respuestas falsas",price:500,icon:"ri-scissors-2-fill",game:"geograna",},],visualizers:[{id:"vis-cat",name:"Gato Vibes",price:10000,file:"images/gifs/cat.gif",icon:"ri-music-fill",},{id:"vis-rat",name:"Rata Bailando",price:7500,file:"images/gifs/rat.gif",icon:"ri-disc-fill",},{id:"vis-seal",name:"Foca con Saxofon",price:5000,file:"images/gifs/seal.gif",icon:"ri-music-fill",},{id:"vis-pepo",name:"Pepo DJ",price:2500,file:"images/gifs/pepo.gif",icon:"ri-disc-fill",},{id:"vis-top",name:"Indescriptible",price:15000,file:"images/gifs/top.gif",icon:"ri-music-fill",},{id:"vis-homer",name:"Homer Shakira",price:12500,file:"images/gifs/homer.gif",icon:"ri-disc-fill",},{id:"vis-racoon",name:"Mapache de Fiesta",price:2500,file:"images/gifs/racoon.gif",icon:"ri-music-fill",},{id:"vis-dog",name:"Perreo",price:5000,file:"images/gifs/dog.gif",icon:"ri-disc-fill",},],};return shopItemsCache;}
 function hexToHSL(hex){let r=parseInt(hex.substring(1,3),16)/255;let g=parseInt(hex.substring(3,5),16)/255;let b=parseInt(hex.substring(5,7),16)/255;let max=Math.max(r,g,b),min=Math.min(r,g,b);let h,s,l=(max+min)/2;if(max===min){h=s=0;}else{let d=max-min;s=l>0.5?d/(2-max-min):d/(max+min);switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;case b:h=(r-g)/d+4;break;}
 h/=6;}
@@ -148,7 +147,7 @@ function processStops(stopsJson,colorsJson,layerGroup,mainColor,iconName,popupCl
 return;["ida","vuelta"].forEach((dir)=>{if(!lineaData[dir])return;lineaData[dir].forEach((stop)=>{const key=`${stop.lat},${stop.lon}`;if(!uniqueStops.has(key)){uniqueStops.set(key,{lineas:new Set([stop.linea]),...stop});}else{uniqueStops.get(key).lineas.add(stop.linea);}});});});uniqueStops.forEach((stop)=>{let lineasArr=Array.from(stop.lineas).sort((a,b)=>{const strA=String(a);const strB=String(b);return isNaN(a)||isNaN(b)?strA.localeCompare(strB):parseInt(a)-parseInt(b);});let badgesHTML='<div class="line-badges-container">';lineasArr.forEach((linea)=>{const colorLinea=colorsJson[linea]||"#64748b";badgesHTML+=`<span class="line-badge" style="--line-color: ${colorLinea}">${linea}</span>`;});badgesHTML+="</div>";const customIcon=L.divIcon({className:"",html:`
         <div class="transport-marker-container" style="background-color: ${mainColor};">
           <i class="icon ${iconName}"></i>
-        </div>`,iconSize:[32,32],iconAnchor:[16,16],popupAnchor:[0,-18],});const marker=L.marker([stop.lat,stop.lon],{icon:customIcon});let buttonHTML="";if(layerKey==="urbano"||layerKey==="metro"||layerKey==="interurbano"){let apiId="";if(layerKey==="urbano")apiId=stop.stop_code;else if(layerKey==="metro")apiId=stop.stop_id;else if(layerKey==="interurbano")apiId=stop.stop_id;if(apiId){const safeName=stop.n.replace(/'/g,"\\'");const safeLines=Array.from(stop.lineas).join(", ").replace(/'/g,"\\'");const favs=getFavorites();const isFav=favs.some((f)=>f.i==apiId);const starClass=isFav?"active":"";const starIcon=isFav?"ri-star-fill":"ri-star-line";buttonHTML=`
+        </div>`,iconSize:[32,32],iconAnchor:[16,16],popupAnchor:[0,-18],});const marker=L.marker([stop.lat,stop.lon],{icon:customIcon});let buttonHTML="";if(layerKey==="urbano"||layerKey==="metro"||layerKey==="interurbano"){let apiId="";if(layerKey==="urbano")apiId=stop.stop_code;else if(layerKey==="metro")apiId=stop.stop_id;else if(layerKey==="interurbano")apiId=stop.stop_id?String(stop.stop_id).replace(/^3_/,""):"";if(apiId){const safeName=stop.n.replace(/'/g,"\\'");const safeLines=Array.from(stop.lineas).join(", ").replace(/'/g,"\\'");const favs=getFavorites();const isFav=favs.some((f)=>f.i==apiId);const starClass=isFav?"active":"";const starIcon=isFav?"ri-star-fill":"ri-star-line";buttonHTML=`
                 <div class="popup-actions">
                     <button class="btn-realtime-popup"
                             onclick="mapInstance.closePopup(); openRealTimeModal('${apiId}', '${layerKey}', '${safeName}')"
@@ -167,7 +166,7 @@ marker.bindPopup(`<div style="text-align:center; min-width: 150px;">
         <strong class="notranslate" style="font-size:1.1rem; display:block; margin-bottom:4px;">${stop.n}</strong>
         ${badgesHTML}
         ${buttonHTML}
-      </div>`,{className:popupClass,autoPan:true,closeButton:false,offset:[0,-10],},);marker.addTo(layerGroup);let idParaGuardar=null;if(layerKey==="urbano")idParaGuardar=stop.stop_code;else if(layerKey==="metro")idParaGuardar=stop.stop_id;else if(layerKey==="interurbano")idParaGuardar=stop.stop_id;allSearchableStops.push({id:idParaGuardar,name:stop.n,lat:stop.lat,lon:stop.lon,marker:marker,lines:Array.from(stop.lineas).join(", "),typeIcon:iconName,layerKey:layerKey,});});}
+      </div>`,{className:popupClass,autoPan:true,closeButton:false,offset:[0,-10],},);marker.addTo(layerGroup);let idParaGuardar=null;if(layerKey==="urbano")idParaGuardar=stop.stop_code;else if(layerKey==="metro")idParaGuardar=stop.stop_id;else if(layerKey==="interurbano")idParaGuardar=stop.stop_id?String(stop.stop_id).replace(/^3_/,""):"";allSearchableStops.push({id:idParaGuardar,name:stop.n,lat:stop.lat,lon:stop.lon,marker:marker,lines:Array.from(stop.lineas).join(", "),typeIcon:iconName,layerKey:layerKey,});});}
 const searchInput=document.getElementById("stop-search-input");const searchList=document.getElementById("search-results-list");const clearBtn=document.getElementById("clear-search-btn");if(searchInput){const handleStopSearch=(e)=>{const term=e.target.value.toLowerCase().trim();clearBtn.style.display=term.length>0?"flex":"none";if(term.length<2){searchList.classList.remove("visible");searchList.innerHTML="";return;}
 const results=allSearchableStops.filter((stop)=>stop.name.toLowerCase().includes(term)||stop.lines.toLowerCase().includes(term),).slice(0,10);renderSearchResults(results);};searchInput.addEventListener("input",debounce(handleStopSearch,250));}
 if(clearBtn){clearBtn.addEventListener("click",()=>{searchInput.value="";searchList.classList.remove("visible");clearBtn.style.display="none";});}
@@ -195,11 +194,10 @@ const fragment=document.createDocumentFragment();filteredIds.forEach((id)=>{cons
 let nombreLinea=`Línea ${id}`;if(lineInfo.ida&&lineInfo.ida.length>0&&lineInfo.ida[0].nombre_linea){nombreLinea=lineInfo.ida[0].nombre_linea;}else if(lineInfo.vuelta&&lineInfo.vuelta.length>0&&lineInfo.vuelta[0].nombre_linea){nombreLinea=lineInfo.vuelta[0].nombre_linea;}
 nombreLinea=nombreLinea.replace(/^L\.\s*[\w\d]+\s+/i,"");let subtexto="Ver recorrido";if(type==="metro")subtexto="Metropolitano de Granada";else if(type==="interurbano")subtexto="Consorcio de Transporte";const row=document.createElement("div");row.className="line-row-item";row.onclick=()=>openLineDetail(id,type,color,nombreLinea);row.innerHTML=`
             <div class="line-icon-box" style="--line-color: ${color}">
-                ${
-                  type === "metro"
-                    ? '<i class="ri-train-fill" style="font-size:1.2rem"></i>'
-                    : id
-                }
+                ${type === "metro"
+                ? '<i class="ri-train-fill" style="font-size:1.2rem"></i>'
+                : id
+            }
             </div>
             <div class="line-info-col">
                 <span class="line-info-title notranslate">${nombreLinea}</span>
@@ -251,8 +249,9 @@ nowDate.getMinutes().toString().padStart(2,"0");const dayKey=nowDate.getDay()===
 throw new Error("No hay llegadas en la API");data.proximos=apiArrivals.map((p)=>{let direccionLimpia=(p.direccion||p.destino||"Metro").trim();if(direccionLimpia.toLowerCase().includes("armilla"))
 direccionLimpia="Armilla";if(direccionLimpia.toLowerCase().includes("albolote"))
 direccionLimpia="Albolote";return{...p,direccion:direccionLimpia,isStatic:false};});apiSuccess=true;}catch(e){if(e.name==="AbortError")return;console.warn("⚠️ API Metro fallida o vacía, recurriendo a horarios fijos:",e.message,);try{const resTiempos=await fetch("data/metro/tiempos_proximos.json",).then((r)=>r.json());const stopData=resTiempos[id];if(stopData){const nowDate=new Date();const currentTime=nowDate.getHours().toString().padStart(2,"0")+":"+
-nowDate.getMinutes().toString().padStart(2,"0");const dayKey=nowDate.getDay()===5?"V":nowDate.getDay()===6?"S":nowDate.getDay()===0?"D":"L-J";for(const[dirKey,schedule]of Object.entries(stopData)){const nextTimes=(schedule[dayKey]||[]).filter((t)=>t>currentTime).slice(0,2);let destName=dirKey==="2"||dirKey==="0"||dirKey.toLowerCase().includes("armilla")?"Armilla":"Albolote";nextTimes.forEach((t)=>{const[h,m]=t.split(":").map(Number);data.proximos.push({linea:"1",direccion:destName,minutos:calcularMinutos(h,m),horaExacta:t,isStatic:true,});});}}}catch(err){console.error("Error en fallback de metro:",err);}}}else if(type==="interurbano"){try{const[resTiempos,resParadas]=await Promise.all([fetch("data/interurbano/tiempos_proximos.json").then((r)=>r.json()),fetch("data/interurbano/paradas.json").then((r)=>r.json()),]);const stopData=resTiempos[id];if(stopData){const nowDate=new Date();const currentTime=nowDate.getHours().toString().padStart(2,"0")+":"+
-nowDate.getMinutes().toString().padStart(2,"0");const dayKey=nowDate.getDay()===5?"V":nowDate.getDay()===6?"S":nowDate.getDay()===0?"D":"L-J";for(const[lineaId,schedule]of Object.entries(stopData)){const nextTimes=(schedule[dayKey]||[]).filter((t)=>t>currentTime).slice(0,2);const cleanId=lineaId.trim().replace(/^0+/,"");const lineInfo=resParadas[cleanId]||resParadas[lineaId];const longName=lineInfo?.ida?.[0]?.nombre_linea||lineInfo?.vuelta?.[0]?.nombre_linea||`Línea ${lineaId}`;nextTimes.forEach((t)=>{const[h,m]=t.split(":").map(Number);data.proximos.push({linea:lineaId,destino:longName,minutos:calcularMinutos(h,m),horaExacta:t,isStatic:true,});});}}}catch(err){console.error("Error en procesamiento interurbano:",err);}}
+nowDate.getMinutes().toString().padStart(2,"0");const dayKey=nowDate.getDay()===5?"V":nowDate.getDay()===6?"S":nowDate.getDay()===0?"D":"L-J";for(const[dirKey,schedule]of Object.entries(stopData)){const nextTimes=(schedule[dayKey]||[]).filter((t)=>t>currentTime).slice(0,2);let destName=dirKey==="2"||dirKey==="0"||dirKey.toLowerCase().includes("armilla")?"Armilla":"Albolote";nextTimes.forEach((t)=>{const[h,m]=t.split(":").map(Number);data.proximos.push({linea:"1",direccion:destName,minutos:calcularMinutos(h,m),horaExacta:t,isStatic:true,});});}}}catch(err){console.error("Error en fallback de metro:",err);}}}else if(type==="interurbano"){const cleanId=String(id).replace(/^3_/,"");try{const url=`${API_BASE}/ctagr/llegadas/${cleanId}`;const res=await fetch(PROXY_URL+encodeURIComponent(url),{priority:"high",signal:currentRTController.signal,cache:"no-cache",});if(res.ok){const apiData=await res.json();const apiArrivals=apiData.proximos||apiData.llegadas;if(apiArrivals&&apiArrivals.length>0){data.proximos=apiArrivals.map((p)=>({...p,isStatic:false}));apiSuccess=true;}}}catch(apiErr){if(apiErr.name==="AbortError")return;console.warn("API interurbana fallida o vacía, recurriendo a horarios fijos.");}
+if(!apiSuccess){try{const[resTiempos,resParadas]=await Promise.all([fetch("data/interurbano/tiempos_proximos.json").then((r)=>r.json()),fetch("data/interurbano/paradas.json").then((r)=>r.json()),]);const stopData=resTiempos[cleanId]||resTiempos[`3_${cleanId}`]||resTiempos[id];if(stopData){const nowDate=new Date();const currentTime=nowDate.getHours().toString().padStart(2,"0")+":"+
+nowDate.getMinutes().toString().padStart(2,"0");const dayKey=nowDate.getDay()===5?"V":nowDate.getDay()===6?"S":nowDate.getDay()===0?"D":"L-J";for(const[lineaId,schedule]of Object.entries(stopData)){const nextTimes=(schedule[dayKey]||[]).filter((t)=>t>currentTime).slice(0,2);const cleanLineId=lineaId.trim().replace(/^0+/,"");const lineInfo=resParadas[cleanLineId]||resParadas[lineaId];const longName=lineInfo?.ida?.[0]?.nombre_linea||lineInfo?.vuelta?.[0]?.nombre_linea||`Línea ${lineaId}`;nextTimes.forEach((t)=>{const[h,m]=t.split(":").map(Number);data.proximos.push({linea:lineaId,destino:longName,minutos:calcularMinutos(h,m),horaExacta:t,isStatic:true,});});}}}catch(err){console.error("Error en procesamiento interurbano:",err);}}}
 data.proximos.sort((a,b)=>a.minutos-b.minutos);renderRealTimeResults(data,type);}catch(e){if(e.name==="AbortError")return;console.error("Error general en el módulo de tiempos:",e);renderRealTimeResults({proximos:[]},type);}}
 function renderRealTimeResults(data,type){const content=document.getElementById("realtime-content");let html="";let arrivals=data.proximos||[];if(!arrivals.length){content.innerHTML=`
       <div style="text-align:center; padding:20px; color:var(--text-secondary);">
@@ -417,9 +416,8 @@ bgColor="#2563eb";if(isRanking){bgColor="#fbbf24";if(index===0)iconHtml="1º";if
 if(index===2){iconHtml="3º";bgColor="#b45309";}
 if(index>2){iconHtml=index+1+"º";bgColor="#2563eb";}
 markerClass+=" ranking-marker";}
-const icon=L.divIcon({className:"",html:`<div class="${markerClass}" style="background-color: ${bgColor}; border: 2px solid white; width: ${
-        isRanking ? 40 : 32
-      }px; height: ${isRanking ? 40 : 32}px; font-weight:800;">
+const icon=L.divIcon({className:"",html:`<div class="${markerClass}" style="background-color: ${bgColor}; border: 2px solid white; width: ${isRanking ? 40 : 32
+                }px; height: ${isRanking ? 40 : 32}px; font-weight:800;">
                      ${iconHtml}
                    </div>`,iconSize:[isRanking?40:32,isRanking?40:32],iconAnchor:[isRanking?20:16,isRanking?20:16],});const marker=L.marker([s._lat,s._lng],{icon:icon});marker.bindPopup(`
             <div style="text-align:center; min-width:160px;">
@@ -459,16 +457,13 @@ function renderEVMarkers(list){repostarLayerGroup.clearLayers();list.forEach((el
                      <i class="icon ${iconClass}" style="font-size:18px;"></i>
                    </div>`,iconSize:[32,32],iconAnchor:[16,16],});const marker=L.marker([el.lat,el.lon],{icon:icon});let details="Conector estándar";if(el.tags["socket:type2"])details="Type 2 (Mennekes)";marker.bindPopup(`
              <div style="text-align:center;">
-                <strong style="color:${color}">${
-                  isFree ? "GRATIS" : "DE PAGO"
-                }</strong>
-                <p style="margin:5px 0;">${
-                  el.tags.operator || "Cargador Público"
-                }</p>
+                <strong style="color:${color}">${isFree ? "GRATIS" : "DE PAGO"
+            }</strong>
+                <p style="margin:5px 0;">${el.tags.operator || "Cargador Público"
+            }</p>
                 <small>${details}</small>
-                <button class="btn-navigate-popup" onclick="openMapsApp(${
-                  el.lat
-                }, ${el.lon})">
+                <button class="btn-navigate-popup" onclick="openMapsApp(${el.lat
+            }, ${el.lon})">
                     <i class="ri-direction-fill"></i> Ir
                 </button>
              </div>
@@ -687,11 +682,10 @@ const gameFrag=document.createDocumentFragment();const gameActions={Granádle:"n
 function renderEventsUI(events){const eventsList=document.getElementById("home-event-content");if(!eventsList)return;if(events.length===0){eventsList.innerHTML=`<div class="summary-sub">Sin eventos activos en este momento.</div>`;return;}
 const html=events.slice(0,4).map((evt)=>`
     <div class="mini-event-title">
-      ${
-        evt.isEndingToday
-          ? `${evt.title}<span style="color: var(--color-error); font-weight: 700; font-size: 0.8em;">(FIN HOY)</span>`
-          : evt.title
-      }
+      ${evt.isEndingToday
+            ? `${evt.title}<span style="color: var(--color-error); font-weight: 700; font-size: 0.8em;">(FIN HOY)</span>`
+            : evt.title
+        }
     </div>
   `,).join("");eventsList.innerHTML=html;}
 async function updateHomeEventsWidget(){const eventsList=document.getElementById("home-event-content");if(!eventsList)return;const cachedData=localStorage.getItem("granaGo_events_cache");const cacheTime=localStorage.getItem("granaGo_events_cache_time");const now=Date.now();if(cachedData&&cacheTime&&now-cacheTime<600000){try{renderEventsUI(JSON.parse(cachedData));return;}catch(e){localStorage.removeItem("granaGo_events_cache");}}
@@ -797,9 +791,8 @@ trackRecentItem("granaGo_recent_games","Granádle");document.getElementById("gam
 function closeWordle(){document.getElementById("games-menu").style.display="flex";document.getElementById("wordle-game-container").style.display="none";wordleConfig.gameOver=false;}
 function setWordleMode(mode){wordleConfig.mode=mode;document.getElementById("btn-mode-daily").classList.toggle("active",mode==="daily");document.getElementById("btn-mode-infinite").classList.toggle("active",mode==="infinite");updateWordleStatsDisplay();}
 function setWordleLen(len){wordleConfig.len=len;[4,5,6].forEach((l)=>document.getElementById(`btn-len-${l}`).classList.toggle("active",l===len),);}
-function updateWordleStatsDisplay(){const stats=JSON.parse(localStorage.getItem("granaGo_wordle_stats")||'{"daily":0, "infinite":0}',);const val=wordleConfig.mode==="daily"?stats.daily:stats.infinite;document.getElementById("wordle-stats-text").innerText=`Racha ${
-    wordleConfig.mode === "daily" ? "Diaria" : "Actual"
-  }: ${val}`;}
+function updateWordleStatsDisplay(){const stats=JSON.parse(localStorage.getItem("granaGo_wordle_stats")||'{"daily":0, "infinite":0}',);const val=wordleConfig.mode==="daily"?stats.daily:stats.infinite;document.getElementById("wordle-stats-text").innerText=`Racha ${wordleConfig.mode === "daily" ? "Diaria" : "Actual"
+        }: ${val}`;}
 async function startWordleGame(retryCount=0){const setupContainer=document.getElementById("wordle-setup");const todayStr=new Date().toDateString();if(!wordleSetupHTML)wordleSetupHTML=setupContainer.innerHTML;if(!wordleDictionary){setupContainer.innerHTML='<div class="spinner" style="margin:20px auto"></div><p style="text-align:center;">Cargando diccionario...</p>';const loaded=await initWordleDictionary();if(!loaded){setupContainer.innerHTML=wordleSetupHTML;return;}}
 if(wordleConfig.mode==="daily"){const lastPlay=localStorage.getItem(`wordle_last_daily_${wordleConfig.len}`,);if(lastPlay===todayStr){showNotification("Aviso",`Ya has completado el reto diario de ${wordleConfig.len} letras.`,"info",);if(setupContainer.innerHTML.includes("spinner"))
 setupContainer.innerHTML=wordleSetupHTML;return;}
@@ -842,12 +835,10 @@ function showWordleResult(win){const setup=document.getElementById("wordle-setup
 const buttonHTML=wordleConfig.mode==="infinite"?`<button class="cookie-btn primary" onclick="startWordleGame()">Jugar otra vez</button>`:`${shareButtonHTML}
        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:10px;">Reto diario completado. ¡Vuelve mañana!</p>
        <button class="cookie-btn secondary" onclick="closeWordle()">Volver a Juegos</button>`;setup.innerHTML=`
-        <div class="info-card" style="border-left: 4px solid ${
-          win ? "var(--color-success)" : "var(--color-error)"
+        <div class="info-card" style="border-left: 4px solid ${win ? "var(--color-success)" : "var(--color-error)"
         }">
-            <h3 class="info-title" style="margin-top:0">${
-              win ? "¡Victoria!" : "Fin del juego"
-            }</h3>
+            <h3 class="info-title" style="margin-top:0">${win ? "¡Victoria!" : "Fin del juego"
+        }</h3>
             <p style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 5px;">
                 ${wordleConfig.originalTarget}
             </p>
@@ -893,9 +884,8 @@ el.innerText=`Errores: ${sudokuConfig.mistakes}/${sudokuConfig.maxMistakes}`;}
 function startSudokuTimer(){if(sudokuConfig.timerInterval)clearInterval(sudokuConfig.timerInterval);sudokuConfig.timerInterval=setInterval(()=>{sudokuConfig.timer++;const m=Math.floor(sudokuConfig.timer/60).toString().padStart(2,"0");const s=(sudokuConfig.timer%60).toString().padStart(2,"0");const el=document.getElementById("sudoku-timer");if(el)el.innerText=`${m}:${s}`;if(sudokuConfig.timer%5===0)saveSudokuProgress();},1000);}
 function saveSudokuProgress(){if(sudokuConfig.mode!=="daily"||sudokuConfig.gameOver)return;const state={d:new Date().toDateString(),b:sudokuConfig.board.join(""),s:sudokuConfig.solution.join(""),f:sudokuConfig.fixed.map((v)=>(v?1:0)).join(""),m:sudokuConfig.mistakes,t:sudokuConfig.timer,};localStorage.setItem("sudoku_daily_session",JSON.stringify(state));}
 function endSudokuGame(win){sudokuConfig.gameOver=true;clearInterval(sudokuConfig.timerInterval);const input=document.getElementById("sudoku-hidden-input");if(input)input.blur();const wrapper=document.getElementById("sudoku-board-wrapper");const message=document.getElementById("sudoku-message");if(win){updateAchievement("sudoku_master",1);showNotification("¡Excelente!","Has completado el Sudoku","success");if(sudokuConfig.mode==="daily"){localStorage.setItem("sudoku_last_daily_status","completed");localStorage.setItem("sudoku_last_daily_date",new Date().toDateString());localStorage.removeItem("sudoku_daily_session");}
-setTimeout(()=>{wrapper.style.display="none";message.style.display="block";message.style.borderLeftColor="var(--color-success)";message.querySelector("h3").innerText="¡Victoria!";message.querySelector("p").innerText=`Tiempo: ${
-        document.getElementById("sudoku-timer").innerText
-      }`;},1000);const reward=sudokuConfig.mode==="daily"?150:30;addGranaSaldo(reward,"completar Sudoku");}else{showNotification("Fin del juego","Demasiados errores","error");if(sudokuConfig.mode==="daily"){localStorage.setItem("sudoku_last_daily_status","failed");localStorage.setItem("sudoku_last_daily_date",new Date().toDateString());localStorage.removeItem("sudoku_daily_session");}
+setTimeout(()=>{wrapper.style.display="none";message.style.display="block";message.style.borderLeftColor="var(--color-success)";message.querySelector("h3").innerText="¡Victoria!";message.querySelector("p").innerText=`Tiempo: ${document.getElementById("sudoku-timer").innerText
+                }`;},1000);const reward=sudokuConfig.mode==="daily"?150:30;addGranaSaldo(reward,"completar Sudoku");}else{showNotification("Fin del juego","Demasiados errores","error");if(sudokuConfig.mode==="daily"){localStorage.setItem("sudoku_last_daily_status","failed");localStorage.setItem("sudoku_last_daily_date",new Date().toDateString());localStorage.removeItem("sudoku_daily_session");}
 setTimeout(()=>{wrapper.style.display="none";message.style.display="block";message.style.borderLeftColor="var(--color-error)";message.querySelector("h3").innerText="Fin del Juego";message.querySelector("p").innerText="Has alcanzado el límite de errores. Vuelve mañana.";},1000);}}
 if(window.visualViewport){const initialHeight=window.visualViewport.height;window.visualViewport.addEventListener("resize",()=>{const currentHeight=window.visualViewport.height;if(currentHeight<initialHeight*0.85){document.body.classList.add("keyboard-open");const activeElement=document.activeElement;if(activeElement&&(activeElement.id==="wordle-native-input"||activeElement.id==="sudoku-hidden-input"||activeElement.id==="encadenadas-input")){const boardId=activeElement.id==="wordle-native-input"?"wordle-board":activeElement.id==="sudoku-hidden-input"?"sudoku-board":"last-word-display";const board=document.getElementById(boardId);if(board)
 board.scrollIntoView({block:"center",behavior:"smooth"});}}else{document.body.classList.remove("keyboard-open");}});}
@@ -922,9 +912,8 @@ return;if(useInventoryItem("ojo-memory")){memoryConfig.lockBoard=true;const allC
 function closeQuiz(){document.getElementById("games-menu").style.display="flex";document.getElementById("quiz-game-container").style.display="none";}
 function startQuizGame(){quizConfig.currentIdx=0;quizConfig.score=0;quizConfig.isAnswered=false;quizConfig.roundQuestions=[...quizConfig.allQuestions].sort(()=>0.5-Math.random()).slice(0,quizConfig.questionsPerRound);document.getElementById("quiz-question-box").style.display="block";document.getElementById("quiz-result-msg").style.display="none";updateQuizStats();showQuestion();}
 function showQuestion(){const qData=quizConfig.roundQuestions[quizConfig.currentIdx];const qEl=document.getElementById("quiz-question");const optsEl=document.getElementById("quiz-options");const counterEl=document.getElementById("quiz-counter");const progressEl=document.getElementById("quiz-progress-bar");const container=document.getElementById("quiz-question-box");container.classList.remove("fade-in-right");void container.offsetWidth;container.classList.add("fade-in-right");const inv=getInventorySafe();const btnPwr=document.getElementById("btn-pwr-quiz");if(btnPwr){btnPwr.style.display=inv["mitad-quiz"]>0?"block":"none";btnPwr.disabled=false;btnPwr.style.opacity="1";}
-counterEl.innerText=`PREGUNTA ${quizConfig.currentIdx + 1} / ${
-    quizConfig.questionsPerRound
-  }`;qEl.innerText=qData.pregunta;optsEl.innerHTML="";quizConfig.isAnswered=false;const progressPct=(quizConfig.currentIdx/quizConfig.questionsPerRound)*100;progressEl.style.width=`${progressPct}%`;const shuffledOptions=[...qData.opciones].sort(()=>0.5-Math.random());shuffledOptions.forEach((optText)=>{const btn=document.createElement("button");btn.className="quiz-btn";btn.innerHTML=`<span>${optText}</span> <i class="icon ri-checkbox-blank-circle-line"></i>`;btn.onclick=()=>handleQuizAnswer(optText,qData.respuesta_correcta,btn);optsEl.appendChild(btn);});}
+counterEl.innerText=`PREGUNTA ${quizConfig.currentIdx + 1} / ${quizConfig.questionsPerRound
+        }`;qEl.innerText=qData.pregunta;optsEl.innerHTML="";quizConfig.isAnswered=false;const progressPct=(quizConfig.currentIdx/quizConfig.questionsPerRound)*100;progressEl.style.width=`${progressPct}%`;const shuffledOptions=[...qData.opciones].sort(()=>0.5-Math.random());shuffledOptions.forEach((optText)=>{const btn=document.createElement("button");btn.className="quiz-btn";btn.innerHTML=`<span>${optText}</span> <i class="icon ri-checkbox-blank-circle-line"></i>`;btn.onclick=()=>handleQuizAnswer(optText,qData.respuesta_correcta,btn);optsEl.appendChild(btn);});}
 function handleQuizAnswer(selectedText,correctText,btnElement){if(quizConfig.isAnswered)return;quizConfig.isAnswered=true;const allBtns=document.querySelectorAll(".quiz-btn");allBtns.forEach((btn)=>{const spanText=btn.querySelector("span").innerText;if(spanText===correctText){btn.classList.add("correct");btn.querySelector("i").className="icon ri-checkbox-circle-fill";}});if(selectedText===correctText){quizConfig.score++;if(navigator.vibrate)navigator.vibrate(50);}else{btnElement.classList.add("wrong");btnElement.querySelector("i").className="icon ri-close-circle-fill";if(navigator.vibrate)navigator.vibrate([100,50,100]);}
 updateQuizStats();setTimeout(()=>{quizConfig.currentIdx++;if(quizConfig.currentIdx<quizConfig.questionsPerRound){showQuestion();}else{finishQuizGame();}},1500);}
 window.useQuizPowerup=function(){if(quizConfig.isAnswered)return;if(useInventoryItem("mitad-quiz")){const qData=quizConfig.roundQuestions[quizConfig.currentIdx];const btns=Array.from(document.querySelectorAll(".quiz-btn"));const incorrectBtns=btns.filter((btn)=>{const btnText=btn.querySelector("span").innerText.trim();return(btnText!==qData.respuesta_correcta&&btn.style.opacity!=="0.2");});incorrectBtns.sort(()=>0.5-Math.random());for(let i=0;i<2;i++){if(incorrectBtns[i]){incorrectBtns[i].style.opacity="0.2";incorrectBtns[i].style.pointerEvents="none";incorrectBtns[i].querySelector("i").className="icon ri-close-circle-line";}}
@@ -1021,11 +1010,10 @@ feedbackHtml+="</div>";row.innerHTML=`${iconsHtml} ${feedbackHtml}`;history.appe
 window.useMastermindPowerup=function(){if(mastermindConfig.gameOver)return;if(useInventoryItem("codigo-mind")){const pos=Math.floor(Math.random()*4);const iconClass=mastermindConfig.target[pos];const slots=document.getElementById("mastermind-board").children;if(slots[pos]){slots[pos].innerHTML=`<i class="${iconClass}" style="color:var(--color-success)"></i>`;slots[pos].style.borderColor="var(--color-success)";}
 showNotification("Eco-Código",`¡Posición ${pos + 1} revelada!`,"success");updatePowerUpButton("btn-pwr-mastermind","codigo-mind");}};function endMastermind(win){mastermindConfig.gameOver=true;document.getElementById("mastermind-controls").style.display="none";if(win){updateAchievement("mind_expert",1);const bonus=(mastermindConfig.maxAttempts-mastermindConfig.attempts)*10;const totalReward=40+bonus;addGranaSaldo(totalReward,"descifrar el código");}
 const msg=document.getElementById("mastermind-message");msg.style.display="block";msg.style.borderLeft=`4px solid ${win ? "#10b981" : "#ef4444"}`;document.getElementById("mastermind-result-title").innerText=win?"¡Código Descifrado!":"Fin de los intentos";let targetHtml='<div style="display:flex; justify-content:center; gap:12px; margin:20px 0;">';mastermindConfig.target.forEach((icon)=>{targetHtml+=`<div style="width:50px; height:50px; background:var(--bg-app); border-radius:12px; display:flex; align-items:center; justify-content:center; border:2px solid var(--text-accent);"><i class="${icon}" style="font-size:1.5rem;"></i></div>`;});targetHtml+="</div>";document.getElementById("mastermind-result-text").innerHTML=`
-    <p style="text-align:center;">${
-      win
-        ? "Enhorabuena, tienes un sentido de la orientación envidiable."
-        : "No has dado con la combinación. El código correcto era:"
-    }</p>
+    <p style="text-align:center;">${win
+            ? "Enhorabuena, tienes un sentido de la orientación envidiable."
+            : "No has dado con la combinación. El código correcto era:"
+        }</p>
     ${targetHtml}
   `;}
 function trackRecentItem(key,item,limit=2){let items=JSON.parse(localStorage.getItem(key)||"[]");const itemID=typeof item==="object"?item.id:item;items=items.filter((i)=>(typeof i==="object"?i.id:i)!==itemID);items.unshift(item);if(items.length>limit)items.pop();localStorage.setItem(key,JSON.stringify(items));}
@@ -1083,32 +1071,28 @@ navigator.geolocation.getCurrentPosition((position)=>{const latlng=[position.coo
 if(!isInitial){showNotification("Ubicación encontrada","Te hemos localizado","success",);}},(error)=>{if(!isInitial){showNotification("Error","No se pudo obtener la ubicación","error");}
 console.warn("Error Geolocation Sostenible:",error.message);},{enableHighAccuracy:true,timeout:5000},);};window.toggleSostenibleLayer=function(type,btn){if(!sostenibleMap)return;const isActive=btn.classList.toggle("active");if(type==="carriles"){if(isActive)carrilBiciLayer.addTo(sostenibleMap);else sostenibleMap.removeLayer(carrilBiciLayer);}else if(type==="parkings"){if(isActive){parkingBiciLayer.addTo(sostenibleMap);showNotification("Parkings Bici","Verde: Exterior | Rojo: Interior","info",);}else{sostenibleMap.removeLayer(parkingBiciLayer);}}};window.addGranaSaldo=function(amount,reason){const savedBalance=localStorage.getItem("granaGo_bj_balance");let currentBalance=savedBalance===null?500:parseInt(savedBalance);currentBalance+=amount;localStorage.setItem("granaGo_bj_balance",currentBalance);if(typeof updateBJUI==="function")updateBJUI();if(typeof updateGamesMenuBalance==="function")updateGamesMenuBalance();showNotification("¡GranáSaldo!",`+${amount} G$ por ${reason}`,"success");};window.updateGamesMenuBalance=function(){const savedBalance=localStorage.getItem("granaGo_bj_balance");const balance=savedBalance===null?500:parseInt(savedBalance);const el=document.getElementById("games-main-balance");if(el){el.innerHTML=`Saldo: <span class="notranslate" style="font-weight:800; color:var(--text-accent);">${balance}</span> G$`;}};const GAME_NAMES={wordle:"Granádle",sudoku:"Granádoku",memory:"Granámory",quiz:"Granáquiz",mastermind:"Granámind",encadenadas:"Granábras Encadenadas",blackjack:"GranáJack",geograna:"GeoGraná",};window.renderShop=function(){const items=getShopItems();const savedBalance=localStorage.getItem("granaGo_bj_balance");const balance=savedBalance===null?500:parseInt(savedBalance);const balDisplay=document.getElementById("tienda-balance-display");if(balDisplay)
 balDisplay.innerHTML=`Saldo actual: <span class="text-accent" style="font-weight:800;">${balance}</span> G$`;const colorsContainer=document.getElementById("shop-colors-container");const pwrContainer=document.getElementById("shop-powerups-container");const ownedColors=JSON.parse(localStorage.getItem("granaGo_owned_colors")||'["color-default"]',);const inventory=JSON.parse(localStorage.getItem("granaGo_inventory")||"{}",);const activeColor=localStorage.getItem("granaGo_accent_color")||"#2563eb";if(colorsContainer){colorsContainer.innerHTML=items.colors.map((c)=>{const isOwned=ownedColors.includes(c.id);const isActive=activeColor===c.hex;return`
-        <div class="transport-card" style="justify-content: space-between; border-left: 4px solid ${
-          c.hex
-        }; align-items: center; padding: 12px 15px;">
+        <div class="transport-card" style="justify-content: space-between; border-left: 4px solid ${c.hex
+                    }; align-items: center; padding: 12px 15px;">
           <div style="display: flex; align-items: center; gap: 15px">
-            <div class="card-icon-wrapper" style="background: ${
-              c.hex
-            }1A; color: ${c.hex}; width: 42px; height: 42px; min-width: 42px;">
+            <div class="card-icon-wrapper" style="background: ${c.hex
+                    }1A; color: ${c.hex}; width: 42px; height: 42px; min-width: 42px;">
               <i class="ri-palette-fill"></i>
             </div>
             <div class="transport-info">
               <h3 style="font-size: 0.95rem; margin:0;">${c.name}</h3>
-              <p style="margin:0; opacity: 0.7;">${
-                isOwned ? "Propiedad" : c.price + " G$"
-              }</p>
+              <p style="margin:0; opacity: 0.7;">${isOwned ? "Propiedad" : c.price + " G$"
+                    }</p>
             </div>
           </div>
           <div style="flex-shrink: 0; margin-left: 10px;">
-            ${
-              isOwned
-                ? `<button class="cookie-btn ${isActive?"secondary":"primary"}"
+            ${isOwned
+                        ? `<button class="cookie-btn ${isActive ? "secondary" : "primary"}"
 style="min-width: 100px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;"
 onclick="applyAccentColor('${c.hex}')"${isActive?"disabled":""}>${isActive?"Activo":"Usar"}</button>`
-                : `<button class="cookie-btn secondary"
+                        : `<button class="cookie-btn secondary"
 style="min-width: 100px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;"
 onclick="buyItem('${c.id}', 'color')">Comprar</button>`
-            }
+                    }
           </div>
         </div>`;}).join("");}
 if(pwrContainer){pwrContainer.innerHTML=items.powerups.map((p)=>{const count=inventory[p.id]||0;const gameName=GAME_NAMES[p.game]||"Juego";return`
@@ -1147,15 +1131,14 @@ const visContainer=document.getElementById("shop-visualizers-container");const o
          <p style="font-size:0.65rem; opacity:0.6; margin:0; line-height: 1.3;">Visualizador animado para el reproductor de radio.</p>
       </div>
 
-      ${
-        isOwned
-          ? `<button class="cookie-btn ${isOwned ? "secondary" : "primary"}"
+      ${isOwned
+                    ? `<button class="cookie-btn ${isOwned ? "secondary" : "primary"}"
 style="width: 100%; height: 42px; font-size: 0.8rem; flex: none; display: flex; align-items: center; justify-content: center;"
 onclick="equiparVisualizador('${v.file}')"${isActive?"disabled":""}>${isActive?"Activo":"Usar"}</button>`
-          : `<button class="cookie-btn secondary"
+                    : `<button class="cookie-btn secondary"
 style="width: 100%; height: 42px; font-size: 0.8rem;"
 onclick="buyItem('${v.id}', 'visualizer')"><span style="font-weight: 800;">${v.price}G$</span></button>`
-      }
+                }
     </div>`;}).join("");}};function renderTiendaRadio(){const tiendaContainer=document.getElementById("tienda-items-container");RADIO_SKINS.forEach((skin)=>{const isOwned=checkOwnership(skin.id);const isActive=localStorage.getItem("granaGo_active_radio_skin")===skin.img;tiendaContainer.innerHTML+=`
       <div class="shop-card">
         <div class="preview-container" style="background: #1a1a1a; border-radius: 15px; padding: 10px;">
